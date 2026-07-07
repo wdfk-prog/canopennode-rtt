@@ -79,6 +79,39 @@ remove_exact_line()
     mv "$tmp" "$file"
 }
 
+remove_config_define()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+    local macro="$3"
+
+    remove_exact_line "$config_file" "$macro=y"
+    remove_exact_line "$config_file" "# $macro is not set"
+    sed -i "/^#define[[:space:]]\+$macro\([[:space:]]\|$\)/d" "$rtconfig_file"
+}
+
+remove_config_value()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+    local macro="$3"
+
+    sed -i "/^$macro=/d" "$config_file"
+    sed -i "/^#define[[:space:]]\+$macro\([[:space:]]\|$\)/d" "$rtconfig_file"
+}
+
+remove_canopennode_auto_init_profile()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_APP_AUTO_INIT"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_NODE_ID"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_BITRATE_1000"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_BITRATE"
+}
+
 remove_ci_sconstruct_patch()
 {
     local sconstruct="$1"
@@ -247,6 +280,16 @@ append_canopennode_storage_eeprom_at24c()
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE" "32"
 }
 
+append_canopennode_manual_multiple_od()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_canopennode_default_objects "$config_file" "$rtconfig_file"
+    remove_canopennode_auto_init_profile "$config_file" "$rtconfig_file"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_MULTIPLE_OD"
+}
+
 append_canopennode_profile()
 {
     local config_file="$1"
@@ -301,6 +344,10 @@ append_canopennode_profile()
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_COMM_BUF_SIZE" "200"
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_LOG_BUF_SIZE" "2000"
             ;;
+        demo-manual-multiple-od)
+            log "CI Kconfig profile demo-manual-multiple-od: manual init with CO_MULTIPLE_OD"
+            append_canopennode_manual_multiple_od "$config_file" "$rtconfig_file"
+            ;;
         demo-storage-dfs)
             log "CI Kconfig profile demo-storage-dfs: DFS storage backend with CRC16 and OD_PERSIST_COMM"
             append_canopennode_storage_dfs "$config_file" "$rtconfig_file"
@@ -329,7 +376,7 @@ append_canopennode_profile()
             ;;
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
-            echo "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-sdo-client-gateway demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" >&2
+            echo "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" >&2
             exit 1
             ;;
     esac
@@ -448,6 +495,10 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "CO_fifo.o"
             verify_profile_object "$bsp_dir" "CO_gateway_ascii.o"
             verify_profile_object "$bsp_dir" "crc16-ccitt.o"
+            ;;
+        demo-manual-multiple-od)
+            verify_profile_object "$bsp_dir" "CO_app_RTT.o"
+            verify_profile_object "$bsp_dir" "OD.o"
             ;;
         demo-storage-dfs)
             verify_profile_object "$bsp_dir" "CO_storage.o"
