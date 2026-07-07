@@ -38,6 +38,8 @@ jobs:
           - demo-default
           - demo-pdo-sync
           - demo-sdo-client-gateway
+          - demo-storage-dfs
+          - demo-storage-eeprom-at24c
           - demo-safety-debug
     env:
       ARM_GCC_ARCHIVE: gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2

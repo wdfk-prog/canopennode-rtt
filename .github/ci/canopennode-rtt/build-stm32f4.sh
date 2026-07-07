@@ -9,6 +9,8 @@ RTTHREAD_ENV_REF="${RTTHREAD_ENV_REF:-master}"
 STM32_BSP="${STM32_BSP:-bsp/stm32/stm32f407-atk-explorer}"
 STM32_SERIES_LC="${STM32_SERIES_LC:-stm32f4}"
 CANOPENNODE_CI_PROFILE="${CANOPENNODE_CI_PROFILE:-demo-default}"
+AT24CXX_REPO_URL="${AT24CXX_REPO_URL:-https://github.com/XiaojieFan/at24cxx.git}"
+AT24CXX_REF="${AT24CXX_REF:-master}"
 PACKAGE_ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
 WORK_DIR="${WORK_DIR:-$PACKAGE_ROOT/_ci}"
 RTTHREAD_DIR="$WORK_DIR/rt-thread"
@@ -201,6 +203,50 @@ append_canopennode_default_objects()
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_LSS_SLAVE"
 }
 
+append_canopennode_storage_common()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_MAX_ENTRIES_COUNT" "1"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_PERSIST_COMM"
+}
+
+append_canopennode_storage_dfs()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_canopennode_default_objects "$config_file" "$rtconfig_file"
+    append_canopennode_storage_common "$config_file" "$rtconfig_file"
+    append_config_define "$config_file" "$rtconfig_file" "RT_USING_DFS"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_DFS"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_DFS_DIR" '"/flash/canopen"'
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH" "128"
+}
+
+append_canopennode_storage_eeprom_at24c()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_canopennode_default_objects "$config_file" "$rtconfig_file"
+    append_canopennode_storage_common "$config_file" "$rtconfig_file"
+    append_config_define "$config_file" "$rtconfig_file" "RT_USING_I2C"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_USING_AT24CXX"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_AT24CXX_EE_TYPE_AT24C512"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_AT24CXX_EE_TYPE" "AT24C512"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_EEPROM"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_AT24C"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_I2C_BUS_NAME" '"i2c1"'
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_ADDR_INPUT" "0"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_OFFSET" "0"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE" "32"
+}
+
 append_canopennode_profile()
 {
     local config_file="$1"
@@ -255,6 +301,14 @@ append_canopennode_profile()
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_COMM_BUF_SIZE" "200"
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_LOG_BUF_SIZE" "2000"
             ;;
+        demo-storage-dfs)
+            log "CI Kconfig profile demo-storage-dfs: DFS storage backend with CRC16 and OD_PERSIST_COMM"
+            append_canopennode_storage_dfs "$config_file" "$rtconfig_file"
+            ;;
+        demo-storage-eeprom-at24c)
+            log "CI Kconfig profile demo-storage-eeprom-at24c: EEPROM storage backend with AT24CXX and CRC16"
+            append_canopennode_storage_eeprom_at24c "$config_file" "$rtconfig_file"
+            ;;
         demo-safety-debug)
             log "CI Kconfig profile demo-safety-debug: GFC/SRDO, CAN HDR filter, ulog debug"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -275,8 +329,145 @@ append_canopennode_profile()
             ;;
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
-            echo "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-sdo-client-gateway demo-safety-debug" >&2
+            echo "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-sdo-client-gateway demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" >&2
             exit 1
+            ;;
+    esac
+}
+
+profile_uses_at24cxx_github_source()
+{
+    case "$CANOPENNODE_CI_PROFILE" in
+        demo-storage-eeprom-at24c)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+
+fetch_at24cxx_github_source()
+{
+    local bsp_dir="$1"
+    local at24cxx_dir="$bsp_dir/packages/at24cxx"
+
+    if ! profile_uses_at24cxx_github_source; then
+        return 0
+    fi
+
+    log "Fetch AT24CXX source from $AT24CXX_REPO_URL ref=$AT24CXX_REF"
+    clone_repo "$AT24CXX_REPO_URL" "$AT24CXX_REF" "$at24cxx_dir"
+}
+
+patch_at24cxx_staged_build_graph()
+{
+    local bsp_dir="$1"
+    local pkg_dir="$bsp_dir/packages/$PACKAGE_NAME"
+    local root_scon="$pkg_dir/SConscript"
+    local storage_scon="$pkg_dir/port/rtthread/storage/SConscript"
+
+    if ! profile_uses_at24cxx_github_source; then
+        return 0
+    fi
+
+    log "Patch staged CANopenNode SCons graph for external AT24CXX source"
+    python3 - "$root_scon" "$storage_scon" <<'PY_PATCH_AT24CXX'
+from pathlib import Path
+import sys
+
+root_scon = Path(sys.argv[1])
+storage_scon = Path(sys.argv[2])
+
+root = root_scon.read_text()
+include_line = "    os.path.abspath(os.path.join(cwd, '..', 'at24cxx')),"
+if include_line not in root:
+    marker = "    os.path.join(cwd, 'CANopenNode', 'extra'),\n]"
+    if marker not in root:
+        raise SystemExit(f"root SConscript marker not found: {root_scon}")
+    root = root.replace(marker, "    os.path.join(cwd, 'CANopenNode', 'extra'),\n" + include_line + "\n]", 1)
+    root_scon.write_text(root)
+
+storage = storage_scon.read_text()
+source_line = "        _add_required(os.path.join('..', 'at24cxx', 'at24cxx.c'))"
+if source_line not in storage:
+    marker = "        _add_required(os.path.join('port', 'rtthread', 'storage', 'CO_storage_RTT_at24c.c'))"
+    if marker not in storage:
+        raise SystemExit(f"storage SConscript marker not found: {storage_scon}")
+    storage = storage.replace(marker, marker + "\n" + source_line, 1)
+    storage_scon.write_text(storage)
+PY_PATCH_AT24CXX
+}
+
+verify_profile_dependencies()
+{
+    local bsp_dir="$1"
+    local at24cxx_dir="$bsp_dir/packages/at24cxx"
+
+    case "$CANOPENNODE_CI_PROFILE" in
+        demo-storage-eeprom-at24c)
+            if [ ! -f "$at24cxx_dir/at24cxx.h" ] || [ ! -f "$at24cxx_dir/at24cxx.c" ]; then
+                echo "AT24CXX source was not fetched from GitHub for profile=$CANOPENNODE_CI_PROFILE" >&2
+                echo "Expected: $at24cxx_dir/at24cxx.h and $at24cxx_dir/at24cxx.c" >&2
+                exit 1
+            fi
+            if ! grep -Eq '^[[:space:]]*#define[[:space:]]+AT24CXX_MAX_MEM_ADDRESS' "$at24cxx_dir/at24cxx.h"; then
+                echo "AT24CXX header does not expose AT24CXX_MAX_MEM_ADDRESS: $at24cxx_dir/at24cxx.h" >&2
+                exit 1
+            fi
+            if ! grep -Eq '^[[:space:]]*#define[[:space:]]+AT24CXX_PAGE_BYTE' "$at24cxx_dir/at24cxx.h"; then
+                echo "AT24CXX header does not expose AT24CXX_PAGE_BYTE: $at24cxx_dir/at24cxx.h" >&2
+                exit 1
+            fi
+            ;;
+    esac
+}
+
+verify_profile_object()
+{
+    local bsp_dir="$1"
+    local object_name="$2"
+    local object_path
+
+    object_path="$(find "$bsp_dir/build" -type f -name "$object_name" -print -quit)"
+    if [ -z "$object_path" ]; then
+        echo "Expected profile object was not built: $object_name" >&2
+        exit 1
+    fi
+    log "Profile object: ${object_path#$bsp_dir/}"
+}
+
+verify_profile_outputs()
+{
+    local bsp_dir="$1"
+
+    case "$CANOPENNODE_CI_PROFILE" in
+        demo-sdo-client-gateway)
+            verify_profile_object "$bsp_dir" "CO_SDOclient.o"
+            verify_profile_object "$bsp_dir" "CO_fifo.o"
+            verify_profile_object "$bsp_dir" "CO_gateway_ascii.o"
+            verify_profile_object "$bsp_dir" "crc16-ccitt.o"
+            ;;
+        demo-storage-dfs)
+            verify_profile_object "$bsp_dir" "CO_storage.o"
+            verify_profile_object "$bsp_dir" "CO_storage_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_storage_RTT_dfs.o"
+            verify_profile_object "$bsp_dir" "crc16-ccitt.o"
+            ;;
+        demo-storage-eeprom-at24c)
+            verify_profile_object "$bsp_dir" "CO_storage.o"
+            verify_profile_object "$bsp_dir" "CO_storageEeprom.o"
+            verify_profile_object "$bsp_dir" "CO_storage_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_storage_RTT_eeprom.o"
+            verify_profile_object "$bsp_dir" "CO_storage_RTT_at24c.o"
+            verify_profile_object "$bsp_dir" "at24cxx.o"
+            verify_profile_object "$bsp_dir" "crc16-ccitt.o"
+            ;;
+        demo-safety-debug)
+            verify_profile_object "$bsp_dir" "CO_GFC.o"
+            verify_profile_object "$bsp_dir" "CO_SRDO.o"
+            verify_profile_object "$bsp_dir" "crc16-ccitt.o"
             ;;
     esac
 }
@@ -297,7 +488,7 @@ EOF_RTCONFIG
 
     append_canopennode_profile "$config_file" "$rtconfig_file" "$CANOPENNODE_CI_PROFILE"
 
-    grep -E '^(#define[[:space:]]+(RT_USING_CAN|RT_USING_ULOG|RT_CAN_USING_HDR|BSP_USING_CAN|PKG_USING_CANOPENNODE|PKG_CANOPENNODE_))' "$rtconfig_file" \
+    grep -E '^(#define[[:space:]]+(RT_USING_CAN|RT_USING_ULOG|RT_USING_DFS|RT_USING_I2C|RT_CAN_USING_HDR|BSP_USING_CAN|PKG_USING_CANOPENNODE|PKG_USING_AT24CXX|PKG_AT24CXX_|AT24CXX_|PKG_CANOPENNODE_))' "$rtconfig_file" \
         2>&1 | tee -a "$LOG_FILE"
 }
 
@@ -435,10 +626,14 @@ rsync -a --delete \
 
 remove_ci_sconstruct_patch "$BSP_DIR/SConstruct"
 apply_ci_config "$BSP_DIR"
+fetch_at24cxx_github_source "$BSP_DIR"
+patch_at24cxx_staged_build_graph "$BSP_DIR"
+verify_profile_dependencies "$BSP_DIR"
 cleanup_canopennode_build_artifacts "$BSP_DIR"
 
 cd "$BSP_DIR"
 run_logged scons -j"$(nproc)"
 verify_outputs "$BSP_DIR"
+verify_profile_outputs "$BSP_DIR"
 
 log "CANOPENNODE_STM32F4_BUILD_PASS profile=$CANOPENNODE_CI_PROFILE"

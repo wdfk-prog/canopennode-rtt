@@ -1,7 +1,7 @@
 {
   "name": "canopennode-rtt-stm32f4-profile-matrix",
   "project_root": ".",
-  "description": "Bounded legal compile profiles for the CANopenNode RT-Thread Kconfig and CO_CONFIG macro integration. This is a representative profile matrix, not an unconstrained full cartesian product.",
+  "description": "Bounded legal compile profiles for the CANopenNode RT-Thread Kconfig and CO_CONFIG macro integration, including dependency-oriented profiles for storage backends and helper macros. This is a representative profile matrix, not an unconstrained full cartesian product.",
   "axes": [
     {
       "name": "PROFILE",
@@ -10,6 +10,8 @@
         "demo-default",
         "demo-pdo-sync",
         "demo-sdo-client-gateway",
+        "demo-storage-dfs",
+        "demo-storage-eeprom-at24c",
         "demo-safety-debug"
       ]
     }
