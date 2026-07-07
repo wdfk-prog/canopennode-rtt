@@ -123,7 +123,7 @@ Most behavior is controlled through `Kconfig`. Important options include:
 
 | Option | Purpose |
 |---|---|
-| `PKG_CANOPENNODE_CAN_DEV_NAME` | Default RT-Thread CAN device name. |
+| `PKG_CANOPENNODE_CAN_DEV_NAME` | RT-Thread CAN device name used by auto init and the CAN driver fallback path. |
 | `PKG_CANOPENNODE_APP_AUTO_INIT` | Automatically create one default instance at RT-Thread application initialization. |
 | `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | Default Node-ID for auto initialization. |
 | `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | Default bitrate for auto initialization. |

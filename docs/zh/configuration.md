@@ -18,11 +18,11 @@
 
 | 选项 | 默认值 | 说明 |
 |---|---:|---|
-| `PKG_CANOPENNODE_CAN_DEV_NAME` | `"can1"` | 软件包通用 RT-Thread CAN 设备名。 |
+| `PKG_CANOPENNODE_CAN_DEV_NAME` | `"can1"` | auto init 和 CAN driver fallback 共用的 RT-Thread CAN 设备名。 |
 | `PKG_CANOPENNODE_CAN_BINDING_COUNT` | `1` | RT-Thread CAN 设备绑定表大小。多实例设计时才需要增大。 |
 | `PKG_CANOPENNODE_USING_RTT_CAN_FILTER` | `n` | BSP 支持且所有 RX buffer 可分配过滤器时，使用 RT-Thread CAN HDR filters。 |
 
-如果配置的 CAN 设备名无法被 BSP 的 `rt_device_find()` 找到，初始化会在 CANopen 通信启动前失败。
+如果配置的 CAN 设备名无法被 BSP 的 `rt_device_find()` 找到，初始化会在 CANopen 通信启动前失败。auto init 也使用同一个设备名，不再提供独立的 auto-init CAN 设备配置项。
 
 ## 3. 运行线程选项
 
@@ -57,7 +57,6 @@ RX helper priority <= realtime priority < mainline priority
 | `PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS` | `500` | 默认 SDO client timeout。 |
 | `PKG_CANOPENNODE_APP_SDO_CLI_BLOCK` | `n` | 支持时默认启用 SDO client block transfer。 |
 | `PKG_CANOPENNODE_APP_AUTO_INIT` | `y` | RT-Thread 应用初始化阶段创建一个默认实例。 |
-| `PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME` | `"can1"` | auto init 使用的 CAN 设备名。 |
 | `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | `1` | auto init 使用的 Node-ID。 |
 | `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | `1000` | auto init 使用的 bitrate。 |
 

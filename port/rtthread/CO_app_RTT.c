@@ -844,7 +844,7 @@ static CANopenNodeRTT co_app_rtt_default;
  */
 static int co_app_rtt_auto_init(void)
 {
-    return (int)canopen_app_rtt_init(&co_app_rtt_default, PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME,
+    return (int)canopen_app_rtt_init(&co_app_rtt_default, PKG_CANOPENNODE_CAN_DEV_NAME,
                                      PKG_CANOPENNODE_AUTO_INIT_NODE_ID, PKG_CANOPENNODE_AUTO_INIT_BITRATE);
 }
 INIT_APP_EXPORT(co_app_rtt_auto_init);

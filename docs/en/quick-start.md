@@ -86,9 +86,8 @@ For a first demo, keep most defaults and verify these items:
 
 | Option | Recommended first value |
 |---|---|
-| `PKG_CANOPENNODE_CAN_DEV_NAME` | BSP CAN device name, for example `can1`. |
+| `PKG_CANOPENNODE_CAN_DEV_NAME` | BSP CAN device name used by auto init, for example `can1`. |
 | `PKG_CANOPENNODE_APP_AUTO_INIT` | `y` for the first demo. |
-| `PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME` | Same as the real RT-Thread CAN device name. |
 | `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | A unique value from `1` to `127`. |
 | `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | The bus bitrate, for example `1000`. |
 | `PKG_CANOPENNODE_USING_DEMO_OD` | `y` for first bring-up. |

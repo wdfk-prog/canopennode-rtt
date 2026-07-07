@@ -86,9 +86,8 @@ PKG_USING_CANOPENNODE=y
 
 | 选项 | 首次建议值 |
 |---|---|
-| `PKG_CANOPENNODE_CAN_DEV_NAME` | BSP 实际 CAN 设备名，例如 `can1`。 |
+| `PKG_CANOPENNODE_CAN_DEV_NAME` | auto init 使用的 BSP 实际 CAN 设备名，例如 `can1`。 |
 | `PKG_CANOPENNODE_APP_AUTO_INIT` | 首次 demo 建议为 `y`。 |
-| `PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME` | 与实际 RT-Thread CAN 设备名一致。 |
 | `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | `1` 到 `127` 范围内的唯一值。 |
 | `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | 总线 bitrate，例如 `1000`。 |
 | `PKG_CANOPENNODE_USING_DEMO_OD` | 首次 bring-up 建议为 `y`。 |

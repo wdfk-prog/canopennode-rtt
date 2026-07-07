@@ -123,7 +123,7 @@ flowchart TD
 
 | 选项 | 用途 |
 |---|---|
-| `PKG_CANOPENNODE_CAN_DEV_NAME` | 默认 RT-Thread CAN 设备名。 |
+| `PKG_CANOPENNODE_CAN_DEV_NAME` | auto init 和 CAN driver fallback 共用的 RT-Thread CAN 设备名。 |
 | `PKG_CANOPENNODE_APP_AUTO_INIT` | 在 RT-Thread 应用初始化阶段自动创建一个默认实例。 |
 | `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | 自动初始化使用的默认 Node-ID。 |
 | `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | 自动初始化使用的默认 bitrate。 |

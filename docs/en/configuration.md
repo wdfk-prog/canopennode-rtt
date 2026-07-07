@@ -18,11 +18,11 @@ When this option is disabled, the package contributes no source files to the bui
 
 | Option | Default | Notes |
 |---|---:|---|
-| `PKG_CANOPENNODE_CAN_DEV_NAME` | `"can1"` | General RT-Thread CAN device name used by package configuration. |
+| `PKG_CANOPENNODE_CAN_DEV_NAME` | `"can1"` | RT-Thread CAN device used by auto init and by the CAN driver fallback path. |
 | `PKG_CANOPENNODE_CAN_BINDING_COUNT` | `1` | Maximum number of RT-Thread CAN device bindings. Increase only for multi-instance designs. |
 | `PKG_CANOPENNODE_USING_RTT_CAN_FILTER` | `n` | Uses RT-Thread CAN HDR filters when available and when all RX buffers can be assigned filters. |
 
-If the configured CAN device name does not match a BSP device returned by `rt_device_find()`, initialization fails before CANopen communication starts.
+If the configured CAN device name does not match a BSP device returned by `rt_device_find()`, initialization fails before CANopen communication starts. Auto initialization uses this same device name; there is no separate auto-init CAN-device option.
 
 ## 3. Runtime thread options
 
@@ -57,7 +57,6 @@ Because RT-Thread uses lower numeric values as higher priorities, the default RX
 | `PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS` | `500` | Default SDO client timeout. |
 | `PKG_CANOPENNODE_APP_SDO_CLI_BLOCK` | `n` | Enables SDO client block transfer by default when supported. |
 | `PKG_CANOPENNODE_APP_AUTO_INIT` | `y` | Creates one default instance during RT-Thread application initialization. |
-| `PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME` | `"can1"` | CAN device used by auto init. |
 | `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | `1` | Node-ID used by auto init. |
 | `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | `1000` | Bitrate used by auto init. |
 

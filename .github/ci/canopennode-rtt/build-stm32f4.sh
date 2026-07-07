@@ -106,7 +106,6 @@ remove_canopennode_auto_init_profile()
     local rtconfig_file="$2"
 
     remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_APP_AUTO_INIT"
-    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME"
     remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_NODE_ID"
     remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_BITRATE_1000"
     remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_BITRATE"
@@ -195,7 +194,6 @@ append_canopennode_base_profile()
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_APP_SDO_SRV_TIMEOUT_MS" "1000"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS" "500"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_APP_AUTO_INIT"
-    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME" '"can1"'
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_NODE_ID" "1"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_BITRATE_1000"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_AUTO_INIT_BITRATE" "1000"

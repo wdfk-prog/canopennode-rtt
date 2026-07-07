@@ -22,7 +22,9 @@ config PKG_CANOPENNODE_CAN_DEV_NAME
     string "RT-Thread CAN device name"
     default "can1"
     help
-        RT-Thread CAN device name passed to rt_device_find(). Change this when
+        RT-Thread CAN device name passed to rt_device_find(). It is used by the
+        default auto-initialized instance and as the fallback device name when
+        CO_CANmodule_init() is called with a NULL CAN pointer. Change this when
         the BSP exposes the CAN controller as a different device, such as can0.
 
 config PKG_CANOPENNODE_CAN_BINDING_COUNT
@@ -212,16 +214,6 @@ config PKG_CANOPENNODE_APP_AUTO_INIT
         for a single-node demo or product. Disable it when the product creates
         one or more CANopenNodeRTT instances explicitly and calls
         canopen_app_rtt_init() from board or application code.
-
-config PKG_CANOPENNODE_AUTO_INIT_CAN_DEV_NAME
-    string "Auto init RT-Thread CAN device name"
-    default "can1"
-    depends on PKG_CANOPENNODE_APP_AUTO_INIT
-    help
-        RT-Thread CAN device name used by the default auto-initialized instance.
-        It must match a device returned by rt_device_find(), for example can0 or
-        can1. A wrong name makes automatic initialization fail before CANopen
-        communication starts.
 
 config PKG_CANOPENNODE_AUTO_INIT_NODE_ID
     int "Auto init CANopen Node-ID"
@@ -918,7 +910,7 @@ config PKG_CANOPENNODE_STORAGE_PERSIST_MANU
         0x1011. Enable this only when the generated OD.h provides
         OD_PERSIST_MANU.
 
-source "port/rtthread/storage/Kconfig"
+rsource "port/rtthread/storage/Kconfig"
 
 endif
 
