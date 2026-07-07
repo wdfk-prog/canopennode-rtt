@@ -2,6 +2,10 @@
 
 # Documentation
 
+Rendered documentation site:
+
+[https://wdfk-prog.space/canopennode-rtt/](https://wdfk-prog.space/canopennode-rtt/)
+
 This directory contains the bilingual documentation for CANopenNode RT-Thread.
 
 ## English

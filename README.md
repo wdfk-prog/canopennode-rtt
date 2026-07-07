@@ -2,6 +2,8 @@
 
 # CANopenNode RT-Thread
 
+[Online Documentation](https://wdfk-prog.space/canopennode-rtt/)
+
 CANopenNode RT-Thread is an RT-Thread integration port for [CANopenNode](https://github.com/CANopenNode/CANopenNode). It provides the RT-Thread CAN device binding, Kconfig options, SCons build integration, runtime thread model, storage backends, and a generated demo Object Dictionary for bring-up.
 
 This repository does not reimplement the CANopen protocol stack. The CANopen protocol core is consumed from the `CANopenNode` git submodule, while this repository provides the RT-Thread target layer and package wrapper.

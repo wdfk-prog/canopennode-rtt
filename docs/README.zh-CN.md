@@ -2,6 +2,10 @@
 
 # 文档
 
+在线渲染后的文档站点：
+
+[https://wdfk-prog.space/canopennode-rtt/](https://wdfk-prog.space/canopennode-rtt/)
+
 本目录包含 CANopenNode RT-Thread 的中英文文档。
 
 ## 中文

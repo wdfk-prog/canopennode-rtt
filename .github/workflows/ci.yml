@@ -1,0 +1,170 @@
+name: CI
+
+"on":
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RTTHREAD_REF: master
+  RTTHREAD_ENV_REF: master
+  STM32_BSP: bsp/stm32/stm32f407-atk-explorer
+  STM32_SERIES_LC: stm32f4
+  PACKAGE_NAME: canopennode-rtt
+
+jobs:
+  stm32f4-build:
+    name: STM32F4 BSP compile check (${{ matrix.profile }})
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - demo-minimal
+          - demo-default
+          - demo-pdo-sync
+          - demo-sdo-client-gateway
+          - demo-safety-debug
+    env:
+      ARM_GCC_ARCHIVE: gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
+      ARM_GCC_DIR: /opt/gcc-arm-none-eabi
+      ARM_GCC_SHA256: 97dbb4f019ad1650b732faffcc881689cedc14e2b7ee863d390e0a41ef16c9a3
+      ARM_GCC_URL: https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
+      ARM_GCC_VERSION: 10.3-2021.10
+      RTT_CC: gcc
+      RTT_EXEC_PATH: /opt/gcc-arm-none-eabi/bin
+      CANOPENNODE_CI_PROFILE: ${{ matrix.profile }}
+    steps:
+      - name: Checkout package
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install host packages
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update -qq \
+            -o Acquire::Retries=5 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30
+          timeout 20m sudo apt-get install -y --no-install-recommends \
+            -o Acquire::Retries=5 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            bzip2 ca-certificates git make rsync wget
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: .github/ci/canopennode-rtt/requirements.txt
+
+      - name: Install Python build dependencies
+        run: |
+          python -m pip install --user -r .github/ci/canopennode-rtt/requirements.txt
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          python - <<'PY'
+          import SCons
+          print("SCons version:", SCons.__version__)
+          PY
+
+      - name: Prepare ARM GCC directory
+        run: |
+          sudo mkdir -p "$ARM_GCC_DIR"
+          sudo chown -R "$USER:$(id -gn)" "$ARM_GCC_DIR"
+
+      - name: Restore ARM GCC cache
+        id: cache-arm-gcc
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.ARM_GCC_DIR }}
+          key: ${{ runner.os }}-arm-gcc-${{ env.ARM_GCC_VERSION }}-v1
+
+      - name: Install ARM GCC on cache miss
+        if: steps.cache-arm-gcc.outputs.cache-hit != 'true'
+        timeout-minutes: 25
+        run: |
+          tmp_dir="$(mktemp -d)"
+          trap 'rm -rf "$tmp_dir"' EXIT
+          wget --tries=5 --timeout=30 -O "$tmp_dir/$ARM_GCC_ARCHIVE" "$ARM_GCC_URL"
+          echo "$ARM_GCC_SHA256  $tmp_dir/$ARM_GCC_ARCHIVE" | sha256sum -c -
+          tar -xjf "$tmp_dir/$ARM_GCC_ARCHIVE" -C "$tmp_dir"
+          extracted_dir="$(find "$tmp_dir" -maxdepth 1 -type d -name 'gcc-arm-none-eabi-*' -print -quit)"
+          test -n "$extracted_dir"
+          rm -rf "$ARM_GCC_DIR"/*
+          cp -a "$extracted_dir"/. "$ARM_GCC_DIR"/
+          test -x "$ARM_GCC_DIR/bin/arm-none-eabi-gcc"
+
+      - name: Export ARM GCC
+        run: |
+          echo "$ARM_GCC_DIR/bin" >> "$GITHUB_PATH"
+          echo "RTT_EXEC_PATH=$ARM_GCC_DIR/bin" >> "$GITHUB_ENV"
+          "$ARM_GCC_DIR/bin/arm-none-eabi-gcc" --version
+
+      - name: Build package in STM32F4 BSP
+        run: bash .github/ci/canopennode-rtt/build-stm32f4.sh
+
+      - name: Upload STM32F4 build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stm32f4-build-log-${{ matrix.profile }}
+          path: _ci/build-stm32f4.log
+          if-no-files-found: error
+
+  doxygen:
+    name: Doxygen documentation
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout package
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Doxygen
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update -qq \
+            -o Acquire::Retries=5 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30
+          timeout 20m sudo apt-get install -y --no-install-recommends \
+            -o Acquire::Retries=5 \
+            -o Acquire::http::Timeout=30 \
+            -o Acquire::https::Timeout=30 \
+            doxygen graphviz
+
+      - name: Generate Doxygen HTML
+        run: |
+          doxygen Doxyfile 2>&1 | tee doxygen.log
+          test "${PIPESTATUS[0]}" -eq 0
+
+      - name: Upload Doxygen log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-log
+          path: doxygen.log
+          if-no-files-found: error
+
+      - name: Upload Doxygen HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-html
+          path: _doxygen/html
+          if-no-files-found: error

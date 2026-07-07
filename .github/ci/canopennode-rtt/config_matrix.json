@@ -1,0 +1,26 @@
+{
+  "name": "canopennode-rtt-stm32f4-profile-matrix",
+  "project_root": ".",
+  "description": "Bounded legal compile profiles for the CANopenNode RT-Thread Kconfig and CO_CONFIG macro integration. This is a representative profile matrix, not an unconstrained full cartesian product.",
+  "axes": [
+    {
+      "name": "PROFILE",
+      "values": [
+        "demo-minimal",
+        "demo-default",
+        "demo-pdo-sync",
+        "demo-sdo-client-gateway",
+        "demo-safety-debug"
+      ]
+    }
+  ],
+  "case_classifiers": [],
+  "generated_files": [],
+  "commands": [
+    {
+      "name": "stm32f4-bsp-build",
+      "cmd": "WORK_DIR={case_dir}/_ci CANOPENNODE_CI_PROFILE={PROFILE} bash .github/ci/canopennode-rtt/build-stm32f4.sh",
+      "timeout_sec": 3600
+    }
+  ]
+}

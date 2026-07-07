@@ -2,6 +2,8 @@
 
 # CANopenNode RT-Thread
 
+[在线文档](https://wdfk-prog.space/canopennode-rtt/)
+
 CANopenNode RT-Thread 是面向 [CANopenNode](https://github.com/CANopenNode/CANopenNode) 的 RT-Thread 集成移植层，提供 RT-Thread CAN 设备绑定、Kconfig 配置、SCons 构建接入、运行线程模型、存储后端以及用于 bring-up 的 demo Object Dictionary。
 
 本仓库不重新实现 CANopen 协议栈。CANopen 协议核心来自 `CANopenNode` git 子模块；本仓库主要提供 RT-Thread target 层和 package wrapper。
