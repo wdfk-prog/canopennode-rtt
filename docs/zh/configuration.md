@@ -76,14 +76,21 @@ RX helper priority <= realtime priority < mainline priority
 
 ## 6. CiA 301 服务
 
-### NMT、heartbeat 和 node guarding
+### NMT 和 heartbeat
 
 | 选项 | 默认值 | 说明 |
 |---|---:|---|
 | `PKG_CANOPENNODE_NMT_CALLBACK_CHANGE` | `n` | 本地 NMT 状态变化时触发应用回调。 |
 | `PKG_CANOPENNODE_NMT_MASTER` | `n` | 允许本节点发送简单 NMT master 命令。 |
 | `PKG_CANOPENNODE_USING_HB_CONS` | `y` | heartbeat consumer 支持。 |
-| `PKG_CANOPENNODE_USING_NODE_GUARDING` | `n` | 旧式 node guarding 支持。新设计优先使用 heartbeat。 |
+
+### 旧式 node guarding
+
+| 选项 | 默认值 | 说明 |
+|---|---:|---|
+| `PKG_CANOPENNODE_USING_NODE_GUARDING` | `n` | 仅用于旧系统兼容。demo CI profile 不启用；新设计优先使用 heartbeat producer/consumer 和 heartbeat time 配置。 |
+
+Node guarding slave 还要求 OD 中存在 0x100C Guard Time 和 0x100D Lifetime Factor。当前 demo OD 没有这两个对象，因此 demo CI 矩阵明确排除 Node Guarding。
 
 ### Emergency
 

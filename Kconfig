@@ -372,7 +372,7 @@ config PKG_CANOPENNODE_USING_MULTIPLE_OD
 
 endmenu
 
-menu "CiA 301 NMT, heartbeat and node guarding"
+menu "CiA 301 NMT and heartbeat"
 
 config PKG_CANOPENNODE_NMT_CALLBACK_CHANGE
     bool "NMT callback on state change"
@@ -456,27 +456,42 @@ config PKG_CANOPENNODE_HB_CONS_QUERY_FUNCT
 
 endif
 
+endmenu
+
+menu "CiA 301 legacy node guarding"
+
+comment "Node guarding is legacy and is not covered by demo CI profiles; prefer heartbeat supervision."
+
 menuconfig PKG_CANOPENNODE_USING_NODE_GUARDING
-    bool "Enable node guarding"
+    bool "Enable legacy node guarding"
     default n
     help
         Enable CANopen node guarding support. Node guarding is the legacy
         error-control method where a master polls a node and checks the returned
         state/toggle information.
 
-        For new designs, prefer NMT plus heartbeat producer/consumer. Enable
-        node guarding only for older CANopen networks, older masters, or devices
-        that explicitly require node/life guarding compatibility. It adds polling
-        traffic and is usually less convenient than heartbeat supervision.
+        This package does not need node guarding for the default demo or CI
+        profiles. For new designs, prefer NMT plus heartbeat producer/consumer
+        and configure heartbeat timing, for example with
+        PKG_CANOPENNODE_APP_FIRST_HB_TIME_MS and heartbeat consumer settings.
+
+        Enable node guarding only for older CANopen networks, older masters, or
+        devices that explicitly require node/life guarding compatibility. The
+        slave path also requires Object Dictionary entries 0x100C Guard Time and
+        0x100D Lifetime Factor; the bundled demo OD does not define them.
 
 if PKG_CANOPENNODE_USING_NODE_GUARDING
 
 config PKG_CANOPENNODE_NODE_GUARDING_SLAVE
     bool "Enable node guarding slave"
-    default y
+    default n
     help
         Add CO_CONFIG_NODE_GUARDING_SLAVE_ENABLE. The local device can respond
         to node guarding requests from an external master.
+
+        Enable this only when the product Object Dictionary defines 0x100C Guard
+        Time and 0x100D Lifetime Factor. Prefer heartbeat supervision for new
+        products.
 
 config PKG_CANOPENNODE_NODE_GUARDING_MASTER
     bool "Enable node guarding master"

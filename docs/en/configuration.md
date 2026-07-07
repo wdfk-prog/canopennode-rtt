@@ -76,14 +76,21 @@ Keep dynamic OD enabled for configurable devices unless the product intentionall
 
 ## 6. CiA 301 services
 
-### NMT, heartbeat, and node guarding
+### NMT and heartbeat
 
 | Option | Default | Notes |
 |---|---:|---|
 | `PKG_CANOPENNODE_NMT_CALLBACK_CHANGE` | `n` | Application callback on local NMT state change. |
 | `PKG_CANOPENNODE_NMT_MASTER` | `n` | Allows this node to transmit simple NMT master commands. |
 | `PKG_CANOPENNODE_USING_HB_CONS` | `y` | Heartbeat consumer support. |
-| `PKG_CANOPENNODE_USING_NODE_GUARDING` | `n` | Legacy node guarding support. Prefer heartbeat for new designs. |
+
+### Legacy node guarding
+
+| Option | Default | Notes |
+|---|---:|---|
+| `PKG_CANOPENNODE_USING_NODE_GUARDING` | `n` | Legacy compatibility only. Demo CI profiles do not enable it; prefer heartbeat producer/consumer and heartbeat timing for new designs. |
+
+Node guarding slave additionally requires OD entries 0x100C Guard Time and 0x100D Lifetime Factor. The bundled demo OD does not provide them, so the demo CI matrix intentionally excludes Node Guarding.
 
 ### Emergency
 

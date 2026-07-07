@@ -256,15 +256,11 @@ append_canopennode_profile()
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_LOG_BUF_SIZE" "2000"
             ;;
         demo-safety-debug)
-            log "CI Kconfig profile demo-safety-debug: node guarding, GFC/SRDO, CAN HDR filter, ulog debug"
+            log "CI Kconfig profile demo-safety-debug: GFC/SRDO, CAN HDR filter, ulog debug"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
             append_config_define "$config_file" "$rtconfig_file" "RT_USING_ULOG"
             append_config_define "$config_file" "$rtconfig_file" "RT_CAN_USING_HDR"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_RTT_CAN_FILTER"
-            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_NODE_GUARDING"
-            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NODE_GUARDING_SLAVE"
-            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NODE_GUARDING_MASTER"
-            append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NODE_GUARDING_MASTER_COUNT" "8"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_GFC"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GFC_CONSUMER"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GFC_PRODUCER"
