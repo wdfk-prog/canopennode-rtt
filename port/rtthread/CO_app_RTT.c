@@ -33,7 +33,7 @@
 
 #include <rthw.h>
 #if defined(PKG_CANOPENNODE_LEDS_USING_RTT_PIN)
-#include <drivers/pin.h>
+#include <drivers/dev_pin.h>
 #endif /* defined(PKG_CANOPENNODE_LEDS_USING_RTT_PIN) */
 #include <stdint.h>
 #include <string.h>
