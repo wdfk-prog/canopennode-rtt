@@ -105,6 +105,10 @@ typedef struct {
 
     CO_t *canOpenStack;              /**< CANopenNode object owned by this instance. */
 
+#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
+    rt_atomic_t timeDiagRxCount;      /**< Valid DLC=6 TIME receptions observed by callback-pre. */
+#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
+
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
     CO_storage_t storage;            /**< CANopenNode storage object owned by this instance. */
     CO_storage_entry_t storageEntries[CO_APP_RTT_STORAGE_ENTRY_COUNT]; /**< Storage entries owned by this instance. */

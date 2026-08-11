@@ -305,11 +305,12 @@ append_canopennode_profile()
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
             ;;
         demo-pdo-sync)
-            log "CI Kconfig profile demo-pdo-sync: PDO/SYNC/TIME with callback and timer flags"
+            log "CI Kconfig profile demo-pdo-sync: PDO/SYNC/TIME diagnostic with callback and timer flags"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_TIMERNEXT"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_CALLBACK_CHANGE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TIME_PRODUCER"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_BITWISE_MAPPING"

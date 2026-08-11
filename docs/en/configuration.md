@@ -118,6 +118,7 @@ Node guarding slave additionally requires OD entries 0x100C Guard Time and 0x100
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_TIME` | `y` | TIME consumer support by default. |
 | `PKG_CANOPENNODE_TIME_PRODUCER` | `n` | Enable only for the network time producer. |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Demo/test only. Requires the demo OD and publishes TIME consumer diagnostics at `0x2300`; selects callback-pre and dynamic OD support. |
 | `PKG_CANOPENNODE_USING_SYNC` | `y` | SYNC object support. |
 | `PKG_CANOPENNODE_SYNC_PRODUCER` | `y` | Local node can produce SYNC. Validate this against network topology. |
 | `PKG_CANOPENNODE_USING_PDO` | `y` | PDO object support. |
@@ -174,5 +175,8 @@ Exactly one storage backend must be selected when storage is enabled.
 | Option | Default | Notes |
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | Compiles `examples/demo_device/OD.c` and adds the demo OD include path. |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Updates demo OD `0x2300:01..03` from the TIME receive callback and applied `CO_TIME_t` state. |
 
-Disable this option when the BSP or application provides a custom generated `OD.c` and `OD.h` through its own SConscript and include path.
+The TIME diagnostic option is intended for automated demo/test validation. Product firmware with a custom OD should define its own observability contract instead of depending on demo object `0x2300`.
+
+Disable `PKG_CANOPENNODE_USING_DEMO_OD` when the BSP or application provides a custom generated `OD.c` and `OD.h` through its own SConscript and include path.

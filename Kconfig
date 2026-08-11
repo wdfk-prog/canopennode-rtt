@@ -1339,4 +1339,21 @@ config PKG_CANOPENNODE_USING_DEMO_OD
         Disable this option when the BSP or application supplies a custom OD.c
         and OD.h through its own SConscript/include path.
 
+config PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC
+    bool "Enable demo TIME consumer diagnostic object updates"
+    default n
+    depends on PKG_CANOPENNODE_USING_DEMO_OD
+    depends on PKG_CANOPENNODE_USING_TIME
+    depends on PKG_CANOPENNODE_USING_SDO_SERVER
+    select PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE
+    select PKG_CANOPENNODE_GLOBAL_OD_DYNAMIC
+    help
+        Publish demo/test TIME consumer diagnostics through OD 0x2300. The
+        wrapper counts valid DLC=6 TIME receptions with callback-pre and publishes
+        the applied CO_TIME_t milliseconds/day values after CO_process().
+
+        This option is intended for automated validation with the generated demo
+        OD. Product firmware with a custom OD should provide its own application
+        observability contract instead.
+
 endif

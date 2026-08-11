@@ -269,6 +269,12 @@ typedef struct {
     uint32_t x2100_status_value;
     uint32_t x2101_counter_value;
     uint32_t x2200_control_value;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t valid_time_rx_count;
+        uint32_t applied_time_ms;
+        uint16_t applied_time_days;
+    } x2300_time_consumer_diagnostic;
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -333,6 +339,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2100 &OD->list[40]
 #define OD_ENTRY_H2101 &OD->list[41]
 #define OD_ENTRY_H2200 &OD->list[42]
+#define OD_ENTRY_H2300 &OD->list[43]
 
 
 /*******************************************************************************
@@ -381,6 +388,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2100_status_value &OD->list[40]
 #define OD_ENTRY_H2101_counter_value &OD->list[41]
 #define OD_ENTRY_H2200_control_value &OD->list[42]
+#define OD_ENTRY_H2300_time_consumer_diagnostic &OD->list[43]
 
 
 /*******************************************************************************

@@ -102,7 +102,21 @@ SDO 访问要求 `PKG_CANOPENNODE_USING_SDO_SERVER` 开启，并且 OD access at
 
 这些值通常会被 CANopen master、commissioning tool 和现场诊断工具读取。
 
-## 8. 验证清单
+## 8. Demo TIME consumer 诊断
+
+生成的 demo OD 提供 manufacturer-specific 记录 `0x2300`，用于 TIME consumer 自动验证：
+
+| Sub-index | 类型 | 访问 | 含义 |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | 只读 | CANopenNode callback-pre 观察到的合法 DLC=6 TIME 帧计数。 |
+| `0x02` | `UNSIGNED32` | 只读 | 实际 `CO_TIME_t::ms`，即午夜后的毫秒数。 |
+| `0x03` | `UNSIGNED16` | 只读 | 实际 `CO_TIME_t::days`，即自 1984-01-01 起的 day count。 |
+
+该记录位于 RAM，不可 PDO mapping。只有开启 `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` 时运行时才会更新这些值。接收计数保存在 RT-Thread wrapper 实例中，因此 CANopen communication reset 不会清零；应用毫秒/day 字段始终来自当前 `CO_TIME_t`，并在 `CO_process()` 之后发布。
+
+该对象只是 demo/test 可观察性契约，不属于标准 CiA 301 TIME 对象。产品固件使用自定义 OD 时，应根据自身验证策略提供等价的应用结果接口。
+
+## 9. 验证清单
 
 产品构建替换 demo OD 前，确认：
 

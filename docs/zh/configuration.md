@@ -118,6 +118,7 @@ Node guarding slave 还要求 OD 中存在 0x100C Guard Time 和 0x100D Lifetime
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_TIME` | `y` | 默认支持 TIME consumer。 |
 | `PKG_CANOPENNODE_TIME_PRODUCER` | `n` | 只有网络时间生产者节点需要开启。 |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 仅用于 demo/test；依赖 demo OD，通过 `0x2300` 发布 TIME consumer 诊断，并自动选择 callback-pre 和动态 OD 支持。 |
 | `PKG_CANOPENNODE_USING_SYNC` | `y` | SYNC object 支持。 |
 | `PKG_CANOPENNODE_SYNC_PRODUCER` | `y` | 本节点可以产生 SYNC。需要结合网络拓扑确认。 |
 | `PKG_CANOPENNODE_USING_PDO` | `y` | PDO object 支持。 |
@@ -174,5 +175,8 @@ Storage backend 选择：
 | 选项 | 默认值 | 说明 |
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | 编译 `examples/demo_device/OD.c`，并添加 demo OD include path。 |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 根据 TIME receive callback 和实际 `CO_TIME_t` 状态更新 demo OD `0x2300:01..03`。 |
 
-当 BSP 或应用通过自己的 SConscript 和 include path 提供自定义生成的 `OD.c` 与 `OD.h` 时，应关闭该选项。
+TIME diagnostic 选项仅用于 demo/test 自动验证。使用自定义 OD 的产品固件应定义自己的可观察接口，不应依赖 demo 对象 `0x2300`。
+
+当 BSP 或应用通过自己的 SConscript 和 include path 提供自定义生成的 `OD.c` 与 `OD.h` 时，应关闭 `PKG_CANOPENNODE_USING_DEMO_OD`。

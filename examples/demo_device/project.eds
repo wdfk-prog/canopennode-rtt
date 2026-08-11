@@ -1956,10 +1956,11 @@ DefaultValue=0x00000000
 PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=3
+SupportedObjects=4
 1=0x2100
 2=0x2101
 3=0x2200
+4=0x2300
 
 [2100]
 ParameterName=status_value
@@ -1987,4 +1988,46 @@ DataType=0x0007
 AccessType=rww
 DefaultValue=0
 PDOMapping=1
+
+[2300]
+ParameterName=time_consumer_diagnostic
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x4
+
+[2300sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x03
+PDOMapping=0
+
+[2300sub1]
+ParameterName=valid_time_rx_count
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[2300sub2]
+ParameterName=applied_time_ms
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[2300sub3]
+ParameterName=applied_time_days
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0000
+PDOMapping=0
 

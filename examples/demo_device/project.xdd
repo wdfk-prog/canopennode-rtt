@@ -584,6 +584,20 @@
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
+          <q1:struct name="time_consumer_diagnostic" uniqueID="UID_REC_2300">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230000">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="valid_time_rx_count" uniqueID="UID_RECSUB_230001">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="applied_time_ms" uniqueID="UID_RECSUB_230002">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="applied_time_days" uniqueID="UID_RECSUB_230003">
+              <UINT />
+            </q1:varDeclaration>
+          </q1:struct>
         </q1:dataTypeList>
         <q1:parameterList>
           <q1:parameter uniqueID="UID_OBJ_1000">
@@ -2141,6 +2155,29 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2300">
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_2300" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230000">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x03" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230001">
+            <label lang="en">valid_time_rx_count</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230002">
+            <label lang="en">applied_time_ms</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230003">
+            <label lang="en">applied_time_days</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2458,6 +2495,12 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="2100" name="status_value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_2100" />
           <CANopenObject index="2101" name="counter_value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_2101" />
           <CANopenObject index="2200" name="control_value" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_2200" />
+          <CANopenObject index="2300" name="time_consumer_diagnostic" objectType="9" uniqueIDRef="UID_OBJ_2300" subNumber="4">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230000" />
+            <CANopenSubObject subIndex="01" name="valid_time_rx_count" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230001" />
+            <CANopenSubObject subIndex="02" name="applied_time_ms" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230002" />
+            <CANopenSubObject subIndex="03" name="applied_time_days" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230003" />
+          </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>
           <dummy entry="Dummy0001=0" />

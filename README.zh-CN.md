@@ -129,6 +129,7 @@ flowchart TD
 | `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | 自动初始化使用的默认 bitrate。 |
 | `PKG_CANOPENNODE_TIMER_PERIOD_US` | realtime CANopen 处理周期。 |
 | `PKG_CANOPENNODE_USING_DEMO_OD` | 编译生成的 demo Object Dictionary。 |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | 通过 OD `0x2300` 发布 demo/test TIME consumer 诊断。 |
 | `PKG_CANOPENNODE_USING_STORAGE` | 启用 CANopenNode storage 支持。 |
 | `PKG_CANOPENNODE_USING_DEBUG` | 启用本移植层的 RT-Thread ulog 诊断日志。 |
 
@@ -155,6 +156,8 @@ INIT_APP_EXPORT(app_canopen_init);
 ## Object Dictionary
 
 默认构建可在 `PKG_CANOPENNODE_USING_DEMO_OD` 开启时编译 `examples/demo_device/` 下生成的 demo Object Dictionary。产品固件通常应替换为基于自身 CANopen 对象模型生成的 OD。
+
+为支持 TIME consumer 自动验证，demo OD 还提供只读诊断记录 `0x2300`。开启 `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` 后，会发布合法 DLC=6 TIME 接收计数以及实际 `CO_TIME_t` 的毫秒/day 值。该记录仅用于 demo/test 可观察性，不是标准 CANopen TIME 对象，也不是产品 API。
 
 详见：[Object Dictionary 指南](docs/zh/object-dictionary.md)。
 

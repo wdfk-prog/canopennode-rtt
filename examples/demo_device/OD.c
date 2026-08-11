@@ -228,7 +228,13 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     },
     .x2100_status_value = 0x00000000,
     .x2101_counter_value = 0x00000000,
-    .x2200_control_value = 0x00000000
+    .x2200_control_value = 0x00000000,
+    .x2300_time_consumer_diagnostic = {
+        .highestSub_indexSupported = 0x03,
+        .valid_time_rx_count = 0x00000000,
+        .applied_time_ms = 0x00000000,
+        .applied_time_days = 0x0000
+    }
 };
 
 
@@ -280,6 +286,7 @@ typedef struct {
     OD_obj_var_t o_2100_status_value;
     OD_obj_var_t o_2101_counter_value;
     OD_obj_var_t o_2200_control_value;
+    OD_obj_record_t o_2300_time_consumer_diagnostic[4];
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -1280,6 +1287,32 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .dataOrig = &OD_RAM.x2200_control_value,
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
         .dataLength = 4
+    },
+    .o_2300_time_consumer_diagnostic = {
+        {
+            .dataOrig = &OD_RAM.x2300_time_consumer_diagnostic.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2300_time_consumer_diagnostic.valid_time_rx_count,
+            .subIndex = 1,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2300_time_consumer_diagnostic.applied_time_ms,
+            .subIndex = 2,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2300_time_consumer_diagnostic.applied_time_days,
+            .subIndex = 3,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 2
+        }
     }
 };
 
@@ -1331,6 +1364,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x2100, 0x01, ODT_VAR, &ODObjs.o_2100_status_value, NULL},
     {0x2101, 0x01, ODT_VAR, &ODObjs.o_2101_counter_value, NULL},
     {0x2200, 0x01, ODT_VAR, &ODObjs.o_2200_control_value, NULL},
+    {0x2300, 0x04, ODT_REC, &ODObjs.o_2300_time_consumer_diagnostic, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 

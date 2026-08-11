@@ -102,7 +102,21 @@ Before production use, set identity and descriptive objects intentionally:
 
 These values are often used by CANopen masters, commissioning tools, and field diagnostics.
 
-## 8. Validation checklist
+## 8. Demo TIME consumer diagnostics
+
+The generated demo OD contains manufacturer-specific record `0x2300` for automated TIME consumer validation:
+
+| Sub-index | Type | Access | Meaning |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | read-only | Count of syntactically valid DLC=6 TIME frames observed by CANopenNode callback-pre. |
+| `0x02` | `UNSIGNED32` | read-only | Applied `CO_TIME_t::ms` milliseconds after midnight. |
+| `0x03` | `UNSIGNED16` | read-only | Applied `CO_TIME_t::days` day count since 1984-01-01. |
+
+The record is RAM-only and not PDO-mappable. The values are updated only when `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` is enabled. The receive count is maintained in the RT-Thread wrapper instance and survives CANopen communication reset; the applied millisecond/day fields always come from the current `CO_TIME_t` after `CO_process()`.
+
+This is a demo/test observability contract, not a standard CiA 301 TIME object. Product firmware with a custom OD should expose equivalent application evidence only when its validation strategy requires it.
+
+## 9. Validation checklist
 
 Before replacing the demo OD in a product build, verify:
 

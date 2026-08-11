@@ -878,3 +878,15 @@ Manufacturer Specific Parameters
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
 | UNSIGNED32              | rw  | r   | no   | 0                               |
+
+### 0x2300 - time_consumer_diagnostic
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | RAM            |
+
+| Sub  | Name                        | Data Type  | SDO | PDO | SRDO | Default Value |
+| ---- | --------------------------- | ---------- | --- | --- | ---- | ------------- |
+| 0x00 | Highest sub-index supported | UNSIGNED8  | ro  | no  | no   | 3             |
+| 0x01 | valid_time_rx_count         | UNSIGNED32 | ro  | no  | no   | 0             |
+| 0x02 | applied_time_ms             | UNSIGNED32 | ro  | no  | no   | 0             |
+| 0x03 | applied_time_days           | UNSIGNED16 | ro  | no  | no   | 0             |
