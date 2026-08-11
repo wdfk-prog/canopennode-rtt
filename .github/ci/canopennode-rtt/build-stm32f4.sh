@@ -310,9 +310,9 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_TIMERNEXT"
-            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_CALLBACK_CHANGE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TIME_PRODUCER"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_BITWISE_MAPPING"
             ;;
         demo-sdo-client-gateway)
@@ -547,12 +547,17 @@ verify_stm32_headers()
     local bsp_dir="$1"
     local series_lc="$2"
     local header
+    local shared_libraries="$RTTHREAD_DIR/bsp/stm32/libraries"
 
-    cd "$bsp_dir"
+    if [ ! -d "$shared_libraries" ]; then
+        echo "STM32 shared libraries directory was not found: $shared_libraries" >&2
+        exit 1
+    fi
+
     for header in "${series_lc}xx.h" "${series_lc}xx_hal.h"; do
-        if ! find packages -type f -name "$header" -print -quit | grep -q .; then
-            echo "Required STM32 package header was not fetched: $header" >&2
-            grep -E '^(PKG_USING_|SOC_SERIES_)' .config rtconfig.h >&2 || true
+        if ! find "$shared_libraries" -type f -name "$header" -print -quit | grep -q .; then
+            echo "Required STM32 HAL-SDK header was not fetched: $header" >&2
+            grep -E '^(PKG_USING_|SOC_SERIES_)' "$bsp_dir/.config" "$bsp_dir/rtconfig.h" >&2 || true
             exit 1
         fi
     done
