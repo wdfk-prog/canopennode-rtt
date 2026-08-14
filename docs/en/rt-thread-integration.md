@@ -10,6 +10,9 @@ This document explains how the RT-Thread port binds CANopenNode to RT-Thread dev
 flowchart TD
     UserApp[Application code] --> AppAPI[CO_app_RTT.h]
     AppAPI --> Runtime[CO_app_RTT.c runtime wrapper]
+    Runtime --> Demo[CO_demo dispatcher]
+    Demo --> DemoTime[CO_demo_time.c]
+    Demo --> DemoNmt[CO_demo_nmt_master.c]
     Runtime --> CANopen[CANopenNode core]
     Runtime --> Storage[RT-Thread storage frontend]
     CANopen --> Target[CO_driver_rtthread.c]
@@ -21,6 +24,7 @@ The port has two main responsibilities:
 
 1. `CO_driver_rtthread.c` implements the CANopenNode target driver hooks on top of RT-Thread `dev_can`.
 2. `CO_app_RTT.c` owns the application runtime instance, creates CANopenNode objects, starts worker threads, handles communication reset, and optionally initializes storage and LED outputs.
+3. `port/rtthread/demo/` owns demo/test feature implementations; the runtime wrapper only invokes the fixed `CO_demo_init()`, `CO_demo_bind()`, `CO_demo_process()`, and `CO_demo_reset()` hooks.
 
 ## 2. Runtime instance
 
@@ -35,6 +39,7 @@ Key fields are:
 | `activeNodeID` | Node-ID active after CANopen communication initialization. |
 | `baudrate` | CAN bitrate in kbit/s. |
 | `canOpenStack` | Owned `CO_t` object created by CANopenNode. |
+| `demo` | Optional demo/test dispatcher state; feature state is owned by `CO_demo_*` modules. |
 | `mainThread` | Mainline CANopen worker thread. |
 | `rtThread` | Realtime CANopen worker thread. |
 | `rtTimer` | Periodic RT-Thread timer that wakes realtime processing. |
@@ -75,6 +80,10 @@ sequenceDiagram
 ```
 
 The mainline thread is started last because it can process `CO_RESET_COMM` and recreate the CANopen stack. Realtime synchronization objects must already be constructed before that path runs.
+
+### Demo/test extension boundary
+
+`CO_app_RTT.c` does not implement specific TIME diagnostic or NMT Master test behavior. After communication objects are initialized it calls `CO_demo_bind()` to rebind callbacks, invokes `CO_demo_process()` after each `CO_process()`, and calls `CO_demo_reset()` before local communication/application reset. SConscript adds the demo dispatcher only when `PKG_CANOPENNODE_USING_DEMO_OD` is enabled and selects each optional demo implementation from its own Kconfig option. When demo OD support is disabled, inline no-op hooks keep the runtime wrapper unchanged. New demo/test modules therefore extend `port/rtthread/demo/`, Kconfig, and SConscript selection without adding feature logic to the main runtime wrapper.
 
 ## 4. Threads and timer
 

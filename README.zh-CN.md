@@ -130,6 +130,7 @@ flowchart TD
 | `PKG_CANOPENNODE_TIMER_PERIOD_US` | realtime CANopen 处理周期。 |
 | `PKG_CANOPENNODE_USING_DEMO_OD` | 编译生成的 demo Object Dictionary。 |
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | 通过 OD `0x2300` 发布 demo/test TIME consumer 诊断。 |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | 位于 demo OD 配置域内，通过 Heartbeat Consumer 等待远端节点上线并逐步确认 NMT 状态后执行自动 NMT Master 验证，默认目标 Node-ID 2。 |
 | `PKG_CANOPENNODE_USING_STORAGE` | 启用 CANopenNode storage 支持。 |
 | `PKG_CANOPENNODE_USING_DEBUG` | 启用本移植层的 RT-Thread ulog 诊断日志。 |
 
@@ -167,6 +168,7 @@ INIT_APP_EXPORT(app_canopen_init);
 - [快速接入](docs/zh/quick-start.md)
 - [RT-Thread 集成说明](docs/zh/rt-thread-integration.md)
 - [配置指南](docs/zh/configuration.md)
+- [NMT Master 自动测试](docs/zh/nmt-master-test.md)
 - [Object Dictionary 指南](docs/zh/object-dictionary.md)
 - [子模块更新说明](docs/zh/submodule-update.md)
 - [故障排查](docs/zh/troubleshooting.md)

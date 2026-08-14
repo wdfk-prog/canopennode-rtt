@@ -315,6 +315,16 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_BITWISE_MAPPING"
             ;;
+        demo-nmt-master-test)
+            log "CI Kconfig profile demo-nmt-master-test: default demo objects with automatic NMT master validation"
+            append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_MASTER"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_HB_CONS_QUERY_FUNCT"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST"
+            append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID" "2"
+            append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS" "1500"
+            append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS" "3000"
+            ;;
         demo-sdo-client-gateway)
             log "CI Kconfig profile demo-sdo-client-gateway: SDO client, FIFO/CRC16, gateway, NMT/LSS master"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -375,7 +385,10 @@ append_canopennode_profile()
             ;;
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
-            echo "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" >&2
+            printf '%s\n' \
+                "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-nmt-master-test" \
+                "  demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs" \
+                "  demo-storage-eeprom-at24c demo-safety-debug" >&2
             exit 1
             ;;
     esac
@@ -489,6 +502,10 @@ verify_profile_outputs()
     local bsp_dir="$1"
 
     case "$CANOPENNODE_CI_PROFILE" in
+        demo-nmt-master-test)
+            verify_profile_object "$bsp_dir" "CO_demo.o"
+            verify_profile_object "$bsp_dir" "CO_demo_nmt_master.o"
+            ;;
         demo-sdo-client-gateway)
             verify_profile_object "$bsp_dir" "CO_SDOclient.o"
             verify_profile_object "$bsp_dir" "CO_fifo.o"

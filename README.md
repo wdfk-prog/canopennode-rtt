@@ -130,6 +130,7 @@ Most behavior is controlled through `Kconfig`. Important options include:
 | `PKG_CANOPENNODE_TIMER_PERIOD_US` | Realtime CANopen processing period. |
 | `PKG_CANOPENNODE_USING_DEMO_OD` | Compile the generated demo Object Dictionary. |
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | Publish demo/test TIME consumer diagnostics through OD `0x2300`. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | Under the demo OD domain, waits for the remote node through Heartbeat Consumer and confirms each NMT state before advancing the automatic NMT Master validation, default Node-ID 2. |
 | `PKG_CANOPENNODE_USING_STORAGE` | Enable CANopenNode storage support. |
 | `PKG_CANOPENNODE_USING_DEBUG` | Enable RT-Thread ulog diagnostics for this port. |
 
@@ -167,6 +168,7 @@ See [Object Dictionary guide](docs/en/object-dictionary.md).
 - [Quick start](docs/en/quick-start.md)
 - [RT-Thread integration](docs/en/rt-thread-integration.md)
 - [Configuration guide](docs/en/configuration.md)
+- [NMT Master automatic test](docs/en/nmt-master-test.md)
 - [Object Dictionary guide](docs/en/object-dictionary.md)
 - [Submodule update guide](docs/en/submodule-update.md)
 - [Troubleshooting](docs/en/troubleshooting.md)

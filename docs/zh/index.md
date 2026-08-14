@@ -20,6 +20,7 @@
 | [快速接入](quick-start.md) | 如何快速添加、配置、构建并验证本软件包？ |
 | [RT-Thread 集成说明](rt-thread-integration.md) | RT-Thread 运行封装如何与 CANopenNode 和 CAN 驱动交互？ |
 | [配置指南](configuration.md) | 运行时、协议对象、storage、日志和调试相关 Kconfig 选项如何选择？ |
+| [NMT Master 自动测试](nmt-master-test.md) | 如何让 MCU 自动驱动 Linux Lely Slave 验证 NMT Master 命令序列？ |
 | [Object Dictionary 指南](object-dictionary.md) | 如何使用或替换 demo OD？ |
 | [子模块更新说明](submodule-update.md) | 如何克隆、初始化、更新或锁定 CANopenNode 子模块？ |
 | [故障排查](troubleshooting.md) | 如何定位常见构建、CAN、SDO、PDO、storage 或 trace 问题？ |

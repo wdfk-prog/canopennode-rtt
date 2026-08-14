@@ -32,9 +32,6 @@
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
 #include <rthw.h>
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
-#include <rtatomic.h>
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_LEDS_USING_RTT_PIN)
 #include <drivers/dev_pin.h>
 #endif /* defined(PKG_CANOPENNODE_LEDS_USING_RTT_PIN) */
@@ -127,56 +124,6 @@ static rt_tick_t co_app_rtt_timer_period_ticks(uint32_t *actualPeriodUs)
 
     return ticks;
 }
-
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
-/**
- * @brief Count one syntactically valid TIME reception for the demo diagnostic OD.
- *
- * CANopenNode invokes callback-pre only after CO_TIME_receive() accepts an
- * exact DLC=6 TIME frame. Keep this callback O(1) because it runs from the CAN
- * receive dispatch path.
- *
- * @param object CANopenNode RT-Thread application instance.
- */
-static void co_app_rtt_time_diag_rx_callback(void *object)
-{
-    CANopenNodeRTT *app = (CANopenNodeRTT *)object;
-
-    if (app != NULL) {
-        (void)rt_atomic_add(&app->timeDiagRxCount, 1);
-    }
-}
-
-/**
- * @brief Register the TIME callback-pre hook on the current CO_t instance.
- *
- * @param app CANopenNode RT-Thread application instance.
- * @param co Current CANopenNode object.
- */
-static void co_app_rtt_time_diag_register(CANopenNodeRTT *app, CO_t *co)
-{
-    if ((app != NULL) && (co != NULL) && (co->TIME != NULL)) {
-        CO_TIME_initCallbackPre(co->TIME, app, co_app_rtt_time_diag_rx_callback);
-    }
-}
-
-/**
- * @brief Publish the applied CANopen TIME state to demo diagnostic OD 0x2300.
- *
- * This function runs after CO_process(), so milliseconds and days reflect the
- * state actually applied by CO_TIME_process(), not the raw CAN payload.
- *
- * @param app CANopenNode RT-Thread application instance.
- * @param co Current CANopenNode object.
- */
-static void co_app_rtt_time_diag_publish(CANopenNodeRTT *app, const CO_t *co)
-{
-    OD_RAM.x2300_time_consumer_diagnostic.valid_time_rx_count =
-        (uint32_t)rt_atomic_load(&app->timeDiagRxCount);
-    OD_RAM.x2300_time_consumer_diagnostic.applied_time_ms = co->TIME->ms;
-    OD_RAM.x2300_time_consumer_diagnostic.applied_time_days = co->TIME->days;
-}
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
 
 #if defined(PKG_CANOPENNODE_LEDS_USING_RTT_PIN)
 /**
@@ -421,14 +368,6 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app)
     }
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
-    /* CO_t is recreated on communication reset, so callback registration must
-     * follow every successful CO_CANopenInit(). Publish once here to replace any
-     * stale ms/day values left in the long-lived demo OD RAM object. */
-    co_app_rtt_time_diag_register(app, co);
-    co_app_rtt_time_diag_publish(app, co);
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
-
 #if (((CO_CONFIG_GFC) & CO_CONFIG_GFC_ENABLE) != 0) || (((CO_CONFIG_SRDO) & CO_CONFIG_SRDO_ENABLE) != 0)
     err_info = 0U;
     err = CO_CANopenInitSRDO(co, co->em, OD, app->activeNodeID, &err_info);
@@ -446,6 +385,10 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app)
                      (unsigned long)err_info);
         return -RT_ERROR;
     }
+
+    /* Bind optional demo/test callbacks after all communication objects are
+     * initialized, but before normal mode allows receive callbacks to run. */
+    CO_demo_bind(&app->demo, co);
 
     CO_CANsetNormalMode(co->CANmodule);
     if (!co->CANmodule->CANnormal) {
@@ -542,9 +485,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         app->timeOldMs = time_current_ms;
 
         reset_status = CO_process(co, false, time_difference_us, NULL);
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
-        co_app_rtt_time_diag_publish(app, co);
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
+        CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms, reset_status);
 #if ((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE) != 0
         /*
         * TODO: CO_trace has not been ported to the current CANopenNode SDO server and
@@ -572,6 +513,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         co_app_rtt_led_pin_update(app);
 
         if (reset_status == CO_RESET_COMM) {
+            CO_demo_reset(&app->demo);
             CO_RTT_LOG_W("communication reset requested: dev=%s", app->canName);
 
             if (app->rtTimer != RT_NULL) {
@@ -613,6 +555,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
                 }
             }
         } else if (reset_status == CO_RESET_APP) {
+            CO_demo_reset(&app->demo);
             CO_RTT_LOG_W("application reset requested: dev=%s", app->canName);
             rt_hw_cpu_reset();
         }
@@ -772,9 +715,7 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
     app->outStatusLEDGreen = 0U;
     app->outStatusLEDRed = 0U;
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
-    rt_atomic_store(&app->timeDiagRxCount, 0);
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
+    CO_demo_init(&app->demo);
     co_app_rtt_led_pin_init();
     app->timeOldMs = 0U;
     app->lastRtTickMs = 0U;

@@ -27,6 +27,7 @@
 #endif /* CO_DRIVER_CUSTOM */
 
 #include "CANopen.h"
+#include "CO_demo.h"
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
 #include "CO_storage_RTT.h"
@@ -104,10 +105,7 @@ typedef struct {
     uint8_t outStatusLEDRed;         /**< CANopen red LED status output. */
 
     CO_t *canOpenStack;              /**< CANopenNode object owned by this instance. */
-
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
-    rt_atomic_t timeDiagRxCount;      /**< Valid DLC=6 TIME receptions observed by callback-pre. */
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
+    CO_demo_t demo;                  /**< Optional demo/test module state. */
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
     CO_storage_t storage;            /**< CANopenNode storage object owned by this instance. */

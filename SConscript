@@ -7,6 +7,7 @@ cwd = GetCurrentDir()
 src = []
 CPPPATH = [
     os.path.join(cwd, 'port', 'rtthread'),
+    os.path.join(cwd, 'port', 'rtthread', 'demo'),
     os.path.join(cwd, 'port', 'rtthread', 'storage'),
     os.path.join(cwd, 'CANopenNode'),
     os.path.join(cwd, 'CANopenNode', '301'),
@@ -56,6 +57,12 @@ if GetDepend('PKG_USING_CANOPENNODE'):
 
     _add_required(os.path.join('port', 'rtthread', 'CO_driver_rtthread.c'))
     _add_required(os.path.join('port', 'rtthread', 'CO_app_RTT.c'))
+    if GetDepend('PKG_CANOPENNODE_USING_DEMO_OD'):
+        _add_required(os.path.join('port', 'rtthread', 'demo', 'CO_demo.c'))
+        _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC'),
+                          'demo TIME diagnostic', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_time.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'),
+                          'demo NMT master test', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_nmt_master.c')])
 
     _add_required(os.path.join('CANopenNode', 'CANopen.c'))
     _add_required(os.path.join('CANopenNode', '301', 'CO_NMT_Heartbeat.c'))

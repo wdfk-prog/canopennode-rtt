@@ -10,6 +10,9 @@
 flowchart TD
     UserApp[应用代码] --> AppAPI[CO_app_RTT.h]
     AppAPI --> Runtime[CO_app_RTT.c 运行封装]
+    Runtime --> Demo[CO_demo dispatcher]
+    Demo --> DemoTime[CO_demo_time.c]
+    Demo --> DemoNmt[CO_demo_nmt_master.c]
     Runtime --> CANopen[CANopenNode core]
     Runtime --> Storage[RT-Thread storage frontend]
     CANopen --> Target[CO_driver_rtthread.c]
@@ -21,6 +24,7 @@ flowchart TD
 
 1. `CO_driver_rtthread.c` 基于 RT-Thread `dev_can` 实现 CANopenNode target driver hooks。
 2. `CO_app_RTT.c` 持有应用运行实例，创建 CANopenNode 对象，启动 worker threads，处理 communication reset，并可选初始化 storage 和 LED 输出。
+3. `port/rtthread/demo/` 持有 demo/test 功能实现；运行封装只调用 `CO_demo_init()`、`CO_demo_bind()`、`CO_demo_process()` 和 `CO_demo_reset()` 四个固定接点。
 
 ## 2. 运行实例
 
@@ -35,6 +39,7 @@ flowchart TD
 | `activeNodeID` | CANopen 通信初始化后的实际 Node-ID。 |
 | `baudrate` | CAN bitrate，单位 kbit/s。 |
 | `canOpenStack` | 当前实例持有的 `CO_t` 对象。 |
+| `demo` | 可选 demo/test dispatcher 状态，具体功能状态由 `CO_demo_*` 模块维护。 |
 | `mainThread` | mainline CANopen worker thread。 |
 | `rtThread` | realtime CANopen worker thread。 |
 | `rtTimer` | 周期性唤醒 realtime 处理的 RT-Thread timer。 |
@@ -75,6 +80,10 @@ sequenceDiagram
 ```
 
 mainline 线程最后启动，因为它可能处理 `CO_RESET_COMM` 并重建 CANopen stack。该路径运行前，realtime 同步对象必须已经构造完成。
+
+### Demo/test 扩展边界
+
+`CO_app_RTT.c` 不直接实现 TIME diagnostic、NMT Master test 等具体功能。通信对象初始化成功后调用 `CO_demo_bind()` 重新绑定 callback；每轮 `CO_process()` 后调用 `CO_demo_process()`；本机 communication/application reset 前调用 `CO_demo_reset()`。SConscript 仅在 `PKG_CANOPENNODE_USING_DEMO_OD` 开启时加入 demo dispatcher，并根据各 demo 的 Kconfig 选项选择对应实现源文件；关闭 demo OD 后由 inline no-op 接口保持主运行封装不变。因此后续新增 demo/test 只扩展 `port/rtthread/demo/`、Kconfig 和 SConscript 选择，不需要继续修改主运行封装。
 
 ## 4. 线程和定时器
 

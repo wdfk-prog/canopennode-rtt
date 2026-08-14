@@ -170,13 +170,19 @@ Exactly one storage backend must be selected when storage is enabled.
 | `PKG_CANOPENNODE_USING_DEBUG` | `n` | Enables RT-Thread ulog diagnostics for this port. |
 | `PKG_CANOPENNODE_USING_FRAME_TRACE` | `n` | Logs CAN RX/TX frames. Use only for bring-up diagnostics. |
 
-## 10. Demo Object Dictionary
+## 10. Demo and automatic validation modules
 
 | Option | Default | Notes |
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | Compiles `examples/demo_device/OD.c` and adds the demo OD include path. |
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Updates demo OD `0x2300:01..03` from the TIME receive callback and applied `CO_TIME_t` state. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | Available only under the demo OD domain; depends on auto init and selects NMT Master, Heartbeat Consumer, query functions, and GLOBAL_OD_DYNAMIC. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | Controlled remote node, range 1..127; runtime rejects the active local Node-ID. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | Target-node Heartbeat Consumer timeout temporarily written to demo OD `0x1016`; the previous value is restored on completion, failure, or before local reset. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS` | `3000` | Maximum wait for fixture PRE-OP normalization and heartbeat/NMT state confirmation after each formal command; initial peer discovery itself does not time out. |
 
-The TIME diagnostic option is intended for automated demo/test validation. Product firmware with a custom OD should define its own observability contract instead of depending on demo object `0x2300`.
+TIME diagnostics and NMT Master validation are implemented under `port/rtthread/demo/`. `CO_app_RTT.c` only invokes the fixed demo dispatcher hooks. When `PKG_CANOPENNODE_USING_DEMO_OD` is enabled, SConscript builds the dispatcher and then adds `CO_demo_time.c` and `CO_demo_nmt_master.c` only when their Kconfig options are enabled. With the demo OD disabled, the dispatcher implementation is not built and `CO_demo.h` supplies no-op inline hooks to keep `CO_app_RTT.c` unchanged.
+
+The TIME diagnostic and NMT Master automatic test both belong to the built-in demo-OD test configuration domain. Product firmware with a custom OD should disable `PKG_CANOPENNODE_USING_DEMO_OD`, enable protocol capabilities as needed, and provide its own test or observability interface. See [NMT Master automatic test](nmt-master-test.md).
 
 Disable `PKG_CANOPENNODE_USING_DEMO_OD` when the BSP or application provides a custom generated `OD.c` and `OD.h` through its own SConscript and include path.

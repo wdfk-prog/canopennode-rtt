@@ -20,6 +20,7 @@ This documentation is organized for RT-Thread BSP developers, firmware integrato
 | [Quick start](quick-start.md) | How do I add, configure, build, and verify the package quickly? |
 | [RT-Thread integration](rt-thread-integration.md) | How does the RT-Thread runtime wrapper interact with CANopenNode and the CAN driver? |
 | [Configuration guide](configuration.md) | Which Kconfig options matter for runtime, protocol objects, storage, logging, and debug? |
+| [NMT Master automatic test](nmt-master-test.md) | How does the MCU automatically drive a Linux Lely slave to validate the NMT Master command sequence? |
 | [Object Dictionary guide](object-dictionary.md) | How do I use or replace the demo OD? |
 | [Submodule update guide](submodule-update.md) | How do I clone, initialize, update, or pin the CANopenNode submodule? |
 | [Troubleshooting](troubleshooting.md) | How do I diagnose common build, CAN, SDO, PDO, storage, or trace issues? |
