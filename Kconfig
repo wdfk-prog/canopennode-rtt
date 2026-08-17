@@ -1357,6 +1357,23 @@ config PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC
         OD. Product firmware with a custom OD should provide its own application
         observability contract instead.
 
+config PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC
+    bool "Enable demo EMCY consumer diagnostic object updates"
+    default n
+    depends on PKG_CANOPENNODE_USING_SDO_SERVER
+    depends on PKG_CANOPENNODE_CAN_BINDING_COUNT = 1
+    select PKG_CANOPENNODE_EM_CONSUMER
+    help
+        Publish demo/test EMCY consumer diagnostics through OD 0x2301. The
+        demo records each remote EMCY callback with RT-Thread atomics and
+        publishes one coherent latest-message snapshot after CO_process().
+
+        Local EMCY messages reported by CANopenNode with ident == 0 are excluded.
+        Repeated remote messages and errorCode == 0 recovery messages are counted.
+        The CANopenNode EMCY callback has no application object, so this generated
+        demo diagnostic is limited to one CANopenNodeRTT instance. This option is
+        intended for automated validation, not as a product-level remote fault manager.
+
 config PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST
     bool "Enable automatic demo NMT master test"
     default n

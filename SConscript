@@ -58,9 +58,16 @@ if GetDepend('PKG_USING_CANOPENNODE'):
     _add_required(os.path.join('port', 'rtthread', 'CO_driver_rtthread.c'))
     _add_required(os.path.join('port', 'rtthread', 'CO_app_RTT.c'))
     if GetDepend('PKG_CANOPENNODE_USING_DEMO_OD'):
-        _add_required(os.path.join('port', 'rtthread', 'demo', 'CO_demo.c'))
+        demo_enabled = (GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC')
+                        or GetDepend('PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC')
+                        or GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'))
+        _add_required_any(demo_enabled, 'demo dispatcher',
+                          [os.path.join('port', 'rtthread', 'demo', 'CO_demo.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC'),
                           'demo TIME diagnostic', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_time.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC'),
+                          'demo EMCY consumer diagnostic',
+                          [os.path.join('port', 'rtthread', 'demo', 'CO_demo_emcy_consumer.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'),
                           'demo NMT master test', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_nmt_master.c')])
 

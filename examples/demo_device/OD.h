@@ -16,7 +16,7 @@
 
         Created:      2026/7/6 14:52:30
         Created By:   wdfk-prog
-        Modified:     2026/7/6 17:46:53
+        Modified:     2026/7/7 8:37:42
         Modified By:  wdfk-prog
 
     Device Info:
@@ -275,6 +275,16 @@ typedef struct {
         uint32_t applied_time_ms;
         uint16_t applied_time_days;
     } x2300_time_consumer_diagnostic;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t remote_rx_count;
+        uint8_t last_source_node_id;
+        uint16_t last_cob_id;
+        uint16_t last_error_code;
+        uint8_t last_error_register;
+        uint8_t last_error_bit;
+        uint32_t last_info_code;
+    } x2301_emcy_consumer_diagnostic;
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -340,6 +350,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2101 &OD->list[41]
 #define OD_ENTRY_H2200 &OD->list[42]
 #define OD_ENTRY_H2300 &OD->list[43]
+#define OD_ENTRY_H2301 &OD->list[44]
 
 
 /*******************************************************************************
@@ -389,6 +400,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2101_counter_value &OD->list[41]
 #define OD_ENTRY_H2200_control_value &OD->list[42]
 #define OD_ENTRY_H2300_time_consumer_diagnostic &OD->list[43]
+#define OD_ENTRY_H2301_emcy_consumer_diagnostic &OD->list[44]
 
 
 /*******************************************************************************

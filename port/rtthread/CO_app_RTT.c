@@ -388,7 +388,12 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app)
 
     /* Bind optional demo/test callbacks after all communication objects are
      * initialized, but before normal mode allows receive callbacks to run. */
-    CO_demo_bind(&app->demo, co);
+#if CO_DEMO_ENABLED
+    if (!CO_demo_bind(&app->demo, co)) {
+        CO_RTT_LOG_E("bind demo callbacks failed: dev=%s", app->canName);
+        return -RT_EBUSY;
+    }
+#endif /* CO_DEMO_ENABLED */
 
     CO_CANsetNormalMode(co->CANmodule);
     if (!co->CANmodule->CANnormal) {
@@ -485,7 +490,9 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         app->timeOldMs = time_current_ms;
 
         reset_status = CO_process(co, false, time_difference_us, NULL);
+#if CO_DEMO_ENABLED
         CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms, reset_status);
+#endif /* CO_DEMO_ENABLED */
 #if ((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE) != 0
         /*
         * TODO: CO_trace has not been ported to the current CANopenNode SDO server and
@@ -513,7 +520,9 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         co_app_rtt_led_pin_update(app);
 
         if (reset_status == CO_RESET_COMM) {
+#if CO_DEMO_ENABLED
             CO_demo_reset(&app->demo);
+#endif /* CO_DEMO_ENABLED */
             CO_RTT_LOG_W("communication reset requested: dev=%s", app->canName);
 
             if (app->rtTimer != RT_NULL) {
@@ -555,7 +564,9 @@ static void co_app_rtt_main_thread_entry(void *parameter)
                 }
             }
         } else if (reset_status == CO_RESET_APP) {
+#if CO_DEMO_ENABLED
             CO_demo_reset(&app->demo);
+#endif /* CO_DEMO_ENABLED */
             CO_RTT_LOG_W("application reset requested: dev=%s", app->canName);
             rt_hw_cpu_reset();
         }
@@ -715,7 +726,9 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
     app->outStatusLEDGreen = 0U;
     app->outStatusLEDRed = 0U;
+#if CO_DEMO_ENABLED
     CO_demo_init(&app->demo);
+#endif /* CO_DEMO_ENABLED */
     co_app_rtt_led_pin_init();
     app->timeOldMs = 0U;
     app->lastRtTickMs = 0U;
@@ -829,6 +842,10 @@ cleanup:
         CO_delete(app->canOpenStack);
         app->canOpenStack = NULL;
     }
+#if CO_DEMO_ENABLED
+    /* CAN RX is quiesced before releasing demo callback ownership. */
+    CO_demo_deinit(&app->demo);
+#endif /* CO_DEMO_ENABLED */
     if (lifecycle_locked == RT_TRUE) {
         (void)rt_mutex_release(&app->lifecycleMutex);
     }

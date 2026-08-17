@@ -116,7 +116,25 @@ The record is RAM-only and not PDO-mappable. The values are updated only when `P
 
 This is a demo/test observability contract, not a standard CiA 301 TIME object. Product firmware with a custom OD should expose equivalent application evidence only when its validation strategy requires it.
 
-## 9. Validation checklist
+## 9. Demo EMCY consumer diagnostics
+
+The generated demo OD contains manufacturer-specific record `0x2301` for automated EMCY Consumer validation:
+
+| Sub-index | Type | Access | Meaning |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | read-only | Number of remote EMCY callbacks received. |
+| `0x02` | `UNSIGNED8` | read-only | Source Node-ID derived from the latest remote EMCY CAN-ID. |
+| `0x03` | `UNSIGNED16` | read-only | CAN-ID of the latest remote EMCY. |
+| `0x04` | `UNSIGNED16` | read-only | Latest EMCY error code. |
+| `0x05` | `UNSIGNED8` | read-only | Latest EMCY error register. |
+| `0x06` | `UNSIGNED8` | read-only | CANopenNode callback `errorBit` value (EMCY byte 3 / first manufacturer-specific byte). |
+| `0x07` | `UNSIGNED32` | read-only | Latest manufacturer-specific info code. |
+
+The receive callback updates RT-Thread atomic fields and an odd/even sequence counter. `CO_demo_process()` publishes each OD update only after reading one stable receive-side snapshot. Because the fields are separate SDO sub-indices, a Host that combines several reads should read `remote_rx_count` before and after the other fields and retry if the two counts differ. The receive count and latest remote EMCY snapshot intentionally survive communication reset while the callback is rebound to the recreated CANopenNode stack. Local EMCY callbacks identified by CANopenNode with `ident == 0` are ignored; duplicate remote EMCY messages and recovery messages with error code zero are each counted. The record is RAM-only and not PDO-mappable.
+
+This is a demo/test observability contract, not a product-level remote fault manager.
+
+## 10. Validation checklist
 
 Before replacing the demo OD in a product build, verify:
 

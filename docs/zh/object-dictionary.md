@@ -116,7 +116,25 @@ SDO 访问要求 `PKG_CANOPENNODE_USING_SDO_SERVER` 开启，并且 OD access at
 
 该对象只是 demo/test 可观察性契约，不属于标准 CiA 301 TIME 对象。产品固件使用自定义 OD 时，应根据自身验证策略提供等价的应用结果接口。
 
-## 9. 验证清单
+## 9. Demo EMCY consumer 诊断
+
+生成的 demo OD 提供 manufacturer-specific 记录 `0x2301`，用于 EMCY Consumer 自动验证：
+
+| Sub-index | 类型 | 访问 | 含义 |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | 只读 | 收到的远端 EMCY callback 数量。 |
+| `0x02` | `UNSIGNED8` | 只读 | 根据最近一次远端 EMCY CAN-ID 推导出的来源 Node-ID。 |
+| `0x03` | `UNSIGNED16` | 只读 | 最近一次远端 EMCY 的 CAN-ID。 |
+| `0x04` | `UNSIGNED16` | 只读 | 最近一次 EMCY error code。 |
+| `0x05` | `UNSIGNED8` | 只读 | 最近一次 EMCY error register。 |
+| `0x06` | `UNSIGNED8` | 只读 | 最近一次远端 EMCY 的 CANopenNode callback `errorBit`，即 EMCY byte 3 / manufacturer-specific field 首字节。 |
+| `0x07` | `UNSIGNED32` | 只读 | 最近一次 manufacturer-specific info code。 |
+
+接收 callback 使用 RT-Thread atomic 字段和奇偶 sequence counter 更新快照；`CO_demo_process()` 只有在前后 sequence 一致且为偶数时才把一次完整接收侧快照发布到 OD。由于各字段属于独立 SDO sub-index，Host 组合读取多个字段时应先读一次 `remote_rx_count`、再读取其余字段、最后再次读取 `remote_rx_count`；前后计数不同则重试。接收计数和最近一次远端 EMCY 快照会在 communication reset 时保留，同时 callback 会重新绑定到重建后的 CANopenNode stack。CANopenNode 以 `ident == 0` 报告的本节点 EMCY 会被过滤；重复远端 EMCY 以及 error code 为零的恢复消息都分别计数。该记录位于 RAM，不可 PDO mapping。
+
+该对象只是 demo/test 可观察性契约，不承担产品级远端故障管理。
+
+## 10. 验证清单
 
 产品构建替换 demo OD 前，确认：
 

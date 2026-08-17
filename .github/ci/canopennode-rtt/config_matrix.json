@@ -9,6 +9,7 @@
         "demo-minimal",
         "demo-default",
         "demo-pdo-sync",
+        "demo-emcy-consumer",
         "demo-nmt-master-test",
         "demo-sdo-client-gateway",
         "demo-manual-multiple-od",

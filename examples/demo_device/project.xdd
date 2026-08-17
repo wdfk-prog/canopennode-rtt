@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-07-07" fileModificationTime="08:37:42.4290140+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-14" fileModificationTime="13:25:23.2372587+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>canopennode-rtt</q1:vendorName>
         <q1:vendorID>0x00000000</q1:vendorID>
@@ -596,6 +596,32 @@
             </q1:varDeclaration>
             <q1:varDeclaration name="applied_time_days" uniqueID="UID_RECSUB_230003">
               <UINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="emcy_consumer_diagnostic" uniqueID="UID_REC_2301">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230100">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="remote_rx_count" uniqueID="UID_RECSUB_230101">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="last_source_node_id" uniqueID="UID_RECSUB_230102">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="last_cob_id" uniqueID="UID_RECSUB_230103">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="last_error_code" uniqueID="UID_RECSUB_230104">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="last_error_register" uniqueID="UID_RECSUB_230105">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="last_error_bit" uniqueID="UID_RECSUB_230106">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="last_info_code" uniqueID="UID_RECSUB_230107">
+              <UDINT />
             </q1:varDeclaration>
           </q1:struct>
         </q1:dataTypeList>
@@ -2156,6 +2182,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <q1:defaultValue value="0" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_2300">
+            <label lang="en">time_consumer_diagnostic</label>
             <q1:dataTypeIDRef uniqueIDRef="UID_REC_2300" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_230000">
@@ -2178,6 +2205,50 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UINT />
             <q1:defaultValue value="0x0000" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2301">
+            <label lang="en">emcy_consumer_diagnostic</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_2301" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x07" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230101">
+            <label lang="en">remote_rx_count</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230102">
+            <label lang="en">last_source_node_id</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230103">
+            <label lang="en">last_cob_id</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230104">
+            <label lang="en">last_error_code</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230105">
+            <label lang="en">last_error_register</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230106">
+            <label lang="en">last_error_bit</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230107">
+            <label lang="en">last_info_code</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2195,7 +2266,7 @@ The life time factor multiplied with the guard time gives the life time for the 
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-07-07" fileModificationTime="08:37:42.4290140+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-14" fileModificationTime="13:25:23.2372587+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -2500,6 +2571,16 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="01" name="valid_time_rx_count" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230001" />
             <CANopenSubObject subIndex="02" name="applied_time_ms" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230002" />
             <CANopenSubObject subIndex="03" name="applied_time_days" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230003" />
+          </CANopenObject>
+          <CANopenObject index="2301" name="emcy_consumer_diagnostic" objectType="9" uniqueIDRef="UID_OBJ_2301" subNumber="8">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230100" />
+            <CANopenSubObject subIndex="01" name="remote_rx_count" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230101" />
+            <CANopenSubObject subIndex="02" name="last_source_node_id" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230102" />
+            <CANopenSubObject subIndex="03" name="last_cob_id" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230103" />
+            <CANopenSubObject subIndex="04" name="last_error_code" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230104" />
+            <CANopenSubObject subIndex="05" name="last_error_register" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230105" />
+            <CANopenSubObject subIndex="06" name="last_error_bit" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230106" />
+            <CANopenSubObject subIndex="07" name="last_info_code" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230107" />
           </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>

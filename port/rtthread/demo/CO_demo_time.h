@@ -8,9 +8,11 @@
 
 #include "CANopen.h"
 
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
+#if !defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
+#error "CO_demo_time requires PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
+#endif /* !defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
+
 #include <rtatomic.h>
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,11 +20,7 @@ extern "C" {
 
 /** Runtime state for the optional TIME consumer diagnostic demo. */
 typedef struct {
-#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
     rt_atomic_t rxCount; /**< Valid DLC=6 TIME receptions observed by callback-pre. */
-#else
-    uint8_t reserved; /**< Keeps the type complete when the demo is disabled. */
-#endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
 } CO_demo_time_t;
 
 /**

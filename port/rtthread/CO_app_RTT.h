@@ -105,7 +105,9 @@ typedef struct {
     uint8_t outStatusLEDRed;         /**< CANopen red LED status output. */
 
     CO_t *canOpenStack;              /**< CANopenNode object owned by this instance. */
-    CO_demo_t demo;                  /**< Optional demo/test module state. */
+#if CO_DEMO_ENABLED
+    CO_demo_t demo;                  /**< Enabled demo/test module state. */
+#endif /* CO_DEMO_ENABLED */
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
     CO_storage_t storage;            /**< CANopenNode storage object owned by this instance. */

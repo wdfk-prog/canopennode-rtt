@@ -315,6 +315,19 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_BITWISE_MAPPING"
             ;;
+        demo-emcy-consumer)
+            log "CI Kconfig profile demo-emcy-consumer: A-stage diagnostics plus EMCY Consumer"
+            append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_TIMERNEXT"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_CALLBACK_CHANGE"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TIME_PRODUCER"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_BITWISE_MAPPING"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_EM_CONSUMER"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC"
+            ;;
         demo-nmt-master-test)
             log "CI Kconfig profile demo-nmt-master-test: default demo objects with automatic NMT master validation"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -386,8 +399,8 @@ append_canopennode_profile()
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
-                "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-nmt-master-test" \
-                "  demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs" \
+                "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-emcy-consumer" \
+                "  demo-nmt-master-test demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs" \
                 "  demo-storage-eeprom-at24c demo-safety-debug" >&2
             exit 1
             ;;
@@ -502,6 +515,12 @@ verify_profile_outputs()
     local bsp_dir="$1"
 
     case "$CANOPENNODE_CI_PROFILE" in
+        demo-emcy-consumer)
+            verify_profile_object "$bsp_dir" "CO_demo.o"
+            verify_profile_object "$bsp_dir" "CO_demo_time.o"
+            verify_profile_object "$bsp_dir" "CO_demo_emcy_consumer.o"
+            verify_profile_object "$bsp_dir" "CO_Emergency.o"
+            ;;
         demo-nmt-master-test)
             verify_profile_object "$bsp_dir" "CO_demo.o"
             verify_profile_object "$bsp_dir" "CO_demo_nmt_master.o"

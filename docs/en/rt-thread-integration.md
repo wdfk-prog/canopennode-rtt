@@ -24,7 +24,7 @@ The port has two main responsibilities:
 
 1. `CO_driver_rtthread.c` implements the CANopenNode target driver hooks on top of RT-Thread `dev_can`.
 2. `CO_app_RTT.c` owns the application runtime instance, creates CANopenNode objects, starts worker threads, handles communication reset, and optionally initializes storage and LED outputs.
-3. `port/rtthread/demo/` owns demo/test feature implementations; the runtime wrapper only invokes the fixed `CO_demo_init()`, `CO_demo_bind()`, `CO_demo_process()`, and `CO_demo_reset()` hooks.
+3. `port/rtthread/demo/` owns demo/test feature implementations; the runtime wrapper only invokes the fixed `CO_demo_init()`, `CO_demo_bind()`, `CO_demo_process()`, `CO_demo_reset()`, and init-rollback `CO_demo_deinit()` hooks.
 
 ## 2. Runtime instance
 
@@ -83,7 +83,7 @@ The mainline thread is started last because it can process `CO_RESET_COMM` and r
 
 ### Demo/test extension boundary
 
-`CO_app_RTT.c` does not implement specific TIME diagnostic or NMT Master test behavior. After communication objects are initialized it calls `CO_demo_bind()` to rebind callbacks, invokes `CO_demo_process()` after each `CO_process()`, and calls `CO_demo_reset()` before local communication/application reset. SConscript adds the demo dispatcher only when `PKG_CANOPENNODE_USING_DEMO_OD` is enabled and selects each optional demo implementation from its own Kconfig option. When demo OD support is disabled, inline no-op hooks keep the runtime wrapper unchanged. New demo/test modules therefore extend `port/rtthread/demo/`, Kconfig, and SConscript selection without adding feature logic to the main runtime wrapper.
+`CO_app_RTT.c` does not implement specific TIME diagnostic, EMCY Consumer diagnostic, or NMT Master test behavior. After communication objects are initialized it calls `CO_demo_bind()` to rebind callbacks, invokes `CO_demo_process()` after each `CO_process()`, calls `CO_demo_reset()` before local communication/application reset, and calls `CO_demo_deinit()` only after CAN RX is stopped during initialization rollback. SConscript adds the demo dispatcher only when the demo OD is enabled and at least one demo/test module is selected, then selects each optional implementation from its own Kconfig option. When no demo/test module is selected, the dispatcher state and hook calls are compiled out instead of using dummy no-op state. New demo/test modules therefore extend `port/rtthread/demo/`, Kconfig, and SConscript selection without adding feature logic to the main runtime wrapper.
 
 ## 4. Threads and timer
 

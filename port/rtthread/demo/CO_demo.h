@@ -8,9 +8,25 @@
 
 #include "CANopen.h"
 
+#if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) \
+    || defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) \
+    || defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
+#define CO_DEMO_ENABLED 1
+#else
+#define CO_DEMO_ENABLED 0
+#endif
+
+#if CO_DEMO_ENABLED
+#if !defined(PKG_CANOPENNODE_USING_DEMO_OD)
+#error "CANopenNode demo/test modules require PKG_CANOPENNODE_USING_DEMO_OD"
+#endif /* !defined(PKG_CANOPENNODE_USING_DEMO_OD) */
+
 #if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
 #include "CO_demo_time.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC)
+#include "CO_demo_emcy_consumer.h"
+#endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #include "CO_demo_nmt_master.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -19,17 +35,17 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/** Long-lived state for optional demo/test modules owned by one application instance. */
+/** Long-lived state for the enabled demo/test modules owned by one application instance. */
 typedef struct {
 #if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC)
     CO_demo_time_t time; /**< TIME consumer diagnostic state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC)
+    CO_demo_emcy_consumer_t emcyConsumer; /**< EMCY consumer diagnostic state. */
+#endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_t nmtMaster; /**< Automatic NMT master validation state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
-#if !defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) && !defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
-    uint8_t reserved; /**< Keeps the dispatcher state complete when no demo is enabled. */
-#endif /* !defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) && !defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
 } CO_demo_t;
 
 /**
@@ -37,14 +53,7 @@ typedef struct {
  *
  * @param demo Demo dispatcher state owned by the application instance.
  */
-#if defined(PKG_CANOPENNODE_USING_DEMO_OD)
 void CO_demo_init(CO_demo_t *demo);
-#else
-static inline void CO_demo_init(CO_demo_t *demo)
-{
-    (void)demo;
-}
-#endif /* defined(PKG_CANOPENNODE_USING_DEMO_OD) */
 
 /**
  * @brief Bind enabled demo/test modules to a newly initialized CANopenNode stack.
@@ -55,16 +64,9 @@ static inline void CO_demo_init(CO_demo_t *demo)
  *
  * @param demo Demo dispatcher state owned by the application instance.
  * @param co Current CANopenNode object.
+ * @return true when all enabled demo callbacks are bound, otherwise false.
  */
-#if defined(PKG_CANOPENNODE_USING_DEMO_OD)
-void CO_demo_bind(CO_demo_t *demo, CO_t *co);
-#else
-static inline void CO_demo_bind(CO_demo_t *demo, CO_t *co)
-{
-    (void)demo;
-    (void)co;
-}
-#endif /* defined(PKG_CANOPENNODE_USING_DEMO_OD) */
+bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co);
 
 /**
  * @brief Process all enabled non-blocking demo/test modules from the mainline thread.
@@ -75,37 +77,28 @@ static inline void CO_demo_bind(CO_demo_t *demo, CO_t *co)
  * @param nowMs Current monotonic RT-Thread time in milliseconds.
  * @param resetStatus Reset request returned by the preceding CO_process() call.
  */
-#if defined(PKG_CANOPENNODE_USING_DEMO_OD)
 void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t nowMs,
                      CO_NMT_reset_cmd_t resetStatus);
-#else
-static inline void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t nowMs,
-                                   CO_NMT_reset_cmd_t resetStatus)
-{
-    (void)demo;
-    (void)co;
-    (void)localNodeId;
-    (void)nowMs;
-    (void)resetStatus;
-}
-#endif /* defined(PKG_CANOPENNODE_USING_DEMO_OD) */
 
 /**
  * @brief Reset enabled demo/test module state before local communication reset.
  *
  * @param demo Demo dispatcher state owned by the application instance.
  */
-#if defined(PKG_CANOPENNODE_USING_DEMO_OD)
 void CO_demo_reset(CO_demo_t *demo);
-#else
-static inline void CO_demo_reset(CO_demo_t *demo)
-{
-    (void)demo;
-}
-#endif /* defined(PKG_CANOPENNODE_USING_DEMO_OD) */
+
+/**
+ * @brief Release resources owned by optional demo/test modules during init rollback.
+ *
+ * The runtime calls this only after CAN receive callbacks are stopped.
+ *
+ * @param demo Demo dispatcher state owned by the application instance.
+ */
+void CO_demo_deinit(CO_demo_t *demo);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+#endif /* CO_DEMO_ENABLED */
 
 #endif /* CO_DEMO_H_ */

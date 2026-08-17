@@ -24,7 +24,7 @@ flowchart TD
 
 1. `CO_driver_rtthread.c` 基于 RT-Thread `dev_can` 实现 CANopenNode target driver hooks。
 2. `CO_app_RTT.c` 持有应用运行实例，创建 CANopenNode 对象，启动 worker threads，处理 communication reset，并可选初始化 storage 和 LED 输出。
-3. `port/rtthread/demo/` 持有 demo/test 功能实现；运行封装只调用 `CO_demo_init()`、`CO_demo_bind()`、`CO_demo_process()` 和 `CO_demo_reset()` 四个固定接点。
+3. `port/rtthread/demo/` 持有 demo/test 功能实现；运行封装只调用固定的 `CO_demo_init()`、`CO_demo_bind()`、`CO_demo_process()`、`CO_demo_reset()`，以及仅用于初始化回滚的 `CO_demo_deinit()` 接点。
 
 ## 2. 运行实例
 
@@ -83,7 +83,7 @@ mainline 线程最后启动，因为它可能处理 `CO_RESET_COMM` 并重建 CA
 
 ### Demo/test 扩展边界
 
-`CO_app_RTT.c` 不直接实现 TIME diagnostic、NMT Master test 等具体功能。通信对象初始化成功后调用 `CO_demo_bind()` 重新绑定 callback；每轮 `CO_process()` 后调用 `CO_demo_process()`；本机 communication/application reset 前调用 `CO_demo_reset()`。SConscript 仅在 `PKG_CANOPENNODE_USING_DEMO_OD` 开启时加入 demo dispatcher，并根据各 demo 的 Kconfig 选项选择对应实现源文件；关闭 demo OD 后由 inline no-op 接口保持主运行封装不变。因此后续新增 demo/test 只扩展 `port/rtthread/demo/`、Kconfig 和 SConscript 选择，不需要继续修改主运行封装。
+`CO_app_RTT.c` 不直接实现 TIME diagnostic、EMCY Consumer diagnostic、NMT Master test 等具体功能。通信对象初始化成功后调用 `CO_demo_bind()` 重新绑定 callback；每轮 `CO_process()` 后调用 `CO_demo_process()`；本机 communication/application reset 前调用 `CO_demo_reset()`；仅在初始化失败且 CAN RX 已停止后调用 `CO_demo_deinit()` 回收 callback owner。SConscript 仅在 demo OD 开启且至少一个 demo/test 模块被选择时加入 dispatcher，并根据各 demo 的 Kconfig 选项选择对应实现源文件；未选择任何 demo/test 模块时，dispatcher state 与 hook 调用会整体编译掉，不再使用 dummy/no-op 状态。因此后续新增 demo/test 只扩展 `port/rtthread/demo/`、Kconfig 和 SConscript 选择，不需要继续修改主运行封装。
 
 ## 4. 线程和定时器
 
