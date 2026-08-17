@@ -60,6 +60,7 @@ if GetDepend('PKG_USING_CANOPENNODE'):
     if GetDepend('PKG_CANOPENNODE_USING_DEMO_OD'):
         demo_enabled = (GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC')
+                        or GetDepend('PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'))
         _add_required_any(demo_enabled, 'demo dispatcher',
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo.c')])
@@ -68,6 +69,8 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC'),
                           'demo EMCY consumer diagnostic',
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo_emcy_consumer.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC'),
+                          'demo GFC diagnostic', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_gfc.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'),
                           'demo NMT master test', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_nmt_master.c')])
 

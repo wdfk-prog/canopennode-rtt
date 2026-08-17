@@ -971,8 +971,6 @@ endif
 
 menu "CiA 304 safety-related objects"
 
-comment "GFC and SRDO are safety-related objects; enable only with a validated safety design."
-
 menuconfig PKG_CANOPENNODE_USING_GFC
     bool "Enable GFC object"
     default n
@@ -1373,6 +1371,22 @@ config PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC
         The CANopenNode EMCY callback has no application object, so this generated
         demo diagnostic is limited to one CANopenNodeRTT instance. This option is
         intended for automated validation, not as a product-level remote fault manager.
+
+config PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC
+    bool "Enable demo GFC protocol diagnostic and producer trigger"
+    default n
+    depends on PKG_CANOPENNODE_USING_SDO_SERVER
+    select PKG_CANOPENNODE_USING_GFC
+    select PKG_CANOPENNODE_GFC_CONSUMER
+    select PKG_CANOPENNODE_GFC_PRODUCER
+    help
+        Publish test-only GFC consumer/producer state through OD 0x2302. The
+        receive callback only increments an RT-Thread atomic counter and latches
+        safe_requested. A mainline sequence request triggers CO_GFCsend() and
+        publishes its completion/result for automated Host validation.
+
+        This option validates protocol behavior only. It does not implement a
+        functional-safety state machine or control real safety actuators.
 
 config PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST
     bool "Enable automatic demo NMT master test"

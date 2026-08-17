@@ -154,7 +154,7 @@ Exactly one storage backend must be selected when storage is enabled.
 |---|---|---:|---|
 | LED | `PKG_CANOPENNODE_USING_LEDS` | `y` | Enables CiA 303-3 run/error LED state calculation. |
 | RT-Thread PIN LED | `PKG_CANOPENNODE_LEDS_USING_RTT_PIN` | `n` | Drives configured RT-Thread PIN outputs. |
-| GFC | `PKG_CANOPENNODE_USING_GFC` | `n` | Safety-related object; enable only with a validated safety design. |
+| GFC | `PKG_CANOPENNODE_USING_GFC` | `n` | Enables the CiA 304 GFC protocol object; this alone does not establish safety compliance. |
 | SRDO | `PKG_CANOPENNODE_USING_SRDO` | `n` | Safety-related PDO; requires CRC16. |
 | LSS slave | `PKG_CANOPENNODE_USING_LSS_SLAVE` | `y` | Allows node ID and bitrate configuration by an LSS master. |
 | LSS master | `PKG_CANOPENNODE_USING_LSS_MASTER` | `n` | Enable for commissioning tools or gateways. |
@@ -178,6 +178,7 @@ Exactly one storage backend must be selected when storage is enabled.
 | `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | Compiles `examples/demo_device/OD.c` and adds the demo OD include path. |
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Updates demo OD `0x2300:01..03` from the TIME receive callback and applied `CO_TIME_t` state. |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | Single-instance demo diagnostic; updates `0x2301:01..07` from the CANopenNode EMCY Consumer callback using RT-Thread atomics. |
+| `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | Demo/test GFC protocol diagnostic; selects GFC consumer/producer and uses `0x2302` for receive evidence and a mainline producer request/result sequence. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | Available only under the demo OD domain; depends on auto init and selects NMT Master, Heartbeat Consumer, query functions, and GLOBAL_OD_DYNAMIC. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | Controlled remote node, range 1..127; runtime rejects the active local Node-ID. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | Target-node Heartbeat Consumer timeout temporarily written to demo OD `0x1016`; the previous value is restored on completion, failure, or before local reset. |
@@ -185,6 +186,6 @@ Exactly one storage backend must be selected when storage is enabled.
 
 TIME diagnostics, EMCY Consumer diagnostics, and NMT Master validation are implemented under `port/rtthread/demo/`. `CO_app_RTT.c` only invokes the fixed demo dispatcher hooks. With the demo OD enabled, SConscript builds the dispatcher only when at least one demo/test module is selected, then adds `CO_demo_time.c`, `CO_demo_emcy_consumer.c`, and `CO_demo_nmt_master.c` only for their matching Kconfig options. When no demo/test module is selected, the dispatcher state and hook calls are compiled out entirely; an enabled demo/test module without the demo OD is rejected at compile time.
 
-The TIME diagnostic, EMCY Consumer diagnostic, and NMT Master automatic test belong to the built-in demo-OD test configuration domain. Product firmware with a custom OD should disable `PKG_CANOPENNODE_USING_DEMO_OD`, enable protocol capabilities as needed, and provide its own test or observability interface. See [NMT Master automatic test](nmt-master-test.md).
+The TIME diagnostic, EMCY Consumer diagnostic, GFC protocol diagnostic, and NMT Master automatic test belong to the built-in demo-OD test configuration domain. Product firmware with a custom OD should disable `PKG_CANOPENNODE_USING_DEMO_OD`, enable protocol capabilities as needed, and provide its own test or observability interface. See [NMT Master automatic test](nmt-master-test.md).
 
 Disable `PKG_CANOPENNODE_USING_DEMO_OD` when the BSP or application provides a custom generated `OD.c` and `OD.h` through its own SConscript and include path.

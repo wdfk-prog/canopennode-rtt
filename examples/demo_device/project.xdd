@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-14" fileModificationTime="13:25:23.2372587+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-17" fileModificationTime="14:01:12.8228490+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>canopennode-rtt</q1:vendorName>
         <q1:vendorID>0x00000000</q1:vendorID>
@@ -622,6 +622,26 @@
             </q1:varDeclaration>
             <q1:varDeclaration name="last_info_code" uniqueID="UID_RECSUB_230107">
               <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="gfc_diagnostic" uniqueID="UID_REC_2302">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230200">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="rx_count" uniqueID="UID_RECSUB_230201">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="safe_requested" uniqueID="UID_RECSUB_230202">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="producer_request_seq" uniqueID="UID_RECSUB_230203">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="producer_complete_seq" uniqueID="UID_RECSUB_230204">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="producer_result" uniqueID="UID_RECSUB_230205">
+              <DINT />
             </q1:varDeclaration>
           </q1:struct>
         </q1:dataTypeList>
@@ -1279,6 +1299,13 @@ The life time factor multiplied with the guard time gives the life time for the 
             <label lang="en">Node-ID of the SDO server</label>
             <USINT />
             <q1:defaultValue value="0x01" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1300" access="readWrite">
+            <label lang="en">Global fail-safe command parameter</label>
+            <USINT />
+            <q1:defaultValue value="0x01" />
+            <q1:property name="CO_countLabel" value="GFC" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1400">
             <description lang="en">* COB-ID used by RPDO:
@@ -2249,6 +2276,40 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2302">
+            <label lang="en">gfc_diagnostic</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_2302" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230200">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x05" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230201">
+            <label lang="en">rx_count</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230202">
+            <label lang="en">safe_requested</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230203" access="readWrite">
+            <label lang="en">producer_request_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230204">
+            <label lang="en">producer_complete_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230205">
+            <label lang="en">producer_result</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2266,7 +2327,7 @@ The life time factor multiplied with the guard time gives the life time for the 
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-14" fileModificationTime="13:25:23.2372587+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-17" fileModificationTime="14:01:12.8228490+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -2400,6 +2461,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="02" name="COB-ID server to client (rx)" objectType="7" PDOmapping="optional" uniqueIDRef="UID_SUB_128002" />
             <CANopenSubObject subIndex="03" name="Node-ID of the SDO server" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_128003" />
           </CANopenObject>
+          <CANopenObject index="1300" name="Global fail-safe command parameter" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1300" />
           <CANopenObject index="1400" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1400" subNumber="4">
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140000" />
             <CANopenSubObject subIndex="01" name="COB-ID used by RPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140001" />
@@ -2581,6 +2643,14 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="05" name="last_error_register" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230105" />
             <CANopenSubObject subIndex="06" name="last_error_bit" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230106" />
             <CANopenSubObject subIndex="07" name="last_info_code" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230107" />
+          </CANopenObject>
+          <CANopenObject index="2302" name="gfc_diagnostic" objectType="9" uniqueIDRef="UID_OBJ_2302" subNumber="6">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230200" />
+            <CANopenSubObject subIndex="01" name="rx_count" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230201" />
+            <CANopenSubObject subIndex="02" name="safe_requested" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230202" />
+            <CANopenSubObject subIndex="03" name="producer_request_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230203" />
+            <CANopenSubObject subIndex="04" name="producer_complete_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230204" />
+            <CANopenSubObject subIndex="05" name="producer_result" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230205" />
           </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>

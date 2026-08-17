@@ -10,6 +10,7 @@
 
 #if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) \
+    || defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #define CO_DEMO_ENABLED 1
 #else
@@ -27,6 +28,9 @@
 #if defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC)
 #include "CO_demo_emcy_consumer.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
+#include "CO_demo_gfc.h"
+#endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #include "CO_demo_nmt_master.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -43,6 +47,9 @@ typedef struct {
 #if defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC)
     CO_demo_emcy_consumer_t emcyConsumer; /**< EMCY consumer diagnostic state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
+    CO_demo_gfc_t gfc; /**< GFC protocol diagnostic and producer state. */
+#endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_t nmtMaster; /**< Automatic NMT master validation state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */

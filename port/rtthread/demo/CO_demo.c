@@ -21,6 +21,9 @@ void CO_demo_init(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC)
     CO_demo_emcy_consumer_init(&demo->emcyConsumer);
 #endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
+    CO_demo_gfc_init(&demo->gfc);
+#endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_init(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -42,6 +45,11 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co)
         bound = false;
     }
 #endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
+    if (!CO_demo_gfc_bind(&demo->gfc, co)) {
+        bound = false;
+    }
+#endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_bind(&demo->nmtMaster, co);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -62,6 +70,9 @@ void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t no
 #if defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC)
     CO_demo_emcy_consumer_process(&demo->emcyConsumer);
 #endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
+    CO_demo_gfc_process(&demo->gfc, co);
+#endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_process(&demo->nmtMaster, co, localNodeId, nowMs, resetStatus);
 #else
@@ -83,6 +94,9 @@ void CO_demo_reset(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC)
     CO_demo_emcy_consumer_reset(&demo->emcyConsumer);
 #endif /* defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
+    CO_demo_gfc_reset(&demo->gfc);
+#endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_reset(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */

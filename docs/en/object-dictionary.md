@@ -134,7 +134,25 @@ The receive callback updates RT-Thread atomic fields and an odd/even sequence co
 
 This is a demo/test observability contract, not a product-level remote fault manager.
 
-## 10. Validation checklist
+## 10. GFC parameter and demo protocol diagnostics
+
+The generated demo OD includes the standard GFC parameter `0x1300:00` as an `UNSIGNED8` read/write value with default `1`. CANopenNode interprets `0` as GFC disabled and `1` as GFC enabled; values greater than `1` are rejected by the GFC OD extension.
+
+For automated J03/B09G protocol validation, manufacturer-specific record `0x2302` exposes only test control and evidence:
+
+| Sub-index | Type | Access | Meaning |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | read-only | Count of accepted valid GFC consumer callbacks. |
+| `0x02` | `UNSIGNED8` | read-only | Sticky protocol-test flag set after an accepted GFC callback. |
+| `0x03` | `UNSIGNED32` | read/write | Producer request sequence written by the Host. |
+| `0x04` | `UNSIGNED32` | read-only | Last producer request sequence consumed by the MCU mainline. |
+| `0x05` | `INTEGER32` | read-only | Result of the latest mainline `CO_GFCsend()` call. |
+
+The CAN receive callback only updates RT-Thread atomic receive evidence. `CO_GFCsend()` is invoked from the CANopenNode mainline when a new request sequence is observed. Receive evidence survives communication reset, while producer request/completion state is synchronized on rebind so an old request is not replayed on the recreated stack.
+
+This record validates GFC protocol behavior only. It does not drive an actuator, implement a product safe state, or establish SIL/PL/EN 50325-5 compliance.
+
+## 11. Validation checklist
 
 Before replacing the demo OD in a product build, verify:
 

@@ -154,7 +154,7 @@ Storage backend 选择：
 |---|---|---:|---|
 | LED | `PKG_CANOPENNODE_USING_LEDS` | `y` | 启用 CiA 303-3 run/error LED 状态计算。 |
 | RT-Thread PIN LED | `PKG_CANOPENNODE_LEDS_USING_RTT_PIN` | `n` | 驱动配置的 RT-Thread PIN 输出。 |
-| GFC | `PKG_CANOPENNODE_USING_GFC` | `n` | 安全相关对象；仅在安全设计已验证时开启。 |
+| GFC | `PKG_CANOPENNODE_USING_GFC` | `n` | 启用 CiA 304 GFC 协议对象；仅启用该协议不代表满足功能安全要求。 |
 | SRDO | `PKG_CANOPENNODE_USING_SRDO` | `n` | 安全相关 PDO；需要 CRC16。 |
 | LSS slave | `PKG_CANOPENNODE_USING_LSS_SLAVE` | `y` | 允许通过 LSS master 配置 Node-ID 和 bitrate。 |
 | LSS master | `PKG_CANOPENNODE_USING_LSS_MASTER` | `n` | commissioning tool 或 gateway 场景开启。 |
@@ -178,6 +178,7 @@ Storage backend 选择：
 | `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | 编译 `examples/demo_device/OD.c`，并添加 demo OD include path。 |
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 根据 TIME receive callback 和实际 `CO_TIME_t` 状态更新 demo OD `0x2300:01..03`。 |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | 单实例 demo 诊断；使用 RT-Thread atomic 根据 CANopenNode EMCY Consumer callback 更新 `0x2301:01..07`。 |
+| `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | demo/test GFC 协议诊断；自动选择 GFC consumer/producer，并通过 `0x2302` 提供接收证据及 mainline producer request/result sequence。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | 仅在 demo OD 配置域内可见；依赖 auto init，并自动选择 NMT Master、Heartbeat Consumer、query functions 与 GLOBAL_OD_DYNAMIC。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | 被控制的远端节点，范围 1..127；运行时拒绝与本机 Node-ID 相同。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | 写入 demo OD `0x1016` 的目标节点 Heartbeat consumer timeout。 |
@@ -185,6 +186,6 @@ Storage backend 选择：
 
 TIME diagnostic、EMCY Consumer diagnostic 和 NMT Master test 的实现位于 `port/rtthread/demo/`，`CO_app_RTT.c` 只调用固定的 demo dispatcher 接口。开启 demo OD 后，SConscript 仅在至少一个 demo/test 模块被选择时加入 dispatcher，并只在对应 Kconfig 开启时加入 `CO_demo_time.c`、`CO_demo_emcy_consumer.c` 或 `CO_demo_nmt_master.c`。未选择任何 demo/test 模块时，dispatcher state 与 hook 调用会整体编译掉；若在未启用 demo OD 的情况下错误开启 demo/test 模块，则直接在编译期报错。
 
-TIME diagnostic、EMCY Consumer diagnostic 和 NMT Master 自动测试都属于内置 demo OD 的测试配置域。使用自定义 OD 的产品固件应关闭 `PKG_CANOPENNODE_USING_DEMO_OD`，按产品需求直接启用协议能力并提供自己的测试/可观察接口。完整 NMT 流程见 [NMT Master 自动测试](nmt-master-test.md)。
+TIME diagnostic、EMCY Consumer diagnostic、GFC 协议诊断和 NMT Master 自动测试都属于内置 demo OD 的测试配置域。使用自定义 OD 的产品固件应关闭 `PKG_CANOPENNODE_USING_DEMO_OD`，按产品需求直接启用协议能力并提供自己的测试/可观察接口。完整 NMT 流程见 [NMT Master 自动测试](nmt-master-test.md)。
 
 当 BSP 或应用通过自己的 SConscript 和 include path 提供自定义生成的 `OD.c` 与 `OD.h` 时，应关闭 `PKG_CANOPENNODE_USING_DEMO_OD`。

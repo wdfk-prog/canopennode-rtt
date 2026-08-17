@@ -134,7 +134,25 @@ SDO 访问要求 `PKG_CANOPENNODE_USING_SDO_SERVER` 开启，并且 OD access at
 
 该对象只是 demo/test 可观察性契约，不承担产品级远端故障管理。
 
-## 10. 验证清单
+## 10. GFC 参数与 demo 协议诊断
+
+生成的 demo OD 包含标准 GFC 参数 `0x1300:00`，类型为可读写 `UNSIGNED8`，默认值为 `1`。CANopenNode 将 `0` 解释为 GFC 无效、`1` 解释为 GFC 有效；大于 `1` 的值由 GFC OD extension 拒绝。
+
+为支持 J03/B09G 自动协议验证，manufacturer-specific 记录 `0x2302` 只暴露测试控制和证据：
+
+| Sub-index | 类型 | 访问 | 含义 |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | 只读 | 合法 GFC consumer callback 的累计次数。 |
+| `0x02` | `UNSIGNED8` | 只读 | 收到过合法 GFC 后置位的粘性协议测试标志。 |
+| `0x03` | `UNSIGNED32` | 读写 | Host 写入的 producer request sequence。 |
+| `0x04` | `UNSIGNED32` | 只读 | MCU mainline 已消费的最近 producer request sequence。 |
+| `0x05` | `INTEGER32` | 只读 | 最近一次 mainline `CO_GFCsend()` 调用结果。 |
+
+CAN receive callback 只更新 RT-Thread atomic 接收证据；只有 mainline 观察到新的 request sequence 后才调用 `CO_GFCsend()`。communication reset 会保留 consumer 接收证据，同时在新 GFC 对象重新绑定时同步 producer request/completion，避免旧请求在新 stack 上重放。
+
+该记录仅用于 GFC 协议功能验证，不控制真实执行器、不实现产品安全状态，也不代表 SIL、PL 或 EN 50325-5 系统级合规。
+
+## 11. 验证清单
 
 产品构建替换 demo OD 前，确认：
 

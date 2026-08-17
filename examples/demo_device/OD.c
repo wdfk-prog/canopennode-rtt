@@ -48,6 +48,7 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .COB_IDServerToClientRx = 0x80000000,
         .node_IDOfTheSDOServer = 0x01
     },
+    .x1300_globalFail_safeCommandParameter = 0x01,
     .x1400_RPDOCommunicationParameter = {
         .highestSub_indexSupported = 0x05,
         .COB_IDUsedByRPDO = 0x00000200,
@@ -244,6 +245,14 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
         .last_error_register = 0x00,
         .last_error_bit = 0x00,
         .last_info_code = 0x00000000
+    },
+    .x2302_gfc_diagnostic = {
+        .highestSub_indexSupported = 0x05,
+        .rx_count = 0x00000000,
+        .safe_requested = 0x00,
+        .producer_request_seq = 0x00000000,
+        .producer_complete_seq = 0x00000000,
+        .producer_result = 0
     }
 };
 
@@ -275,6 +284,7 @@ typedef struct {
     OD_obj_var_t o_1019_synchronousCounterOverflowValue;
     OD_obj_record_t o_1200_SDOServerParameter[3];
     OD_obj_record_t o_1280_SDOClientParameter[4];
+    OD_obj_var_t o_1300_globalFail_safeCommandParameter;
     OD_obj_record_t o_1400_RPDOCommunicationParameter[4];
     OD_obj_record_t o_1401_RPDOCommunicationParameter[4];
     OD_obj_record_t o_1402_RPDOCommunicationParameter[4];
@@ -298,6 +308,7 @@ typedef struct {
     OD_obj_var_t o_2200_control_value;
     OD_obj_record_t o_2300_time_consumer_diagnostic[4];
     OD_obj_record_t o_2301_emcy_consumer_diagnostic[8];
+    OD_obj_record_t o_2302_gfc_diagnostic[6];
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -485,6 +496,11 @@ static CO_PROGMEM ODObjs_t ODObjs = {
             .attribute = ODA_SDO_RW,
             .dataLength = 1
         }
+    },
+    .o_1300_globalFail_safeCommandParameter = {
+        .dataOrig = &OD_PERSIST_COMM.x1300_globalFail_safeCommandParameter,
+        .attribute = ODA_SDO_RW,
+        .dataLength = 1
     },
     .o_1400_RPDOCommunicationParameter = {
         {
@@ -1374,6 +1390,44 @@ static CO_PROGMEM ODObjs_t ODObjs = {
             .attribute = ODA_SDO_R | ODA_MB,
             .dataLength = 4
         }
+    },
+    .o_2302_gfc_diagnostic = {
+        {
+            .dataOrig = &OD_RAM.x2302_gfc_diagnostic.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2302_gfc_diagnostic.rx_count,
+            .subIndex = 1,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2302_gfc_diagnostic.safe_requested,
+            .subIndex = 2,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2302_gfc_diagnostic.producer_request_seq,
+            .subIndex = 3,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2302_gfc_diagnostic.producer_complete_seq,
+            .subIndex = 4,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2302_gfc_diagnostic.producer_result,
+            .subIndex = 5,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        }
     }
 };
 
@@ -1404,6 +1458,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x1019, 0x01, ODT_VAR, &ODObjs.o_1019_synchronousCounterOverflowValue, NULL},
     {0x1200, 0x03, ODT_REC, &ODObjs.o_1200_SDOServerParameter, NULL},
     {0x1280, 0x04, ODT_REC, &ODObjs.o_1280_SDOClientParameter, NULL},
+    {0x1300, 0x01, ODT_VAR, &ODObjs.o_1300_globalFail_safeCommandParameter, NULL},
     {0x1400, 0x04, ODT_REC, &ODObjs.o_1400_RPDOCommunicationParameter, NULL},
     {0x1401, 0x04, ODT_REC, &ODObjs.o_1401_RPDOCommunicationParameter, NULL},
     {0x1402, 0x04, ODT_REC, &ODObjs.o_1402_RPDOCommunicationParameter, NULL},
@@ -1427,6 +1482,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x2200, 0x01, ODT_VAR, &ODObjs.o_2200_control_value, NULL},
     {0x2300, 0x04, ODT_REC, &ODObjs.o_2300_time_consumer_diagnostic, NULL},
     {0x2301, 0x08, ODT_REC, &ODObjs.o_2301_emcy_consumer_diagnostic, NULL},
+    {0x2302, 0x06, ODT_REC, &ODObjs.o_2302_gfc_diagnostic, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 

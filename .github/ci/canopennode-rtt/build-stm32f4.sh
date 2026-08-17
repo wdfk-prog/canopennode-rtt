@@ -328,6 +328,14 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_EM_CONSUMER"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC"
             ;;
+        demo-gfc)
+            log "CI Kconfig profile demo-gfc: GFC consumer/producer with automated diagnostic"
+            append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_GFC"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GFC_CONSUMER"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GFC_PRODUCER"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC"
+            ;;
         demo-nmt-master-test)
             log "CI Kconfig profile demo-nmt-master-test: default demo objects with automatic NMT master validation"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -399,7 +407,7 @@ append_canopennode_profile()
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
-                "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-emcy-consumer" \
+                "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-emcy-consumer demo-gfc" \
                 "  demo-nmt-master-test demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs" \
                 "  demo-storage-eeprom-at24c demo-safety-debug" >&2
             exit 1
@@ -520,6 +528,11 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "CO_demo_time.o"
             verify_profile_object "$bsp_dir" "CO_demo_emcy_consumer.o"
             verify_profile_object "$bsp_dir" "CO_Emergency.o"
+            ;;
+        demo-gfc)
+            verify_profile_object "$bsp_dir" "CO_demo.o"
+            verify_profile_object "$bsp_dir" "CO_demo_gfc.o"
+            verify_profile_object "$bsp_dir" "CO_GFC.o"
             ;;
         demo-nmt-master-test)
             verify_profile_object "$bsp_dir" "CO_demo.o"
