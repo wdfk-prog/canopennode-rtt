@@ -24,6 +24,9 @@ void CO_demo_init(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
     CO_demo_gfc_init(&demo->gfc);
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
+    CO_demo_sdo_client_init(&demo->sdoClient);
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_init(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -50,6 +53,11 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co)
         bound = false;
     }
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
+    if (!CO_demo_sdo_client_bind(&demo->sdoClient, co)) {
+        bound = false;
+    }
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_bind(&demo->nmtMaster, co);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -58,7 +66,7 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co)
 }
 
 void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t nowMs,
-                     CO_NMT_reset_cmd_t resetStatus)
+                     uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus)
 {
     if ((demo == NULL) || (co == NULL)) {
         return;
@@ -73,6 +81,11 @@ void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t no
 #if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
     CO_demo_gfc_process(&demo->gfc, co);
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
+    CO_demo_sdo_client_process(&demo->sdoClient, co, localNodeId, timeDifferenceUs, resetStatus);
+#else
+    (void)timeDifferenceUs;
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_process(&demo->nmtMaster, co, localNodeId, nowMs, resetStatus);
 #else
@@ -97,6 +110,9 @@ void CO_demo_reset(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
     CO_demo_gfc_reset(&demo->gfc);
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
+    CO_demo_sdo_client_reset(&demo->sdoClient);
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_reset(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */

@@ -11,6 +11,7 @@
 #if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) \
+    || defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) \
     || defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #define CO_DEMO_ENABLED 1
 #else
@@ -31,6 +32,9 @@
 #if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
 #include "CO_demo_gfc.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
+#include "CO_demo_sdo_client.h"
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #include "CO_demo_nmt_master.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -50,6 +54,9 @@ typedef struct {
 #if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
     CO_demo_gfc_t gfc; /**< GFC protocol diagnostic and producer state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
+    CO_demo_sdo_client_t sdoClient; /**< Test-only non-blocking SDO client state. */
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_t nmtMaster; /**< Automatic NMT master validation state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -82,10 +89,11 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co);
  * @param co Current CANopenNode object.
  * @param localNodeId Active local CANopen Node-ID.
  * @param nowMs Current monotonic RT-Thread time in milliseconds.
+ * @param timeDifferenceUs Elapsed mainline time passed to CANopenNode in microseconds.
  * @param resetStatus Reset request returned by the preceding CO_process() call.
  */
 void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t nowMs,
-                     CO_NMT_reset_cmd_t resetStatus);
+                     uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus);
 
 /**
  * @brief Reset enabled demo/test module state before local communication reset.

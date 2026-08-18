@@ -491,7 +491,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
 
         reset_status = CO_process(co, false, time_difference_us, NULL);
 #if CO_DEMO_ENABLED
-        CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms, reset_status);
+        CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms, time_difference_us, reset_status);
 #endif /* CO_DEMO_ENABLED */
 #if ((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE) != 0
         /*

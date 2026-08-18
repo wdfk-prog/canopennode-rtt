@@ -346,6 +346,17 @@ append_canopennode_profile()
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS" "1500"
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS" "3000"
             ;;
+        demo-sdo-client-test)
+            log "CI Kconfig profile demo-sdo-client-test: J04 local/segmented SDO client with 32-byte FIFO"
+            append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SDO_CLIENT"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_SEGMENTED"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_LOCAL"
+            remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_BLOCK"
+            append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_BUFFER_SIZE" "32"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_FIFO"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST"
+            ;;
         demo-sdo-client-gateway)
             log "CI Kconfig profile demo-sdo-client-gateway: SDO client, FIFO/CRC16, gateway, NMT/LSS master"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -408,7 +419,7 @@ append_canopennode_profile()
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
                 "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-emcy-consumer demo-gfc" \
-                "  demo-nmt-master-test demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs" \
+                "  demo-nmt-master-test demo-sdo-client-test demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs" \
                 "  demo-storage-eeprom-at24c demo-safety-debug" >&2
             exit 1
             ;;

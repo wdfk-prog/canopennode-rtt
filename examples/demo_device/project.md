@@ -929,3 +929,27 @@ Manufacturer Specific Parameters
 | 0x03 | producer_request_seq  | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
 | 0x04 | producer_complete_seq | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
 | 0x05 | producer_result       | INTEGER32  | ro  | no  | no   | 0             |
+
+### 0x2303 - sdo_client_test
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | RAM            |
+
+| Sub  | Name                        | Data Type  | SDO | PDO | SRDO | Default Value |
+| ---- | --------------------------- | ---------- | --- | --- | ---- | ------------- |
+| 0x00 | Highest sub-index supported | UNSIGNED8  | ro  | no  | no   | 0x0F          |
+| 0x01 | request_seq                 | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+| 0x02 | command                     | UNSIGNED8  | rw  | no  | no   | 0x00          |
+| 0x03 | remote_node                 | UNSIGNED8  | rw  | no  | no   | 0x00          |
+| 0x04 | index                       | UNSIGNED16 | rw  | no  | no   | 0x0000        |
+| 0x05 | sub_index                   | UNSIGNED8  | rw  | no  | no   | 0x00          |
+| 0x06 | payload_size                | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+| 0x07 | probe_value                 | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+| 0x08 | flags                       | UNSIGNED8  | rw  | no  | no   | 0x00          |
+| 0x09 | active_seq                  | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
+| 0x0A | complete_seq                | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
+| 0x0B | result                      | INTEGER32  | ro  | no  | no   | 0             |
+| 0x0C | abort_code                  | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
+| 0x0D | transferred_size            | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
+| 0x0E | result_value                | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
+| 0x0F | checksum                    | UNSIGNED32 | ro  | no  | no   | 0x00000000    |

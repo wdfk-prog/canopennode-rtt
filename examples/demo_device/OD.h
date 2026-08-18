@@ -16,7 +16,7 @@
 
         Created:      2026/7/6 14:52:30
         Created By:   wdfk-prog
-        Modified:     2026/8/17 13:59:58
+        Modified:     2026/8/17 14:01:12
         Modified By:  wdfk-prog
 
     Device Info:
@@ -295,6 +295,24 @@ typedef struct {
         uint32_t producer_complete_seq;
         int32_t producer_result;
     } x2302_gfc_diagnostic;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t request_seq;
+        uint8_t command;
+        uint8_t remote_node;
+        uint16_t index;
+        uint8_t sub_index;
+        uint32_t payload_size;
+        uint32_t probe_value;
+        uint8_t flags;
+        uint32_t active_seq;
+        uint32_t complete_seq;
+        int32_t result;
+        uint32_t abort_code;
+        uint32_t transferred_size;
+        uint32_t result_value;
+        uint32_t checksum;
+    } x2303_sdo_client_test;
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -363,6 +381,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2300 &OD->list[44]
 #define OD_ENTRY_H2301 &OD->list[45]
 #define OD_ENTRY_H2302 &OD->list[46]
+#define OD_ENTRY_H2303 &OD->list[47]
 
 
 /*******************************************************************************
@@ -415,6 +434,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2300_time_consumer_diagnostic &OD->list[44]
 #define OD_ENTRY_H2301_emcy_consumer_diagnostic &OD->list[45]
 #define OD_ENTRY_H2302_gfc_diagnostic &OD->list[46]
+#define OD_ENTRY_H2303_sdo_client_test &OD->list[47]
 
 
 /*******************************************************************************

@@ -1388,6 +1388,23 @@ config PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC
         This option validates protocol behavior only. It does not implement a
         functional-safety state machine or control real safety actuators.
 
+config PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST
+    bool "Enable demo MCU SDO client test control/status"
+    default n
+    depends on PKG_CANOPENNODE_USING_SDO_SERVER
+    select PKG_CANOPENNODE_USING_SDO_CLIENT
+    select PKG_CANOPENNODE_SDO_CLI_SEGMENTED
+    select PKG_CANOPENNODE_SDO_CLI_LOCAL
+    help
+        Publish test-only MCU SDO client control/status through OD 0x2303.
+        The Host commits request_seq after all request fields are written, then
+        the CANopenNode mainline drives CO_SDOclient non-blockingly. The J04 profile
+        enables local and segmented transfers and deliberately leaves block
+        transfer disabled until J06.
+
+        The demo uses the first generated SDO client object and is intended for
+        automated validation with the package demo Object Dictionary.
+
 config PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST
     bool "Enable automatic demo NMT master test"
     default n

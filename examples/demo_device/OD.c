@@ -253,6 +253,24 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
         .producer_request_seq = 0x00000000,
         .producer_complete_seq = 0x00000000,
         .producer_result = 0
+    },
+    .x2303_sdo_client_test = {
+        .highestSub_indexSupported = 0x0F,
+        .request_seq = 0x00000000,
+        .command = 0x00,
+        .remote_node = 0x00,
+        .index = 0x0000,
+        .sub_index = 0x00,
+        .payload_size = 0x00000000,
+        .probe_value = 0x00000000,
+        .flags = 0x00,
+        .active_seq = 0x00000000,
+        .complete_seq = 0x00000000,
+        .result = 0,
+        .abort_code = 0x00000000,
+        .transferred_size = 0x00000000,
+        .result_value = 0x00000000,
+        .checksum = 0x00000000
     }
 };
 
@@ -309,6 +327,7 @@ typedef struct {
     OD_obj_record_t o_2300_time_consumer_diagnostic[4];
     OD_obj_record_t o_2301_emcy_consumer_diagnostic[8];
     OD_obj_record_t o_2302_gfc_diagnostic[6];
+    OD_obj_record_t o_2303_sdo_client_test[16];
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -1428,6 +1447,104 @@ static CO_PROGMEM ODObjs_t ODObjs = {
             .attribute = ODA_SDO_R | ODA_MB,
             .dataLength = 4
         }
+    },
+    .o_2303_sdo_client_test = {
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.request_seq,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.command,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.remote_node,
+            .subIndex = 3,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.index,
+            .subIndex = 4,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 2
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.sub_index,
+            .subIndex = 5,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.payload_size,
+            .subIndex = 6,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.probe_value,
+            .subIndex = 7,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.flags,
+            .subIndex = 8,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.active_seq,
+            .subIndex = 9,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.complete_seq,
+            .subIndex = 10,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.result,
+            .subIndex = 11,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.abort_code,
+            .subIndex = 12,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.transferred_size,
+            .subIndex = 13,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.result_value,
+            .subIndex = 14,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2303_sdo_client_test.checksum,
+            .subIndex = 15,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        }
     }
 };
 
@@ -1483,6 +1600,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x2300, 0x04, ODT_REC, &ODObjs.o_2300_time_consumer_diagnostic, NULL},
     {0x2301, 0x08, ODT_REC, &ODObjs.o_2301_emcy_consumer_diagnostic, NULL},
     {0x2302, 0x06, ODT_REC, &ODObjs.o_2302_gfc_diagnostic, NULL},
+    {0x2303, 0x10, ODT_REC, &ODObjs.o_2303_sdo_client_test, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 

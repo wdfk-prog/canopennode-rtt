@@ -152,7 +152,33 @@ The CAN receive callback only updates RT-Thread atomic receive evidence. `CO_GFC
 
 This record validates GFC protocol behavior only. It does not drive an actuator, implement a product safe state, or establish SIL/PL/EN 50325-5 compliance.
 
-## 11. Validation checklist
+## 11. MCU SDO Client test control/status
+
+For J04/B03 validation, manufacturer-specific record `0x2303` exposes a test-only request and result contract. It does not replace CANopenNode's SDO Client protocol state machine.
+
+| Sub-index | Type | Access | Meaning |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | read/write | Request sequence. The Host writes this field last to commit a complete request. |
+| `0x02` | `UNSIGNED8` | read/write | Command: `1=UPLOAD`, `2=DOWNLOAD`. |
+| `0x03` | `UNSIGNED8` | read/write | Target SDO server Node-ID. |
+| `0x04` | `UNSIGNED16` | read/write | Target Object Dictionary index. |
+| `0x05` | `UNSIGNED8` | read/write | Target Object Dictionary sub-index. |
+| `0x06` | `UNSIGNED32` | read/write | DOWNLOAD payload size in bytes; UPLOAD uses zero. |
+| `0x07` | `UNSIGNED32` | read/write | U32 DOWNLOAD value or deterministic segmented-payload seed. |
+| `0x08` | `UNSIGNED8` | read/write | Request flags. J04 requires zero; bit 0 is reserved for later block-transfer coverage. |
+| `0x09` | `UNSIGNED32` | read-only | Sequence accepted by the MCU mainline. |
+| `0x0A` | `UNSIGNED32` | read-only | Sequence with a published terminal result. |
+| `0x0B` | `INTEGER32` | read-only | Normalized result: `0=NONE`, `1=SUCCESS`, `2=ABORT`, `3=TIMEOUT`, `4=RESET_CANCELLED`, `5=SETUP_ERROR`, `6=UNSUPPORTED`, `7=INTERNAL_ERROR`. |
+| `0x0C` | `UNSIGNED32` | read-only | Native CANopen SDO abort code; reset cancellation leaves this zero. |
+| `0x0D` | `UNSIGNED32` | read-only | Number of payload bytes transferred. |
+| `0x0E` | `UNSIGNED32` | read-only | Uploaded U32 value, or the successful U32 DOWNLOAD probe value. |
+| `0x0F` | `UNSIGNED32` | read-only | FNV-1a checksum over payload bytes handled by the test wrapper. |
+
+The Host writes `0x2303:02..08` first and commits the transaction by writing a new nonzero `request_seq`. The CANopen mainline latches the request and drives `CO_SDOclient_setup()`, initiate, and process calls without blocking. Local transfers use CANopenNode's `CO_CONFIG_SDO_CLI_LOCAL` path and therefore do not produce SDO frames on the CAN bus. Remote tests use the CiA 301 predefined SDO connection for the selected Node-ID.
+
+J04 keeps the SDO Client FIFO at 32 bytes and uses a 48-byte segmented payload to exercise FIFO drain/refill. OD `0x1280` is not modified for these transactions. A communication reset cancels an active request as `RESET_CANCELLED`, consumes its sequence, and prevents replay after the CANopenNode stack is recreated. Block transfer remains outside J04 and is reserved for J06.
+
+## 12. Validation checklist
 
 Before replacing the demo OD in a product build, verify:
 

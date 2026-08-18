@@ -132,6 +132,7 @@ Most behavior is controlled through `Kconfig`. Important options include:
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | Publish demo/test TIME consumer diagnostics through OD `0x2300`. |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | Publish atomic remote EMCY consumer diagnostics through OD `0x2301`. |
 | `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | Enable GFC consumer/producer and publish protocol-test receive evidence plus producer sequence/result through OD `0x2302`. |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | Enable the J04/B03 non-blocking MCU SDO Client control/status record at OD `0x2303`; selects segmented and local client support. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | Under the demo OD domain, waits for the remote node through Heartbeat Consumer and confirms each NMT state before advancing the automatic NMT Master validation, default Node-ID 2. |
 | `PKG_CANOPENNODE_USING_STORAGE` | Enable CANopenNode storage support. |
 | `PKG_CANOPENNODE_USING_DEBUG` | Enable RT-Thread ulog diagnostics for this port. |
@@ -165,6 +166,8 @@ For automated TIME consumer validation, the demo OD also provides read-only diag
 For EMCY consumer validation, read-only record `0x2301` publishes a coherent atomic snapshot of the latest remote EMCY plus a receive counter. Enable `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC`; local EMCY callbacks (`ident == 0`) are intentionally excluded, while repeated and recovery (`errorCode == 0`) remote messages are counted.
 
 For automated GFC protocol validation, the demo OD provides standard valid parameter `0x1300:00` and test-only record `0x2302`. The GFC receive callback only updates atomic count/state, while producer requests call `CO_GFCsend()` from the mainline. This capability does not drive real actuators and does not establish functional-safety certification.
+
+For J04/B03 MCU SDO Client validation, test-only record `0x2303` publishes a request/active/completion sequence and native SDO result evidence. `request_seq` is the commit field: the Host writes it after all other request fields, and the CANopen mainline then drives the existing `CO_SDOclient` non-blocking. The J04 profile keeps block transfer disabled and the client FIFO at 32 bytes while segmented/local support is enabled.
 
 See [Object Dictionary guide](docs/en/object-dictionary.md).
 

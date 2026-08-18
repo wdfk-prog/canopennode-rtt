@@ -644,6 +644,56 @@
               <DINT />
             </q1:varDeclaration>
           </q1:struct>
+          <q1:struct name="sdo_client_test" uniqueID="UID_REC_2303">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230300">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="request_seq" uniqueID="UID_RECSUB_230301">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="command" uniqueID="UID_RECSUB_230302">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="remote_node" uniqueID="UID_RECSUB_230303">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="index" uniqueID="UID_RECSUB_230304">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="sub_index" uniqueID="UID_RECSUB_230305">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="payload_size" uniqueID="UID_RECSUB_230306">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="probe_value" uniqueID="UID_RECSUB_230307">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="flags" uniqueID="UID_RECSUB_230308">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="active_seq" uniqueID="UID_RECSUB_230309">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="complete_seq" uniqueID="UID_RECSUB_23030A">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="result" uniqueID="UID_RECSUB_23030B">
+              <DINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="abort_code" uniqueID="UID_RECSUB_23030C">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="transferred_size" uniqueID="UID_RECSUB_23030D">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="result_value" uniqueID="UID_RECSUB_23030E">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="checksum" uniqueID="UID_RECSUB_23030F">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
         </q1:dataTypeList>
         <q1:parameterList>
           <q1:parameter uniqueID="UID_OBJ_1000">
@@ -2310,6 +2360,90 @@ The life time factor multiplied with the guard time gives the life time for the 
             <DINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2303">
+            <label lang="en">sdo_client_test</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_2303" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230300">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x0F" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230301" access="readWrite">
+            <label lang="en">request_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230302" access="readWrite">
+            <label lang="en">command</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230303" access="readWrite">
+            <label lang="en">remote_node</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230304" access="readWrite">
+            <label lang="en">index</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230305" access="readWrite">
+            <label lang="en">sub_index</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230306" access="readWrite">
+            <label lang="en">payload_size</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230307" access="readWrite">
+            <label lang="en">probe_value</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230308" access="readWrite">
+            <label lang="en">flags</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230309">
+            <label lang="en">active_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23030A">
+            <label lang="en">complete_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23030B">
+            <label lang="en">result</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23030C">
+            <label lang="en">abort_code</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23030D">
+            <label lang="en">transferred_size</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23030E">
+            <label lang="en">result_value</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23030F">
+            <label lang="en">checksum</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2651,6 +2785,24 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="03" name="producer_request_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230203" />
             <CANopenSubObject subIndex="04" name="producer_complete_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230204" />
             <CANopenSubObject subIndex="05" name="producer_result" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230205" />
+          </CANopenObject>
+          <CANopenObject index="2303" name="sdo_client_test" objectType="9" uniqueIDRef="UID_OBJ_2303" subNumber="16">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230300" />
+            <CANopenSubObject subIndex="01" name="request_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230301" />
+            <CANopenSubObject subIndex="02" name="command" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230302" />
+            <CANopenSubObject subIndex="03" name="remote_node" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230303" />
+            <CANopenSubObject subIndex="04" name="index" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230304" />
+            <CANopenSubObject subIndex="05" name="sub_index" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230305" />
+            <CANopenSubObject subIndex="06" name="payload_size" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230306" />
+            <CANopenSubObject subIndex="07" name="probe_value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230307" />
+            <CANopenSubObject subIndex="08" name="flags" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230308" />
+            <CANopenSubObject subIndex="09" name="active_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230309" />
+            <CANopenSubObject subIndex="0A" name="complete_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030A" />
+            <CANopenSubObject subIndex="0B" name="result" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030B" />
+            <CANopenSubObject subIndex="0C" name="abort_code" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030C" />
+            <CANopenSubObject subIndex="0D" name="transferred_size" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030D" />
+            <CANopenSubObject subIndex="0E" name="result_value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030E" />
+            <CANopenSubObject subIndex="0F" name="checksum" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030F" />
           </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>

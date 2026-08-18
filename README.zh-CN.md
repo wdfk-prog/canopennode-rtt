@@ -132,6 +132,7 @@ flowchart TD
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | 通过 OD `0x2300` 发布 demo/test TIME consumer 诊断。 |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | 通过 OD `0x2301` 发布基于 atomic 的远端 EMCY consumer 诊断。 |
 | `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | 启用 GFC consumer/producer，并通过 OD `0x2302` 发布协议测试接收证据和 producer sequence/result。 |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | 启用 J04/B03 MCU SDO Client 非阻塞测试控制/状态记录 `0x2303`，并自动选择 segmented/local client 支持。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | 位于 demo OD 配置域内，通过 Heartbeat Consumer 等待远端节点上线并逐步确认 NMT 状态后执行自动 NMT Master 验证，默认目标 Node-ID 2。 |
 | `PKG_CANOPENNODE_USING_STORAGE` | 启用 CANopenNode storage 支持。 |
 | `PKG_CANOPENNODE_USING_DEBUG` | 启用本移植层的 RT-Thread ulog 诊断日志。 |
@@ -165,6 +166,8 @@ INIT_APP_EXPORT(app_canopen_init);
 为支持 EMCY consumer 自动验证，只读记录 `0x2301` 发布最近一次远端 EMCY 的一致 atomic 快照和接收计数。开启 `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` 后，本节点 `ident == 0` 的 EMCY callback 会被过滤，重复远端 EMCY 与 `errorCode == 0` 的恢复消息仍会分别计数。
 
 为支持 GFC 协议自动验证，demo OD 提供标准 `0x1300:00` valid 参数和 test-only `0x2302` 记录。GFC receive callback 只更新 atomic 计数/标志，producer 只在 mainline 根据 sequence request 调用 `CO_GFCsend()`；该能力不驱动真实执行器，也不代表功能安全认证。
+
+为支持 J04/B03 MCU SDO Client 自动验证，test-only 记录 `0x2303` 发布 request/active/completion sequence 和原生 SDO 结果证据。Host 必须最后写 `request_seq` 作为提交点，CANopen mainline 观察到新 sequence 后才以非阻塞方式驱动现有 `CO_SDOclient`。J04 profile 保持 block transfer 关闭、client FIFO 为 32 bytes，同时启用 segmented/local 支持。
 
 详见：[Object Dictionary 指南](docs/zh/object-dictionary.md)。
 

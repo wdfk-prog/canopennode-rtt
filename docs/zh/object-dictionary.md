@@ -152,7 +152,33 @@ CAN receive callback 只更新 RT-Thread atomic 接收证据；只有 mainline �
 
 该记录仅用于 GFC 协议功能验证，不控制真实执行器、不实现产品安全状态，也不代表 SIL、PL 或 EN 50325-5 系统级合规。
 
-## 11. 验证清单
+## 11. MCU SDO Client 测试控制/状态
+
+J04/B03 使用 manufacturer-specific 记录 `0x2303` 提供 test-only request/result contract；它不替代 CANopenNode 自带的 SDO Client 协议状态机。
+
+| Sub-index | 类型 | 访问 | 含义 |
+|---:|---|---|---|
+| `0x01` | `UNSIGNED32` | 读写 | Request sequence；Host 最后写该字段，作为完整请求的提交点。 |
+| `0x02` | `UNSIGNED8` | 读写 | Command：`1=UPLOAD`、`2=DOWNLOAD`。 |
+| `0x03` | `UNSIGNED8` | 读写 | 目标 SDO server Node-ID。 |
+| `0x04` | `UNSIGNED16` | 读写 | 目标 Object Dictionary index。 |
+| `0x05` | `UNSIGNED8` | 读写 | 目标 Object Dictionary sub-index。 |
+| `0x06` | `UNSIGNED32` | 读写 | DOWNLOAD payload size；UPLOAD 写 0。 |
+| `0x07` | `UNSIGNED32` | 读写 | U32 DOWNLOAD 值或 segmented payload 的确定性 seed。 |
+| `0x08` | `UNSIGNED8` | 读写 | Request flags；J04 必须为 0，bit0 预留给后续 block-transfer 测试。 |
+| `0x09` | `UNSIGNED32` | 只读 | MCU mainline 已接受的 sequence。 |
+| `0x0A` | `UNSIGNED32` | 只读 | 已发布终态结果的 sequence。 |
+| `0x0B` | `INTEGER32` | 只读 | 归一化结果：`0=NONE`、`1=SUCCESS`、`2=ABORT`、`3=TIMEOUT`、`4=RESET_CANCELLED`、`5=SETUP_ERROR`、`6=UNSUPPORTED`、`7=INTERNAL_ERROR`。 |
+| `0x0C` | `UNSIGNED32` | 只读 | 原生 CANopen SDO abort code；communication reset 取消时保持 0。 |
+| `0x0D` | `UNSIGNED32` | 只读 | 实际处理的 payload byte 数。 |
+| `0x0E` | `UNSIGNED32` | 只读 | UPLOAD 得到的 U32 值，或成功 U32 DOWNLOAD 的 probe value。 |
+| `0x0F` | `UNSIGNED32` | 只读 | test wrapper 对 payload 计算的 FNV-1a checksum。 |
+
+Host 先写 `0x2303:02..08`，最后写新的非零 `request_seq` 提交 transaction。CANopen mainline 随后锁存请求，以非阻塞方式驱动 `CO_SDOclient_setup()`、initiate 和 process API。Local transfer 使用 CANopenNode 的 `CO_CONFIG_SDO_CLI_LOCAL` 路径，因此 CAN 总线上不会出现对应的 SDO frame；remote 测试按目标 Node-ID 使用 CiA 301 predefined SDO connection。
+
+J04 保持 SDO Client FIFO 为 32 bytes，并使用 48-byte segmented payload 实际覆盖 FIFO drain/refill；这些 transaction 不修改 OD `0x1280`。communication reset 会把 active request 发布为 `RESET_CANCELLED`、消费对应 sequence，并避免 CANopenNode stack 重建后重放旧请求。Block transfer 不属于 J04，留到 J06。
+
+## 12. 验证清单
 
 产品构建替换 demo OD 前，确认：
 
