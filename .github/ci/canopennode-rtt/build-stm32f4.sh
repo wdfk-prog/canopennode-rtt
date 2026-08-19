@@ -358,8 +358,10 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST"
             ;;
         demo-sdo-client-gateway)
-            log "CI Kconfig profile demo-sdo-client-gateway: SDO client, FIFO/CRC16, gateway, NMT/LSS master"
+            log "CI Kconfig profile demo-sdo-client-gateway: SDO client, FIFO/CRC16, gateway/MSH bridge, NMT/LSS master"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            append_config_define "$config_file" "$rtconfig_file" "RT_USING_FINSH"
+            append_config_define "$config_file" "$rtconfig_file" "FINSH_USING_MSH"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_MASTER"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SDO_CLIENT"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_SEGMENTED"
@@ -381,6 +383,7 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_ERROR_DESC"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_PRINT_HELP"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_PRINT_LEDS"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE"
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTW_BLOCK_DL_LOOP" "1"
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_COMM_BUF_SIZE" "200"
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_LOG_BUF_SIZE" "2000"
@@ -553,6 +556,7 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "CO_SDOclient.o"
             verify_profile_object "$bsp_dir" "CO_fifo.o"
             verify_profile_object "$bsp_dir" "CO_gateway_ascii.o"
+            verify_profile_object "$bsp_dir" "CO_gateway_RTT.o"
             verify_profile_object "$bsp_dir" "crc16-ccitt.o"
             ;;
         demo-manual-multiple-od)

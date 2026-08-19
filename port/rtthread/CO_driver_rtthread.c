@@ -837,9 +837,20 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule, void *CANptr, CO_C
         goto err_emcy_mutex;
     }
 
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
+    if (rt_mutex_init(&CANmodule->gtwaMutex, "co_gw", RT_IPC_FLAG_PRIO) != RT_EOK) {
+        CO_RTT_LOG_E("CAN module init failed: Gateway mutex init failed");
+        goto err_od_mutex;
+    }
+#endif /* ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0 */
+
     if (rt_device_open(dev, RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_INT_TX) != RT_EOK) {
         CO_RTT_LOG_E("CAN module init failed: open device %s failed", dev_name);
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
+        goto err_gtwa_mutex;
+#else
         goto err_od_mutex;
+#endif /* ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0 */
     }
 
     if (rt_device_control(dev, RT_CAN_CMD_SET_BAUD, (void *)(rt_ubase_t)baud) != RT_EOK) {
@@ -853,6 +864,10 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule, void *CANptr, CO_C
 
 err_device_open:
     (void)rt_device_close(dev);
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
+err_gtwa_mutex:
+    (void)rt_mutex_detach(&CANmodule->gtwaMutex);
+#endif /* ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0 */
 err_od_mutex:
     (void)rt_mutex_detach(&CANmodule->odMutex);
 err_emcy_mutex:
@@ -886,6 +901,9 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
 
     co_rtt_rx_stop(CANmodule);
     (void)rt_device_close(CANmodule->dev);
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
+    (void)rt_mutex_detach(&CANmodule->gtwaMutex);
+#endif /* ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0 */
     (void)rt_mutex_detach(&CANmodule->odMutex);
     (void)rt_mutex_detach(&CANmodule->emcyMutex);
     (void)rt_mutex_detach(&CANmodule->canSendMutex);

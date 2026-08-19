@@ -27,6 +27,10 @@
 #include "co_rtt_log.h"
 #include "OD.h"
 
+#if defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE)
+#include "CO_gateway_RTT.h"
+#endif /* defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE) */
+
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
 #include "CO_storage_RTT.h"
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
@@ -77,8 +81,9 @@
  * @brief Complete generated OD configuration with RT-Thread wrapper object counts.
  *
  * OD_INIT_CONFIG() is generated from the demo Object Dictionary and may omit
- * CANopenNode objects that do not own dedicated OD entries, such as LEDs and LSS.
- * This function keeps those counts aligned with the final CO_CONFIG_* bitmasks.
+ * CANopenNode objects that do not own dedicated OD entries, such as LEDs, LSS and
+ * Gateway ASCII. This function keeps those counts aligned with the final
+ * CO_CONFIG_* bitmasks.
  *
  * @param config CANopenNode runtime configuration to update.
  */
@@ -95,6 +100,11 @@ static void co_app_rtt_apply_wrapper_config(CO_config_t *config)
 #if ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0
     config->CNT_LSS_MST = 1U;
 #endif /* ((CO_CONFIG_LSS) & CO_CONFIG_LSS_MASTER) != 0 */
+
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
+    /* The generated demo OD keeps CNT_GTWA=0; derive this non-OD object count from the build configuration. */
+    config->CNT_GTWA = 1U;
+#endif /* ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0 */
 }
 #endif /* CO_MULTIPLE_OD */
 
@@ -362,6 +372,10 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app)
                      (unsigned long)err_info);
         return -RT_ERROR;
     }
+#if defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE)
+    CO_gateway_RTT_rebind(app);
+#endif /* defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE) */
+
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
     if (storageDataCorrupt && (err == CO_ERROR_NO)) {
         CO_errorReport(co->em, CO_EM_NON_VOLATILE_MEMORY, CO_EMC_HARDWARE, storageInitError);
@@ -489,7 +503,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         }
         app->timeOldMs = time_current_ms;
 
-        reset_status = CO_process(co, false, time_difference_us, NULL);
+        reset_status = CO_process(co, ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0, time_difference_us, NULL);
 #if CO_DEMO_ENABLED
         CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms, time_difference_us, reset_status);
 #endif /* CO_DEMO_ENABLED */
@@ -869,8 +883,16 @@ static CANopenNodeRTT co_app_rtt_default;
  */
 static int co_app_rtt_auto_init(void)
 {
-    return (int)canopen_app_rtt_init(&co_app_rtt_default, PKG_CANOPENNODE_CAN_DEV_NAME,
-                                     PKG_CANOPENNODE_AUTO_INIT_NODE_ID, PKG_CANOPENNODE_AUTO_INIT_BITRATE);
+    rt_err_t ret = canopen_app_rtt_init(&co_app_rtt_default, PKG_CANOPENNODE_CAN_DEV_NAME,
+                                        PKG_CANOPENNODE_AUTO_INIT_NODE_ID, PKG_CANOPENNODE_AUTO_INIT_BITRATE);
+
+#if defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE)
+    if (ret == RT_EOK) {
+        ret = CO_gateway_RTT_init(&co_app_rtt_default);
+    }
+#endif /* defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE) */
+
+    return (int)ret;
 }
 INIT_APP_EXPORT(co_app_rtt_auto_init);
 #endif /* defined(PKG_CANOPENNODE_APP_AUTO_INIT) */

@@ -138,6 +138,9 @@ typedef struct {
     struct rt_mutex canSendMutex;    /**< Protects CANopenNode transmit buffer state. */
     struct rt_mutex emcyMutex;       /**< Protects CANopenNode Emergency state. */
     struct rt_mutex odMutex;         /**< Protects PDO-mappable Object Dictionary access. */
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
+    struct rt_mutex gtwaMutex;       /**< Protects shared Gateway ASCII FIFO access. */
+#endif /* ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0 */
 
     CO_CANrx_t *rxArray;             /**< CANopenNode receive buffer array. */
     uint16_t rxSize;                 /**< Number of receive buffers. */
@@ -217,6 +220,20 @@ typedef struct {
  */
 #define CO_UNLOCK_OD(CAN_MODULE)        (void)(CAN_MODULE); \
                                           (void)rt_mutex_release(&coRttOdModule->odMutex); }
+
+#if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
+/**
+ * @brief Lock shared CANopenNode Gateway ASCII FIFO access.
+ */
+#define CO_LOCK_GTWA(CAN_MODULE)        { CO_CANmodule_t *coRttGtwaModule = (CAN_MODULE); \
+                                          (void)rt_mutex_take(&coRttGtwaModule->gtwaMutex, RT_WAITING_FOREVER)
+
+/**
+ * @brief Unlock shared CANopenNode Gateway ASCII FIFO access.
+ */
+#define CO_UNLOCK_GTWA(CAN_MODULE)      (void)(CAN_MODULE); \
+                                          (void)rt_mutex_release(&coRttGtwaModule->gtwaMutex); }
+#endif /* ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0 */
 
 /**
  * @brief Read a CANopenNode receive-new flag under a short interrupt lock.

@@ -277,6 +277,35 @@ config PKG_CANOPENNODE_AUTO_INIT_BITRATE
     default 1000
     depends on PKG_CANOPENNODE_APP_AUTO_INIT
 
+config PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE
+    bool "RT-Thread MSH console bridge"
+    default n
+    depends on PKG_CANOPENNODE_APP_AUTO_INIT
+    depends on PKG_CANOPENNODE_USING_GATEWAY_ASCII
+    depends on RT_USING_FINSH && FINSH_USING_MSH
+    depends on !PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST
+    depends on !PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST
+    select PKG_CANOPENNODE_USING_SDO_CLIENT
+    select PKG_CANOPENNODE_SDO_CLI_SEGMENTED
+    select PKG_CANOPENNODE_SDO_CLI_LOCAL
+    select PKG_CANOPENNODE_NMT_MASTER
+    select PKG_CANOPENNODE_GATEWAY_ASCII_SDO
+    select PKG_CANOPENNODE_GATEWAY_ASCII_NMT
+    select PKG_CANOPENNODE_GATEWAY_ASCII_ERROR_DESC
+    select PKG_CANOPENNODE_GATEWAY_ASCII_PRINT_HELP
+    help
+        Register the canopen_gw MSH command for the default auto-initialized
+        CANopenNode instance. The command reuses the existing RT-Thread console;
+        it does not open or read the UART device directly. The frontend prepends
+        the CiA 309-3 sequence and appends CR/LF before writing the command into
+        CO_GTWA_write(). Gateway responses are printed with rt_kprintf().
+
+        This first-stage bridge selects segmented/local SDO client support, NMT
+        master commands, error descriptions and Gateway help. LSS, Gateway log
+        and LED printing remain optional. Keep the demo SDO client and automatic
+        NMT master tests disabled because they can compete with Gateway-owned
+        transactions.
+
 menuconfig PKG_CANOPENNODE_USING_HIGH_RES_TIME
     bool "Use high resolution hardware timer"
     default n
@@ -1072,15 +1101,14 @@ menuconfig PKG_CANOPENNODE_USING_GATEWAY_ASCII
     select PKG_CANOPENNODE_USING_FIFO
     select PKG_CANOPENNODE_FIFO_ASCII_COMMANDS
     help
-        Enable CO_gateway_ascii.c and CO_CONFIG_GTW_ASCII. This option only
-        compiles CANopenNode ASCII gateway support and related helpers. The
-        default RT-Thread application wrapper does not create a serial/TCP
-        command transport and does not schedule gateway processing from its
-        internal mainline thread.
+        Enable CO_gateway_ascii.c and CO_CONFIG_GTW_ASCII. This option compiles
+        CANopenNode ASCII gateway support and related helpers. The RT-Thread
+        wrapper schedules Gateway processing from its CANopen mainline. No
+        command transport is registered unless the MSH console bridge under
+        RT-Thread runtime options is also enabled.
 
-        Applications that use the ASCII gateway must provide the command
-        transport, initialize the gateway objects, and call the CANopenNode
-        gateway processing path from an application-owned thread or event loop.
+        Applications that do not use the MSH bridge may register another
+        transport with CO_GTWA_write() and CO_GTWA_initRead().
 
         Gateway command groups depend on SDO client, NMT master and/or LSS master
         options below.
@@ -1146,8 +1174,9 @@ config PKG_CANOPENNODE_GATEWAY_ASCII_PRINT_LEDS
     default n
     depends on PKG_CANOPENNODE_USING_LEDS
     help
-        Add CO_CONFIG_GTW_ASCII_PRINT_LEDS. Gateway output can include calculated
-        CANopen run/error LED state.
+        Add CO_CONFIG_GTW_ASCII_PRINT_LEDS. Enable the non-standard "led"
+        Gateway command, which prints the calculated CANopen run/error LED
+        states on the Gateway output. It does not control physical LED GPIOs.
 
 config PKG_CANOPENNODE_GTW_BLOCK_DL_LOOP
     int "Gateway SDO block download loop count"

@@ -57,6 +57,9 @@ if GetDepend('PKG_USING_CANOPENNODE'):
 
     _add_required(os.path.join('port', 'rtthread', 'CO_driver_rtthread.c'))
     _add_required(os.path.join('port', 'rtthread', 'CO_app_RTT.c'))
+    _add_required_any(GetDepend('PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE'),
+                      'ASCII gateway RT-Thread console bridge',
+                      [os.path.join('port', 'rtthread', 'CO_gateway_RTT.c')])
     if GetDepend('PKG_CANOPENNODE_USING_DEMO_OD'):
         demo_enabled = (GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC')
