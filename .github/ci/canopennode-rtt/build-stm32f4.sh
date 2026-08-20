@@ -357,6 +357,15 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_FIFO"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST"
             ;;
+        demo-sdo-block-test)
+            log "CI Kconfig profile demo-sdo-block-test: J06 SDO server block transfer with 2 KiB DOMAIN fixture"
+            append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BLOCK"
+            remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BUFFER_SIZE"
+            append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BUFFER_SIZE" "1024"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST"
+            ;;
         demo-sdo-client-gateway)
             log "CI Kconfig profile demo-sdo-client-gateway: SDO client, FIFO/CRC16, gateway/MSH bridge, NMT/LSS master"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -422,8 +431,8 @@ append_canopennode_profile()
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
                 "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-emcy-consumer demo-gfc" \
-                "  demo-nmt-master-test demo-sdo-client-test demo-sdo-client-gateway demo-manual-multiple-od demo-storage-dfs" \
-                "  demo-storage-eeprom-at24c demo-safety-debug" >&2
+                "  demo-nmt-master-test demo-sdo-client-test demo-sdo-block-test demo-sdo-client-gateway" \
+                "  demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" >&2
             exit 1
             ;;
     esac
@@ -551,6 +560,12 @@ verify_profile_outputs()
         demo-nmt-master-test)
             verify_profile_object "$bsp_dir" "CO_demo.o"
             verify_profile_object "$bsp_dir" "CO_demo_nmt_master.o"
+            ;;
+        demo-sdo-block-test)
+            verify_profile_object "$bsp_dir" "CO_demo.o"
+            verify_profile_object "$bsp_dir" "CO_demo_sdo_block.o"
+            verify_profile_object "$bsp_dir" "CO_SDOserver.o"
+            verify_profile_object "$bsp_dir" "crc16-ccitt.o"
             ;;
         demo-sdo-client-gateway)
             verify_profile_object "$bsp_dir" "CO_SDOclient.o"

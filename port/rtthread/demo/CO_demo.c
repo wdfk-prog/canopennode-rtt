@@ -24,6 +24,9 @@ void CO_demo_init(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC)
     CO_demo_gfc_init(&demo->gfc);
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST)
+    CO_demo_sdo_block_init(&demo->sdoBlock);
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
     CO_demo_sdo_client_init(&demo->sdoClient);
 #endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
@@ -53,6 +56,11 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co)
         bound = false;
     }
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
+#if defined(PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST)
+    if (!CO_demo_sdo_block_bind(&demo->sdoBlock, co)) {
+        bound = false;
+    }
+#endif /* defined(PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST) */
 #if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
     if (!CO_demo_sdo_client_bind(&demo->sdoClient, co)) {
         bound = false;

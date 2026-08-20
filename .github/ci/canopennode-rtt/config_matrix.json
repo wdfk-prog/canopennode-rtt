@@ -13,6 +13,7 @@
         "demo-gfc",
         "demo-nmt-master-test",
         "demo-sdo-client-test",
+        "demo-sdo-block-test",
         "demo-sdo-client-gateway",
         "demo-manual-multiple-od",
         "demo-storage-dfs",

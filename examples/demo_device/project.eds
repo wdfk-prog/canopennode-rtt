@@ -8,7 +8,7 @@ Description=CANopenNode demo device for RT-Thread
 CreationTime=2:52PM
 CreationDate=07-06-2026
 CreatedBy=wdfk-prog
-ModificationTime=1:59PM
+ModificationTime=2:01PM
 ModificationDate=08-17-2026
 ModifiedBy=wdfk-prog
 
@@ -1966,7 +1966,7 @@ DefaultValue=0x00000000
 PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=7
+SupportedObjects=8
 1=0x2100
 2=0x2101
 3=0x2200
@@ -1974,6 +1974,7 @@ SupportedObjects=7
 5=0x2301
 6=0x2302
 7=0x2303
+8=0x2304
 
 [2100]
 ParameterName=status_value
@@ -2181,6 +2182,7 @@ DataType=0x0004
 AccessType=ro
 DefaultValue=0
 PDOMapping=0
+
 [2303]
 ParameterName=sdo_client_test
 ObjectType=0x9
@@ -2329,5 +2331,14 @@ ObjectType=0x7
 DataType=0x0007
 AccessType=ro
 DefaultValue=0x00000000
+PDOMapping=0
+
+[2304]
+ParameterName=sdo_server_block_test
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x000F
+AccessType=rw
+DefaultValue=
 PDOMapping=0
 

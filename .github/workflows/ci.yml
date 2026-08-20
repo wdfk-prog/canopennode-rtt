@@ -37,6 +37,7 @@ jobs:
           - demo-minimal
           - demo-default
           - demo-pdo-sync
+          - demo-sdo-block-test
           - demo-sdo-client-gateway
           - demo-manual-multiple-od
           - demo-storage-dfs

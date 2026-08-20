@@ -165,7 +165,7 @@ J04/B03 使用 manufacturer-specific 记录 `0x2303` 提供 test-only request/re
 | `0x05` | `UNSIGNED8` | 读写 | 目标 Object Dictionary sub-index。 |
 | `0x06` | `UNSIGNED32` | 读写 | DOWNLOAD payload size；UPLOAD 写 0。 |
 | `0x07` | `UNSIGNED32` | 读写 | U32 DOWNLOAD 值或 segmented payload 的确定性 seed。 |
-| `0x08` | `UNSIGNED8` | 读写 | Request flags；J04 必须为 0，bit0 预留给后续 block-transfer 测试。 |
+| `0x08` | `UNSIGNED8` | 读写 | Request flags；J04 必须为 0；J06/B02-12 在编译 `PKG_CANOPENNODE_SDO_CLI_BLOCK` 时可置 bit0 请求 block transfer。 |
 | `0x09` | `UNSIGNED32` | 只读 | MCU mainline 已接受的 sequence。 |
 | `0x0A` | `UNSIGNED32` | 只读 | 已发布终态结果的 sequence。 |
 | `0x0B` | `INTEGER32` | 只读 | 归一化结果：`0=NONE`、`1=SUCCESS`、`2=ABORT`、`3=TIMEOUT`、`4=RESET_CANCELLED`、`5=SETUP_ERROR`、`6=UNSUPPORTED`、`7=INTERNAL_ERROR`。 |
@@ -176,9 +176,19 @@ J04/B03 使用 manufacturer-specific 记录 `0x2303` 提供 test-only request/re
 
 Host 先写 `0x2303:02..08`，最后写新的非零 `request_seq` 提交 transaction。CANopen mainline 随后锁存请求，以非阻塞方式驱动 `CO_SDOclient_setup()`、initiate 和 process API。Local transfer 使用 CANopenNode 的 `CO_CONFIG_SDO_CLI_LOCAL` 路径，因此 CAN 总线上不会出现对应的 SDO frame；remote 测试按目标 Node-ID 使用 CiA 301 predefined SDO connection。
 
-J04 保持 SDO Client FIFO 为 32 bytes，并使用 48-byte segmented payload 实际覆盖 FIFO drain/refill；这些 transaction 不修改 OD `0x1280`。communication reset 会把 active request 发布为 `RESET_CANCELLED`、消费对应 sequence，并避免 CANopenNode stack 重建后重放旧请求。Block transfer 不属于 J04，留到 J06。
+J04 保持 SDO Client FIFO 为 32 bytes，并使用 48-byte segmented payload 实际覆盖 FIFO drain/refill；这些 transaction 不修改 OD `0x1280`。communication reset 会把 active request 发布为 `RESET_CANCELLED`、消费对应 sequence，并避免 CANopenNode stack 重建后重放旧请求。J04 始终使用 `flags=0`；J06/B02-12 只有在额外启用 `PKG_CANOPENNODE_SDO_CLI_BLOCK` 时才使用 bit0，不改变原 segmented 路径。
 
-## 12. 验证清单
+## 12. SDO Server Block Transfer 测试对象
+
+J06/B02 使用 manufacturer-specific `0x2304:00`，数据类型为 `DOMAIN`、SDO 读写、不可 PDO mapping。仅当 `PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST` 启用时，demo dispatcher 才为该对象绑定 test-only OD extension。
+
+该 backend 使用固定 2048-byte RAM buffer 保存可变长度 payload，不动态分配内存、不持久化，也不实现 SDO Block/CRC 状态机；协议状态、sequence、CRC 和重传仍由 CANopenNode SDO Server 处理。生成 OD 中该 DOMAIN 保持 `dataOrig=NULL`、`dataLength=0`，实际长度由 extension 在读写过程中提供。
+
+单 buffer 设计不承诺 aborted download 的原值原子回滚：若大传输已经有部分数据写入，fixture 会保持 dirty，读取返回 no-data；下一次从 offset 0 开始的完整 download 会重新建立有效 payload。communication reset 若发生在 dirty 状态，会把 fixture 归一化为确定性的 1-byte baseline；完整 payload 则跨 communication reset 保持。
+
+目标板 J06 配置还必须启用 `PKG_CANOPENNODE_SDO_SRV_BLOCK`。SDO Server block buffer 的实际值由 BSP/test profile 决定；第一版建议配置为 1024 bytes，并用 linker map / heap 证据评估资源，不修改 package 的全局默认值。
+
+## 13. 验证清单
 
 产品构建替换 demo OD 前，确认：
 

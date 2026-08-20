@@ -31,7 +31,7 @@ typedef enum {
     CO_DEMO_SDO_CLIENT_RESULT_TIMEOUT = 3, /**< The CANopenNode SDO client reported CO_SDO_AB_TIMEOUT. */
     CO_DEMO_SDO_CLIENT_RESULT_RESET_CANCELLED = 4, /**< Communication reset cancelled an active transaction. */
     CO_DEMO_SDO_CLIENT_RESULT_SETUP_ERROR = 5, /**< Request validation, setup, or initiate failed. */
-    CO_DEMO_SDO_CLIENT_RESULT_UNSUPPORTED = 6, /**< The request uses a test option not enabled by J04. */
+    CO_DEMO_SDO_CLIENT_RESULT_UNSUPPORTED = 6, /**< The request uses an unsupported or unavailable test option. */
     CO_DEMO_SDO_CLIENT_RESULT_INTERNAL_ERROR = 7 /**< Test-wrapper bookkeeping detected an inconsistent result. */
 } CO_demo_sdo_client_result_t;
 
@@ -41,7 +41,7 @@ typedef struct {
     uint8_t command; /**< Latched CO_demo_sdo_client_command_t for the active request. */
     uint8_t remoteNode; /**< Latched target SDO server Node-ID. */
     uint8_t subIndex; /**< Latched target Object Dictionary sub-index. */
-    uint8_t flags; /**< Latched request flags; J04 accepts only zero. */
+    uint8_t flags; /**< Latched flags; bit 0 requests block transfer when compiled. */
     uint16_t index; /**< Latched target Object Dictionary index. */
     uint32_t lastConsumedSeq; /**< Last OD request sequence accepted by mainline. */
     uint32_t activeSeq; /**< Request sequence currently being processed, or the latest completed one. */

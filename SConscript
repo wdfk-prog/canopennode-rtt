@@ -64,6 +64,7 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         demo_enabled = (GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC')
+                        or GetDepend('PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST')
                         or GetDepend('PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST')
                         or GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'))
         _add_required_any(demo_enabled, 'demo dispatcher',
@@ -75,6 +76,9 @@ if GetDepend('PKG_USING_CANOPENNODE'):
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo_emcy_consumer.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC'),
                           'demo GFC diagnostic', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_gfc.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST'),
+                          'demo SDO server block test',
+                          [os.path.join('port', 'rtthread', 'demo', 'CO_demo_sdo_block.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST'),
                           'demo SDO client test',
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo_sdo_client.c')])

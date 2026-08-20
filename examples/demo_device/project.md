@@ -953,3 +953,12 @@ Manufacturer Specific Parameters
 | 0x0D | transferred_size            | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
 | 0x0E | result_value                | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
 | 0x0F | checksum                    | UNSIGNED32 | ro  | no  | no   | 0x00000000    |
+
+### 0x2304 - sdo_server_block_test
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Sub  | Name                  | Data Type | SDO | PDO | SRDO | Default Value |
+| ---- | --------------------- | --------- | --- | --- | ---- | ------------- |
+| 0x00 | sdo_server_block_test | DOMAIN    | rw  | no  | no   |               |

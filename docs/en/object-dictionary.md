@@ -165,7 +165,7 @@ For J04/B03 validation, manufacturer-specific record `0x2303` exposes a test-onl
 | `0x05` | `UNSIGNED8` | read/write | Target Object Dictionary sub-index. |
 | `0x06` | `UNSIGNED32` | read/write | DOWNLOAD payload size in bytes; UPLOAD uses zero. |
 | `0x07` | `UNSIGNED32` | read/write | U32 DOWNLOAD value or deterministic segmented-payload seed. |
-| `0x08` | `UNSIGNED8` | read/write | Request flags. J04 requires zero; bit 0 is reserved for later block-transfer coverage. |
+| `0x08` | `UNSIGNED8` | read/write | Request flags. J04 requires zero; J06/B02-12 may set bit 0 to request block transfer when `PKG_CANOPENNODE_SDO_CLI_BLOCK` is compiled. |
 | `0x09` | `UNSIGNED32` | read-only | Sequence accepted by the MCU mainline. |
 | `0x0A` | `UNSIGNED32` | read-only | Sequence with a published terminal result. |
 | `0x0B` | `INTEGER32` | read-only | Normalized result: `0=NONE`, `1=SUCCESS`, `2=ABORT`, `3=TIMEOUT`, `4=RESET_CANCELLED`, `5=SETUP_ERROR`, `6=UNSUPPORTED`, `7=INTERNAL_ERROR`. |
@@ -176,9 +176,19 @@ For J04/B03 validation, manufacturer-specific record `0x2303` exposes a test-onl
 
 The Host writes `0x2303:02..08` first and commits the transaction by writing a new nonzero `request_seq`. The CANopen mainline latches the request and drives `CO_SDOclient_setup()`, initiate, and process calls without blocking. Local transfers use CANopenNode's `CO_CONFIG_SDO_CLI_LOCAL` path and therefore do not produce SDO frames on the CAN bus. Remote tests use the CiA 301 predefined SDO connection for the selected Node-ID.
 
-J04 keeps the SDO Client FIFO at 32 bytes and uses a 48-byte segmented payload to exercise FIFO drain/refill. OD `0x1280` is not modified for these transactions. A communication reset cancels an active request as `RESET_CANCELLED`, consumes its sequence, and prevents replay after the CANopenNode stack is recreated. Block transfer remains outside J04 and is reserved for J06.
+J04 keeps the SDO Client FIFO at 32 bytes and uses a 48-byte segmented payload to exercise FIFO drain/refill. OD `0x1280` is not modified for these transactions. A communication reset cancels an active request as `RESET_CANCELLED`, consumes its sequence, and prevents replay after the CANopenNode stack is recreated. J04 always uses `flags=0`; J06/B02-12 uses bit 0 only when `PKG_CANOPENNODE_SDO_CLI_BLOCK` is additionally enabled, so the original segmented path is unchanged.
 
-## 12. Validation checklist
+## 12. SDO Server Block Transfer test object
+
+J06/B02 uses manufacturer-specific `0x2304:00` as an SDO read/write, non-PDO-mappable `DOMAIN`. The demo dispatcher binds its test-only OD extension only when `PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST` is enabled.
+
+The backend uses a fixed 2048-byte RAM buffer for variable-length payloads. It performs no dynamic allocation or persistence and does not implement the SDO Block/CRC state machine; block sequencing, CRC handling and retransmission remain owned by the CANopenNode SDO Server. The generated OD keeps this DOMAIN at `dataOrig=NULL` and `dataLength=0`; the extension publishes the active length while reading or writing.
+
+The single-buffer fixture does not promise atomic rollback of the old payload after an aborted download. If a large transfer already wrote partial data, the fixture remains dirty and reads return no-data; the next complete download starting at offset zero re-establishes a valid payload. A communication reset while dirty normalizes the fixture to a deterministic one-byte baseline, while a complete payload survives communication reset.
+
+The target J06 profile must also enable `PKG_CANOPENNODE_SDO_SRV_BLOCK`. The SDO Server block buffer value belongs to the BSP/test profile; 1024 bytes is the first-version recommendation and must be evaluated against linker-map/heap evidence instead of changing the package-wide default.
+
+## 13. Validation checklist
 
 Before replacing the demo OD in a product build, verify:
 

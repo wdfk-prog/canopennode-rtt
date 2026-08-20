@@ -759,12 +759,15 @@ config PKG_CANOPENNODE_SDO_CLI_LOCAL
 
 config PKG_CANOPENNODE_SDO_CLI_BUFFER_SIZE
     int "SDO client buffer size"
-    range 7 4096
+    range 1000 4096 if PKG_CANOPENNODE_SDO_CLI_BLOCK
+    range 7 4096 if !PKG_CANOPENNODE_SDO_CLI_BLOCK
+    default 1000 if PKG_CANOPENNODE_SDO_CLI_BLOCK
     default 32
     help
         Internal SDO client circular buffer size in bytes. Segmented transfer can
-        work with a small buffer if the application services it frequently. Block
-        transfer normally needs a larger buffer.
+        work with a buffer as small as 7 bytes if the application services it
+        frequently. Block transfer requires at least 1000 bytes so the maximum
+        block size can be used, matching CANopenNode's upstream configuration.
 
 endif
 
@@ -1417,6 +1420,21 @@ config PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC
         This option validates protocol behavior only. It does not implement a
         functional-safety state machine or control real safety actuators.
 
+config PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST
+    bool "Enable demo SDO server block-transfer DOMAIN fixture"
+    default n
+    depends on PKG_CANOPENNODE_USING_SDO_SERVER
+    depends on PKG_CANOPENNODE_SDO_SRV_BLOCK
+    help
+        Publish the test-only variable-length DOMAIN at OD 0x2304 for J06/B02
+        SDO Server Block Transfer validation. The bounded backend accepts up to
+        2048 bytes, uses no dynamic memory or persistence and relies on
+        CANopenNode for the SDO block state machine and CRC handling.
+
+        A partial download may leave the one-buffer fixture dirty after abort;
+        the next complete download re-establishes a valid payload. Keep this
+        disabled in normal product firmware.
+
 config PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST
     bool "Enable demo MCU SDO client test control/status"
     default n
@@ -1427,9 +1445,9 @@ config PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST
     help
         Publish test-only MCU SDO client control/status through OD 0x2303.
         The Host commits request_seq after all request fields are written, then
-        the CANopenNode mainline drives CO_SDOclient non-blockingly. The J04 profile
-        enables local and segmented transfers and deliberately leaves block
-        transfer disabled until J06.
+        the CANopenNode mainline drives CO_SDOclient non-blockingly. The J04
+        profile keeps flags=0 for local/segmented transfers. J06/B02-12 may set
+        flags bit 0 when PKG_CANOPENNODE_SDO_CLI_BLOCK is enabled separately.
 
         The demo uses the first generated SDO client object and is intended for
         automated validation with the package demo Object Dictionary.

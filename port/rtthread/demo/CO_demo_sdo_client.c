@@ -23,8 +23,12 @@
 #error "PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST requires CO_CONFIG_SDO_CLI_LOCAL"
 #endif /* (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) == 0) */
 
-/** Maximum deterministic DOWNLOAD payload accepted by the J04 test wrapper. */
+/** Maximum deterministic DOWNLOAD payload accepted by the J04/J06 test wrapper. */
 #define CO_DEMO_SDO_CLIENT_MAX_PAYLOAD_SIZE 4096U
+/** Request block transfer through CANopenNode when the client feature is compiled. */
+#define CO_DEMO_SDO_CLIENT_FLAG_BLOCK 0x01U
+/** Request flag mask understood by this test wrapper. */
+#define CO_DEMO_SDO_CLIENT_SUPPORTED_FLAGS CO_DEMO_SDO_CLIENT_FLAG_BLOCK
 /** Small staging buffer keeps stack use bounded while servicing a 32-byte SDO FIFO. */
 #define CO_DEMO_SDO_CLIENT_CHUNK_SIZE 16U
 /** FNV-1a 32-bit offset basis used for deterministic payload verification. */
@@ -135,14 +139,24 @@ static bool_t CO_demo_sdo_client_start(CO_demo_sdo_client_t *demo, CO_t *co, uin
 {
     CO_SDO_return_t sdoRet;
     CO_SDOclient_t *client;
+    bool_t blockEnable;
 
-    if ((demo->flags != 0U) || (demo->remoteNode == 0U) || (demo->remoteNode > 127U)) {
-        CO_demo_sdo_client_finish(demo, NULL,
-                                  demo->flags != 0U ? CO_DEMO_SDO_CLIENT_RESULT_UNSUPPORTED
-                                                   : CO_DEMO_SDO_CLIENT_RESULT_SETUP_ERROR,
-                                  CO_SDO_AB_NONE);
+    if ((demo->flags & (uint8_t)~CO_DEMO_SDO_CLIENT_SUPPORTED_FLAGS) != 0U) {
+        CO_demo_sdo_client_finish(demo, NULL, CO_DEMO_SDO_CLIENT_RESULT_UNSUPPORTED, CO_SDO_AB_NONE);
         return false;
     }
+#if (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) == 0)
+    if ((demo->flags & CO_DEMO_SDO_CLIENT_FLAG_BLOCK) != 0U) {
+        CO_demo_sdo_client_finish(demo, NULL, CO_DEMO_SDO_CLIENT_RESULT_UNSUPPORTED, CO_SDO_AB_NONE);
+        return false;
+    }
+#endif /* (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_BLOCK) == 0) */
+    if ((demo->remoteNode == 0U) || (demo->remoteNode > 127U)) {
+        CO_demo_sdo_client_finish(demo, NULL, CO_DEMO_SDO_CLIENT_RESULT_SETUP_ERROR, CO_SDO_AB_NONE);
+        return false;
+    }
+
+    blockEnable = (demo->flags & CO_DEMO_SDO_CLIENT_FLAG_BLOCK) != 0U;
     if ((demo->command != (uint8_t)CO_DEMO_SDO_CLIENT_COMMAND_UPLOAD)
         && (demo->command != (uint8_t)CO_DEMO_SDO_CLIENT_COMMAND_DOWNLOAD)) {
         CO_demo_sdo_client_finish(demo, NULL, CO_DEMO_SDO_CLIENT_RESULT_SETUP_ERROR, CO_SDO_AB_NONE);
@@ -166,7 +180,7 @@ static bool_t CO_demo_sdo_client_start(CO_demo_sdo_client_t *demo, CO_t *co, uin
 
     if (demo->command == (uint8_t)CO_DEMO_SDO_CLIENT_COMMAND_UPLOAD) {
         sdoRet = CO_SDOclientUploadInitiate(client, demo->index, demo->subIndex,
-                                            (uint16_t)PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS, false);
+                                            (uint16_t)PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS, blockEnable);
         if (sdoRet != CO_SDO_RT_ok_communicationEnd) {
             CO_RTT_LOG_E("SDO client test upload initiate failed: seq=%lu node=%u index=0x%04x:%02x ret=%d",
                          (unsigned long)demo->activeSeq, demo->remoteNode, demo->index, demo->subIndex, (int)sdoRet);
@@ -176,7 +190,7 @@ static bool_t CO_demo_sdo_client_start(CO_demo_sdo_client_t *demo, CO_t *co, uin
         demo->phase = (uint8_t)CO_DEMO_SDO_CLIENT_PHASE_UPLOAD;
     } else {
         sdoRet = CO_SDOclientDownloadInitiate(client, demo->index, demo->subIndex, demo->payloadSize,
-                                              (uint16_t)PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS, false);
+                                              (uint16_t)PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS, blockEnable);
         if (sdoRet != CO_SDO_RT_ok_communicationEnd) {
             CO_RTT_LOG_E("SDO client test download initiate failed: seq=%lu node=%u index=0x%04x:%02x ret=%d",
                          (unsigned long)demo->activeSeq, demo->remoteNode, demo->index, demo->subIndex, (int)sdoRet);
@@ -187,9 +201,9 @@ static bool_t CO_demo_sdo_client_start(CO_demo_sdo_client_t *demo, CO_t *co, uin
     }
 
     (void)localNodeId;
-    CO_RTT_LOG_I("SDO client test started: seq=%lu command=%u local=%u remote=%u index=0x%04x:%02x size=%lu",
+    CO_RTT_LOG_I("SDO client test started: seq=%lu command=%u local=%u remote=%u index=0x%04x:%02x size=%lu block=%u",
                  (unsigned long)demo->activeSeq, demo->command, localNodeId, demo->remoteNode, demo->index,
-                 demo->subIndex, (unsigned long)demo->payloadSize);
+                 demo->subIndex, (unsigned long)demo->payloadSize, blockEnable ? 1U : 0U);
     CO_demo_sdo_client_publish(demo);
     return true;
 }

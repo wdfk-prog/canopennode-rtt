@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-17" fileModificationTime="14:01:12.8228490+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-19" fileModificationTime="16:11:01.3409348+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>canopennode-rtt</q1:vendorName>
         <q1:vendorID>0x00000000</q1:vendorID>
@@ -2444,6 +2444,10 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2304" access="readWrite">
+            <label lang="en">sdo_server_block_test</label>
+            <BITSTRING />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2461,7 +2465,7 @@ The life time factor multiplied with the guard time gives the life time for the 
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-17" fileModificationTime="14:01:12.8228490+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-19" fileModificationTime="16:11:01.3409348+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -2804,6 +2808,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="0E" name="result_value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030E" />
             <CANopenSubObject subIndex="0F" name="checksum" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030F" />
           </CANopenObject>
+          <CANopenObject index="2304" name="sdo_server_block_test" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_2304" />
         </q2:CANopenObjectList>
         <dummyUsage>
           <dummy entry="Dummy0001=0" />

@@ -382,6 +382,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2301 &OD->list[45]
 #define OD_ENTRY_H2302 &OD->list[46]
 #define OD_ENTRY_H2303 &OD->list[47]
+#define OD_ENTRY_H2304 &OD->list[48]
 
 
 /*******************************************************************************
@@ -435,6 +436,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2301_emcy_consumer_diagnostic &OD->list[45]
 #define OD_ENTRY_H2302_gfc_diagnostic &OD->list[46]
 #define OD_ENTRY_H2303_sdo_client_test &OD->list[47]
+#define OD_ENTRY_H2304_sdo_server_block_test &OD->list[48]
 
 
 /*******************************************************************************

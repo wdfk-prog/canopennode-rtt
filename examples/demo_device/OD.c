@@ -328,6 +328,7 @@ typedef struct {
     OD_obj_record_t o_2301_emcy_consumer_diagnostic[8];
     OD_obj_record_t o_2302_gfc_diagnostic[6];
     OD_obj_record_t o_2303_sdo_client_test[16];
+    OD_obj_var_t o_2304_sdo_server_block_test;
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -1545,6 +1546,11 @@ static CO_PROGMEM ODObjs_t ODObjs = {
             .attribute = ODA_SDO_R | ODA_MB,
             .dataLength = 4
         }
+    },
+    .o_2304_sdo_server_block_test = {
+        .dataOrig = NULL,
+        .attribute = ODA_SDO_RW,
+        .dataLength = 0
     }
 };
 
@@ -1601,6 +1607,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x2301, 0x08, ODT_REC, &ODObjs.o_2301_emcy_consumer_diagnostic, NULL},
     {0x2302, 0x06, ODT_REC, &ODObjs.o_2302_gfc_diagnostic, NULL},
     {0x2303, 0x10, ODT_REC, &ODObjs.o_2303_sdo_client_test, NULL},
+    {0x2304, 0x01, ODT_VAR, &ODObjs.o_2304_sdo_server_block_test, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 
