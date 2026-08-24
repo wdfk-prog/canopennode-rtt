@@ -241,7 +241,7 @@ append_canopennode_storage_common()
 
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_MAX_ENTRIES_COUNT" "1"
-    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_PERSIST_COMM"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_LSS_PERSIST"
 }
 
 append_canopennode_storage_dfs()
@@ -251,6 +251,8 @@ append_canopennode_storage_dfs()
 
     append_canopennode_default_objects "$config_file" "$rtconfig_file"
     append_canopennode_storage_common "$config_file" "$rtconfig_file"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_PERSIST_COMM"
+    append_unique_config_line "$config_file" "# PKG_CANOPENNODE_STORAGE_PERSIST_COMM is not set"
     append_config_define "$config_file" "$rtconfig_file" "RT_USING_DFS"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_DFS"
@@ -272,6 +274,7 @@ append_canopennode_storage_eeprom_at24c()
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_EEPROM"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_AT24C"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_PERSIST_COMM"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_I2C_BUS_NAME" '"i2c1"'
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_ADDR_INPUT" "1"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_OFFSET" "0"
@@ -404,7 +407,7 @@ append_canopennode_profile()
             append_canopennode_manual_multiple_od "$config_file" "$rtconfig_file"
             ;;
         demo-storage-dfs)
-            log "CI Kconfig profile demo-storage-dfs: DFS storage backend with CRC16 and OD_PERSIST_COMM"
+            log "CI Kconfig profile demo-storage-dfs: DFS storage backend with LSS auxiliary persistence"
             append_canopennode_storage_dfs "$config_file" "$rtconfig_file"
             ;;
         demo-storage-eeprom-at24c)
@@ -582,6 +585,7 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "OD.o"
             ;;
         demo-storage-dfs)
+            verify_profile_object "$bsp_dir" "CO_lss_persist_RTT.o"
             verify_profile_object "$bsp_dir" "CO_storage.o"
             verify_profile_object "$bsp_dir" "CO_storage_RTT.o"
             verify_profile_object "$bsp_dir" "CO_storage_RTT_dfs.o"
@@ -589,6 +593,7 @@ verify_profile_outputs()
             ;;
         demo-storage-eeprom-at24c)
             verify_profile_object "$bsp_dir" "CO_demo.o"
+            verify_profile_object "$bsp_dir" "CO_lss_persist_RTT.o"
             verify_profile_object "$bsp_dir" "CO_demo_storage.o"
             verify_profile_object "$bsp_dir" "CO_storage.o"
             verify_profile_object "$bsp_dir" "CO_storageEeprom.o"

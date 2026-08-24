@@ -46,8 +46,8 @@ typedef struct {
      * @param CANmodule CAN module passed to CO_storage_init().
      * @param OD_1010_StoreParameters OD entry for 0x1010 Store parameters.
      * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 Restore default parameters.
-     * @param entries Storage entries. The array must exist permanently.
-     * @param entriesCount Number of storage entries.
+     * @param entries Storage entries. May be NULL when entriesCount is zero; otherwise the array must exist permanently.
+     * @param entriesCount Number of storage entries. May be zero when only backend auxiliary persistence is used.
      * @param instanceName Optional application instance name used to separate backend data.
      * @param storageInitError Error detail pointer, never NULL when called by co_storage_rtt_init().
      * @return CO_ERROR_NO on success, otherwise a CANopenNode error code.
@@ -101,6 +101,38 @@ typedef struct {
      * @return true if automatic processing completed without backend error, otherwise false.
      */
     bool_t (*auto_process)(CO_storage_t *storage, bool_t saveAll);
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    /**
+     * @brief Read bytes from the backend auxiliary persistence area.
+     *
+     * The auxiliary area is reserved by the selected backend and is separate
+     * from normal CO_storage_entry_t payloads. Offsets are relative to that
+     * backend-owned area.
+     *
+     * @param storage Storage object initialized by co_storage_rtt_init().
+     * @param offset Byte offset relative to the auxiliary area.
+     * @param data Destination buffer.
+     * @param len Number of bytes to read.
+     * @return true when all requested bytes are read, otherwise false.
+     */
+    bool_t (*aux_read)(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len);
+
+    /**
+     * @brief Write bytes to the backend auxiliary persistence area.
+     *
+     * A true return must mean the requested bytes have reached the backend media
+     * in program order. Backends with caches or deferred writes must flush them
+     * before returning true so commit-last record semantics remain valid.
+     *
+     * @param storage Storage object initialized by co_storage_rtt_init().
+     * @param offset Byte offset relative to the auxiliary area.
+     * @param data Source buffer.
+     * @param len Number of bytes to write.
+     * @return true when all requested bytes are written, otherwise false.
+     */
+    bool_t (*aux_write)(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 } CO_storage_rtt_backend_ops_t;
 
 /* Exported variables ---------------------------------------------------------*/
@@ -130,7 +162,9 @@ void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instan
  * built-in backend when a package backend is selected. The returned operation
  * table must have static or otherwise permanent lifetime; init, read, store and
  * restore callbacks must be non-NULL, while auto_process may be NULL if the
- * backend does not support cyclic CO_storage_auto handling.
+ * backend does not support cyclic CO_storage_auto handling. When LSS persistence
+ * is enabled, aux_read and aux_write must also be non-NULL and address a stable
+ * backend-owned auxiliary area.
  *
  * @return Selected backend operation table, or NULL to make co_storage_rtt_init() fail with
  * CO_ERROR_ILLEGAL_ARGUMENT.

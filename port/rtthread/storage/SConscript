@@ -41,4 +41,7 @@ if GetDepend('PKG_CANOPENNODE_USING_STORAGE'):
     if GetDepend('PKG_CANOPENNODE_USING_STORAGE_AT24C'):
         _add_required(os.path.join('port', 'rtthread', 'storage', 'CO_storage_RTT_at24c.c'))
 
+    if GetDepend('PKG_CANOPENNODE_LSS_PERSIST'):
+        _add_required(os.path.join('port', 'rtthread', 'storage', 'CO_lss_persist_RTT.c'))
+
 Return('src')

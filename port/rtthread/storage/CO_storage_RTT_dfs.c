@@ -44,6 +44,7 @@
  */
 #define CO_STORAGE_RTT_DFS_FLAG_RDONLY 0000000U
 #define CO_STORAGE_RTT_DFS_FLAG_WRONLY 0000001U
+#define CO_STORAGE_RTT_DFS_FLAG_RDWR   0000002U
 #define CO_STORAGE_RTT_DFS_FLAG_CREAT  0000100U
 #define CO_STORAGE_RTT_DFS_FLAG_TRUNC  0001000U
 #define CO_STORAGE_RTT_DFS_MAGIC       0x43524446UL
@@ -71,6 +72,7 @@ typedef struct {
     CO_storage_t *storage;               /**< Storage object owning this slot. */
     CO_storage_entry_t *entries;         /**< Entry array owning the private entry metadata. */
     uint8_t entriesCount;                /**< Number of entries bound to this slot. */
+    const char *instanceName;            /**< Optional application instance prefix for backend-owned files. */
     CO_storage_rtt_dfs_entry_t entryPrivates[CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT]; /**< Per-entry metadata. */
 } CO_storage_rtt_dfs_instance_t;
 
@@ -118,6 +120,7 @@ static void co_storage_rtt_dfs_entries_bind(CO_storage_rtt_dfs_instance_t *insta
 {
     instance->entries = entries;
     instance->entriesCount = entriesCount;
+    instance->instanceName = instanceName;
 
     for (uint8_t i = 0U; i < entriesCount; i++) {
         CO_storage_rtt_dfs_entry_t *entryPrivate = &instance->entryPrivates[i];
@@ -211,6 +214,123 @@ static rt_err_t co_storage_rtt_dfs_make_path(const CO_storage_entry_t *entry, ch
 
     return RT_EOK;
 }
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/**
+ * @brief Build the path for backend auxiliary persistence data.
+ *
+ * @param instance DFS backend instance.
+ * @param path Output path buffer.
+ * @param pathSize Output path buffer size.
+ * @return RT_EOK on success, otherwise -RT_ERROR.
+ */
+static rt_err_t co_storage_rtt_dfs_make_aux_path(const CO_storage_rtt_dfs_instance_t *instance,
+                                                 char *path, size_t pathSize)
+{
+    int len;
+
+    if ((instance == NULL) || (path == NULL) || (pathSize == 0U)
+        || (PKG_CANOPENNODE_STORAGE_DFS_DIR[0] == '\0')) {
+        return -RT_ERROR;
+    }
+
+    if ((instance->instanceName != NULL) && (instance->instanceName[0] != '\0')) {
+        len = rt_snprintf(path, pathSize, "%s/%s_storage_aux.bin",
+                          PKG_CANOPENNODE_STORAGE_DFS_DIR, instance->instanceName);
+    } else {
+        len = rt_snprintf(path, pathSize, "%s/co_storage_aux.bin", PKG_CANOPENNODE_STORAGE_DFS_DIR);
+    }
+
+    return ((len >= 0) && ((size_t)len < pathSize)) ? RT_EOK : -RT_ERROR;
+}
+
+/** Find the DFS backend instance that owns a storage object. */
+static CO_storage_rtt_dfs_instance_t *co_storage_rtt_dfs_instance_find(CO_storage_t *storage)
+{
+    for (uint8_t i = 0U; i < CO_RTT_CAN_BINDING_COUNT; i++) {
+        if (co_storage_rtt_dfs_instances[i].used && (co_storage_rtt_dfs_instances[i].storage == storage)) {
+            return &co_storage_rtt_dfs_instances[i];
+        }
+    }
+
+    return NULL;
+}
+
+/** Read bytes from the DFS backend auxiliary persistence file. */
+static bool_t co_storage_rtt_dfs_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len)
+{
+    CO_storage_rtt_dfs_instance_t *instance = co_storage_rtt_dfs_instance_find(storage);
+    char path[PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH];
+    struct dfs_file fd;
+    ssize_t readLen;
+    int ret;
+
+    if ((instance == NULL) || (data == NULL) || (len == 0U) || (offset > (size_t)INT32_MAX)
+        || (len > (size_t)INT32_MAX) || (co_storage_rtt_dfs_make_aux_path(instance, path, sizeof(path)) != RT_EOK)) {
+        return false;
+    }
+
+    rt_memset(&fd, 0, sizeof(fd));
+    ret = dfs_file_open(&fd, path, CO_STORAGE_RTT_DFS_FLAG_RDONLY);
+    if (ret < 0) {
+        if (co_storage_rtt_dfs_is_noent(ret) == RT_TRUE) {
+            memset(data, 0xFF, len);
+            return true;
+        }
+        return false;
+    }
+
+    memset(data, 0, len);
+    if (dfs_file_lseek(&fd, (off_t)offset) != (off_t)offset) {
+        (void)dfs_file_close(&fd);
+        return false;
+    }
+
+    readLen = dfs_file_read(&fd, data, len);
+    if (readLen < 0) {
+        (void)dfs_file_close(&fd);
+        return false;
+    }
+    if ((size_t)readLen < len) {
+        memset(&data[readLen], 0, len - (size_t)readLen);
+    }
+
+    return (dfs_file_close(&fd) >= 0);
+}
+
+/** Write bytes to the DFS backend auxiliary persistence file. */
+static bool_t co_storage_rtt_dfs_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len)
+{
+    CO_storage_rtt_dfs_instance_t *instance = co_storage_rtt_dfs_instance_find(storage);
+    char path[PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH];
+    struct dfs_file fd;
+    ssize_t written;
+    int ret;
+
+    if ((instance == NULL) || (data == NULL) || (len == 0U) || (offset > (size_t)INT32_MAX)
+        || (len > (size_t)INT32_MAX) || (co_storage_rtt_dfs_make_aux_path(instance, path, sizeof(path)) != RT_EOK)) {
+        return false;
+    }
+
+    rt_memset(&fd, 0, sizeof(fd));
+    ret = dfs_file_open(&fd, path, CO_STORAGE_RTT_DFS_FLAG_RDWR | CO_STORAGE_RTT_DFS_FLAG_CREAT);
+    if (ret < 0) {
+        return false;
+    }
+    if (dfs_file_lseek(&fd, (off_t)offset) != (off_t)offset) {
+        (void)dfs_file_close(&fd);
+        return false;
+    }
+
+    written = dfs_file_write(&fd, data, len);
+    if ((written < 0) || ((size_t)written != len) || (dfs_file_flush(&fd) < 0)) {
+        (void)dfs_file_close(&fd);
+        return false;
+    }
+
+    return (dfs_file_close(&fd) >= 0);
+}
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
 /**
  * @brief Build a DFS persisted file header for one entry.
@@ -637,7 +757,8 @@ static CO_ReturnError_t co_storage_rtt_dfs_init(CO_storage_t *storage,
     CO_storage_rtt_dfs_instance_t *instance;
     CO_ReturnError_t err;
 
-    if ((entries == NULL) || (entriesCount == 0U) || (entriesCount > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT)) {
+    if ((storage == NULL) || ((entries == NULL) && (entriesCount > 0U))
+        || (entriesCount > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
@@ -647,6 +768,15 @@ static CO_ReturnError_t co_storage_rtt_dfs_init(CO_storage_t *storage,
     }
 
     co_storage_rtt_dfs_entries_bind(instance, entries, entriesCount, instanceName);
+
+    if (entriesCount == 0U) {
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+        storage->enabled = false;
+        return CO_ERROR_NO;
+#else
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+    }
 
     err = CO_storage_init(storage, CANmodule, OD_1010_StoreParameters, OD_1011_RestoreDefaultParameters,
                           co_storage_rtt_store, co_storage_rtt_restore, entries, entriesCount);
@@ -687,6 +817,10 @@ static const CO_storage_rtt_backend_ops_t co_storage_rtt_dfs_ops = {
     .store = co_storage_rtt_dfs_store,
     .restore = co_storage_rtt_dfs_restore,
     .auto_process = co_storage_rtt_dfs_auto_process,
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    .aux_read = co_storage_rtt_dfs_aux_read,
+    .aux_write = co_storage_rtt_dfs_aux_write,
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 };
 
 /**
