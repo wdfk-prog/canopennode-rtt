@@ -390,9 +390,6 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
     bool_t storageAvailable = false;
     uint32_t storageInitError = 0U;
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
-#if CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U
-    bool_t auxStoragePrepared = false;
-#endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U */
     bool_t persistentLssLoaded = false;
     const uint8_t startupNodeId = app->lssPendingNodeID;
     const uint16_t startupBitrate = app->lssPendingBitrate;
@@ -420,10 +417,6 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
         if (co_app_rtt_storage_prepare(app, true, &storageDataCorrupt, &storageInitError, &storageAvailable) != RT_EOK) {
             return -RT_ERROR;
         }
-#if CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U
-        auxStoragePrepared = true;
-#endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U */
-
         if (storageAvailable) {
             CO_lss_persist_load_result_t persistResult = co_lss_persist_rtt_load(
                 &app->storage, &app->lssPendingNodeID, &app->lssPendingBitrate);
@@ -479,18 +472,10 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
-#if defined(PKG_CANOPENNODE_LSS_PERSIST) && (CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U)
-    if (!auxStoragePrepared) {
-        if (co_app_rtt_storage_prepare(app, true, &storageDataCorrupt, &storageInitError, &storageAvailable) != RT_EOK) {
-            return -RT_ERROR;
-        }
-    }
-#else
-    /* Keep normal OD-backed Storage initialization after CO_CANinit(). */
+    /* Normalize normal OD-backed Storage after CO_CANinit(); zero entries are valid with LSS auxiliary persistence. */
     if (co_app_rtt_storage_prepare(app, false, &storageDataCorrupt, &storageInitError, &storageAvailable) != RT_EOK) {
         return -RT_ERROR;
     }
-#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) && (CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U) */
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
     err = CO_CANopenInit(co, NULL, NULL, OD, CO_APP_RTT_OD_STATUS_BITS, CO_APP_RTT_NMT_CONTROL,

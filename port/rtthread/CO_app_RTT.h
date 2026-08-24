@@ -84,13 +84,9 @@ extern "C" {
 #error "Increase PKG_CANOPENNODE_STORAGE_MAX_ENTRIES_COUNT for the enabled OD_PERSIST_* storage groups."
 #endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT */
 
-#if CO_APP_RTT_STORAGE_ENTRY_COUNT > 0U
-/** Array capacity required for normal OD-backed storage entries. */
-#define CO_APP_RTT_STORAGE_ENTRY_CAPACITY   CO_APP_RTT_STORAGE_ENTRY_COUNT
-#else
-/** Keep the C array non-zero-sized when only backend auxiliary persistence is enabled. */
-#define CO_APP_RTT_STORAGE_ENTRY_CAPACITY   1U
-#endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT > 0U */
+/** Keep the C array valid when Storage is used only for backend auxiliary persistence. */
+#define CO_APP_RTT_STORAGE_ENTRY_CAPACITY   ((CO_APP_RTT_STORAGE_ENTRY_COUNT > 0U) \
+                                           ? CO_APP_RTT_STORAGE_ENTRY_COUNT : 1U)
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
 /* Exported types ------------------------------------------------------------*/
