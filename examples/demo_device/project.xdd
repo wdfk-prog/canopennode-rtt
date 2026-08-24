@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-19" fileModificationTime="16:11:01.3409348+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-21" fileModificationTime="16:26:04.5969246+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>canopennode-rtt</q1:vendorName>
         <q1:vendorID>0x00000000</q1:vendorID>
@@ -692,6 +692,89 @@
             </q1:varDeclaration>
             <q1:varDeclaration name="checksum" uniqueID="UID_RECSUB_23030F">
               <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="storage_diagnostic" uniqueID="UID_REC_2305">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230500">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="request_seq" uniqueID="UID_RECSUB_230501">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="command" uniqueID="UID_RECSUB_230502">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="entry_sub_index" uniqueID="UID_RECSUB_230503">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="raw_offset" uniqueID="UID_RECSUB_230504">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="raw_size" uniqueID="UID_RECSUB_230505">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="raw_value" uniqueID="UID_RECSUB_230506">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="active_seq" uniqueID="UID_RECSUB_230507">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="complete_seq" uniqueID="UID_RECSUB_230508">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="result" uniqueID="UID_RECSUB_230509">
+              <DINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="startup_state" uniqueID="UID_RECSUB_23050A">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="startup_result" uniqueID="UID_RECSUB_23050B">
+              <DINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="startup_error" uniqueID="UID_RECSUB_23050C">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="storage_offset" uniqueID="UID_RECSUB_23050D">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="eeprom_size" uniqueID="UID_RECSUB_23050E">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="page_size" uniqueID="UID_RECSUB_23050F">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="addr_input" uniqueID="UID_RECSUB_230510">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="signature_address" uniqueID="UID_RECSUB_230511">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="data_address" uniqueID="UID_RECSUB_230512">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="data_length" uniqueID="UID_RECSUB_230513">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="raw_start" uniqueID="UID_RECSUB_230514">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="raw_length" uniqueID="UID_RECSUB_230515">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="signature_value" uniqueID="UID_RECSUB_230516">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="backup_valid" uniqueID="UID_RECSUB_230517">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="backup_crc" uniqueID="UID_RECSUB_230518">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="startup_seq" uniqueID="UID_RECSUB_230519">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="startup_probe" uniqueID="UID_RECSUB_23051A">
+              <UINT />
             </q1:varDeclaration>
           </q1:struct>
         </q1:dataTypeList>
@@ -2448,6 +2531,145 @@ The life time factor multiplied with the guard time gives the life time for the 
             <label lang="en">sdo_server_block_test</label>
             <BITSTRING />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2305">
+            <label lang="en">storage_diagnostic</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_2305" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230500">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x1A" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230501" access="readWrite">
+            <label lang="en">request_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230502" access="readWrite">
+            <label lang="en">command</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230503" access="readWrite">
+            <label lang="en">entry_sub_index</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230504" access="readWrite">
+            <label lang="en">raw_offset</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230505" access="readWrite">
+            <label lang="en">raw_size</label>
+            <USINT />
+            <q1:defaultValue value="0x04" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230506" access="readWrite">
+            <label lang="en">raw_value</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230507">
+            <label lang="en">active_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230508">
+            <label lang="en">complete_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230509">
+            <label lang="en">result</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23050A">
+            <label lang="en">startup_state</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23050B">
+            <label lang="en">startup_result</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23050C">
+            <label lang="en">startup_error</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23050D">
+            <label lang="en">storage_offset</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23050E">
+            <label lang="en">eeprom_size</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23050F">
+            <label lang="en">page_size</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230510">
+            <label lang="en">addr_input</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230511">
+            <label lang="en">signature_address</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230512">
+            <label lang="en">data_address</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230513">
+            <label lang="en">data_length</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230514">
+            <label lang="en">raw_start</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230515">
+            <label lang="en">raw_length</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230516">
+            <label lang="en">signature_value</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230517">
+            <label lang="en">backup_valid</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230518">
+            <label lang="en">backup_crc</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230519">
+            <label lang="en">startup_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23051A">
+            <label lang="en">startup_probe</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2465,7 +2687,7 @@ The life time factor multiplied with the guard time gives the life time for the 
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-19" fileModificationTime="16:11:01.3409348+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-21" fileModificationTime="16:26:04.5969246+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -2809,6 +3031,35 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="0F" name="checksum" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23030F" />
           </CANopenObject>
           <CANopenObject index="2304" name="sdo_server_block_test" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_2304" />
+          <CANopenObject index="2305" name="storage_diagnostic" objectType="9" uniqueIDRef="UID_OBJ_2305" subNumber="27">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230500" />
+            <CANopenSubObject subIndex="01" name="request_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230501" />
+            <CANopenSubObject subIndex="02" name="command" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230502" />
+            <CANopenSubObject subIndex="03" name="entry_sub_index" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230503" />
+            <CANopenSubObject subIndex="04" name="raw_offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230504" />
+            <CANopenSubObject subIndex="05" name="raw_size" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230505" />
+            <CANopenSubObject subIndex="06" name="raw_value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230506" />
+            <CANopenSubObject subIndex="07" name="active_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230507" />
+            <CANopenSubObject subIndex="08" name="complete_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230508" />
+            <CANopenSubObject subIndex="09" name="result" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230509" />
+            <CANopenSubObject subIndex="0A" name="startup_state" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23050A" />
+            <CANopenSubObject subIndex="0B" name="startup_result" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23050B" />
+            <CANopenSubObject subIndex="0C" name="startup_error" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23050C" />
+            <CANopenSubObject subIndex="0D" name="storage_offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23050D" />
+            <CANopenSubObject subIndex="0E" name="eeprom_size" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23050E" />
+            <CANopenSubObject subIndex="0F" name="page_size" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23050F" />
+            <CANopenSubObject subIndex="10" name="addr_input" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230510" />
+            <CANopenSubObject subIndex="11" name="signature_address" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230511" />
+            <CANopenSubObject subIndex="12" name="data_address" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230512" />
+            <CANopenSubObject subIndex="13" name="data_length" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230513" />
+            <CANopenSubObject subIndex="14" name="raw_start" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230514" />
+            <CANopenSubObject subIndex="15" name="raw_length" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230515" />
+            <CANopenSubObject subIndex="16" name="signature_value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230516" />
+            <CANopenSubObject subIndex="17" name="backup_valid" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230517" />
+            <CANopenSubObject subIndex="18" name="backup_crc" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230518" />
+            <CANopenSubObject subIndex="19" name="startup_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230519" />
+            <CANopenSubObject subIndex="1A" name="startup_probe" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23051A" />
+          </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>
           <dummy entry="Dummy0001=0" />

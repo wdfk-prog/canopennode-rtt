@@ -271,6 +271,35 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
         .transferred_size = 0x00000000,
         .result_value = 0x00000000,
         .checksum = 0x00000000
+    },
+    .x2305_storage_diagnostic = {
+        .highestSub_indexSupported = 0x1A,
+        .request_seq = 0x00000000,
+        .command = 0x00,
+        .entry_sub_index = 0x02,
+        .raw_offset = 0x00000000,
+        .raw_size = 0x04,
+        .raw_value = 0x00000000,
+        .active_seq = 0x00000000,
+        .complete_seq = 0x00000000,
+        .result = 0,
+        .startup_state = 0x00,
+        .startup_result = 0,
+        .startup_error = 0x00000000,
+        .storage_offset = 0x00000000,
+        .eeprom_size = 0x00000000,
+        .page_size = 0x0000,
+        .addr_input = 0x00,
+        .signature_address = 0x00000000,
+        .data_address = 0x00000000,
+        .data_length = 0x00000000,
+        .raw_start = 0x00000000,
+        .raw_length = 0x00000000,
+        .signature_value = 0x00000000,
+        .backup_valid = 0x00,
+        .backup_crc = 0x0000,
+        .startup_seq = 0x00000000,
+        .startup_probe = 0x0000
     }
 };
 
@@ -329,6 +358,7 @@ typedef struct {
     OD_obj_record_t o_2302_gfc_diagnostic[6];
     OD_obj_record_t o_2303_sdo_client_test[16];
     OD_obj_var_t o_2304_sdo_server_block_test;
+    OD_obj_record_t o_2305_storage_diagnostic[27];
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -1551,6 +1581,170 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .dataOrig = NULL,
         .attribute = ODA_SDO_RW,
         .dataLength = 0
+    },
+    .o_2305_storage_diagnostic = {
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.request_seq,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.command,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.entry_sub_index,
+            .subIndex = 3,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.raw_offset,
+            .subIndex = 4,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.raw_size,
+            .subIndex = 5,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.raw_value,
+            .subIndex = 6,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.active_seq,
+            .subIndex = 7,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.complete_seq,
+            .subIndex = 8,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.result,
+            .subIndex = 9,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.startup_state,
+            .subIndex = 10,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.startup_result,
+            .subIndex = 11,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.startup_error,
+            .subIndex = 12,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.storage_offset,
+            .subIndex = 13,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.eeprom_size,
+            .subIndex = 14,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.page_size,
+            .subIndex = 15,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 2
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.addr_input,
+            .subIndex = 16,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.signature_address,
+            .subIndex = 17,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.data_address,
+            .subIndex = 18,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.data_length,
+            .subIndex = 19,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.raw_start,
+            .subIndex = 20,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.raw_length,
+            .subIndex = 21,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.signature_value,
+            .subIndex = 22,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.backup_valid,
+            .subIndex = 23,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.backup_crc,
+            .subIndex = 24,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 2
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.startup_seq,
+            .subIndex = 25,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2305_storage_diagnostic.startup_probe,
+            .subIndex = 26,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 2
+        }
     }
 };
 
@@ -1608,6 +1802,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x2302, 0x06, ODT_REC, &ODObjs.o_2302_gfc_diagnostic, NULL},
     {0x2303, 0x10, ODT_REC, &ODObjs.o_2303_sdo_client_test, NULL},
     {0x2304, 0x01, ODT_VAR, &ODObjs.o_2304_sdo_server_block_test, NULL},
+    {0x2305, 0x1B, ODT_REC, &ODObjs.o_2305_storage_diagnostic, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 

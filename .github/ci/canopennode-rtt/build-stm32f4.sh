@@ -267,14 +267,16 @@ append_canopennode_storage_eeprom_at24c()
     append_canopennode_storage_common "$config_file" "$rtconfig_file"
     append_config_define "$config_file" "$rtconfig_file" "RT_USING_I2C"
     append_config_define "$config_file" "$rtconfig_file" "PKG_USING_AT24CXX"
-    append_config_define "$config_file" "$rtconfig_file" "PKG_AT24CXX_EE_TYPE_AT24C512"
-    append_config_value "$config_file" "$rtconfig_file" "PKG_AT24CXX_EE_TYPE" "AT24C512"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_AT24CXX_EE_TYPE_AT24C128"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_AT24CXX_EE_TYPE" "AT24C128"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_EEPROM"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_AT24C"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_I2C_BUS_NAME" '"i2c1"'
-    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_ADDR_INPUT" "0"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_ADDR_INPUT" "1"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_OFFSET" "0"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE" "1024"
+    # Synthetic CI models an EEPROM dedicated to CANopenNode; offset 0 is reserved only in this fixture.
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE" "32"
 }
 
@@ -406,8 +408,9 @@ append_canopennode_profile()
             append_canopennode_storage_dfs "$config_file" "$rtconfig_file"
             ;;
         demo-storage-eeprom-at24c)
-            log "CI Kconfig profile demo-storage-eeprom-at24c: EEPROM storage backend with AT24CXX and CRC16"
+            log "CI Kconfig profile demo-storage-eeprom-at24c: J07 AT24C128 EEPROM storage backend and diagnostic"
             append_canopennode_storage_eeprom_at24c "$config_file" "$rtconfig_file"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC"
             ;;
         demo-safety-debug)
             log "CI Kconfig profile demo-safety-debug: GFC/SRDO, CAN HDR filter, ulog debug"
@@ -585,6 +588,8 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "crc16-ccitt.o"
             ;;
         demo-storage-eeprom-at24c)
+            verify_profile_object "$bsp_dir" "CO_demo.o"
+            verify_profile_object "$bsp_dir" "CO_demo_storage.o"
             verify_profile_object "$bsp_dir" "CO_storage.o"
             verify_profile_object "$bsp_dir" "CO_storageEeprom.o"
             verify_profile_object "$bsp_dir" "CO_storage_RTT.o"

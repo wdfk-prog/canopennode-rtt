@@ -30,10 +30,33 @@ void CO_demo_init(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
     CO_demo_sdo_client_init(&demo->sdoClient);
 #endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC)
+    CO_demo_storage_init(&demo->storage);
+#endif /* defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_init(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
 }
+
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
+void CO_demo_on_storage_init(CO_demo_t *demo, CO_storage_t *storage, CO_storage_entry_t *entries,
+                             uint8_t entriesCount, CO_ReturnError_t initResult, uint32_t initError)
+{
+    if (demo == NULL) {
+        return;
+    }
+
+#if defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC)
+    CO_demo_storage_on_backend_init(&demo->storage, storage, entries, entriesCount, initResult, initError);
+#else
+    (void)storage;
+    (void)entries;
+    (void)entriesCount;
+    (void)initResult;
+    (void)initError;
+#endif /* defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) */
+}
+#endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
 bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co)
 {
@@ -94,6 +117,9 @@ void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t no
 #else
     (void)timeDifferenceUs;
 #endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC)
+    CO_demo_storage_process(&demo->storage);
+#endif /* defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_process(&demo->nmtMaster, co, localNodeId, nowMs, resetStatus);
 #else
@@ -121,6 +147,9 @@ void CO_demo_reset(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
     CO_demo_sdo_client_reset(&demo->sdoClient);
 #endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC)
+    CO_demo_storage_reset(&demo->storage);
+#endif /* defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_reset(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */

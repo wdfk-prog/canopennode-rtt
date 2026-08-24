@@ -268,7 +268,7 @@ static CO_ReturnError_t co_app_rtt_lss_init(CANopenNodeRTT *app)
  * @brief Initialize RT-Thread storage for the selected generated persistent OD groups.
  *
  * @param app CANopenNode RT-Thread application instance.
- * @param storageInitError Optional error detail. Stores a one-based failed entry index on read failure.
+ * @param storageInitError Optional backend detail or CO_storageEeprom corruption bitmask.
  * @return CO_ERROR_NO on success, otherwise a CANopenNode error code.
  */
 static CO_ReturnError_t co_app_rtt_storage_init(CANopenNodeRTT *app, uint32_t *storageInitError)
@@ -302,8 +302,12 @@ static CO_ReturnError_t co_app_rtt_storage_init(CANopenNodeRTT *app, uint32_t *s
 
     err = co_storage_rtt_init(&app->storage, app->canOpenStack->CANmodule, OD_ENTRY_H1010, OD_ENTRY_H1011,
                               app->storageEntries, entriesCount, app->canName, storageInitError);
+#if CO_DEMO_ENABLED
+    CO_demo_on_storage_init(&app->demo, &app->storage, app->storageEntries, entriesCount,
+                            err, *storageInitError);
+#endif /* CO_DEMO_ENABLED */
     if (err != CO_ERROR_NO) {
-        CO_RTT_LOG_E("CO storage init failed: dev=%s err=%d entry=%lu", app->canName, err,
+        CO_RTT_LOG_E("CO storage init failed: dev=%s err=%d detail=0x%08lx", app->canName, err,
                      (unsigned long)*storageInitError);
     }
 
@@ -357,7 +361,13 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app)
     err = co_app_rtt_storage_init(app, &storageInitError);
     if (err == CO_ERROR_DATA_CORRUPT) {
         storageDataCorrupt = true;
-        CO_RTT_LOG_W("CO storage data corrupt: dev=%s entry=%lu", app->canName, (unsigned long)storageInitError);
+        if (storageInitError == UINT32_MAX) {
+            CO_RTT_LOG_W("CO storage backend unavailable: dev=%s detail=0x%08lx", app->canName,
+                         (unsigned long)storageInitError);
+        } else {
+            CO_RTT_LOG_W("CO storage persistent data invalid: dev=%s subIndexMask=0x%08lx", app->canName,
+                         (unsigned long)storageInitError);
+        }
     } else if (err != CO_ERROR_NO) {
         return -RT_ERROR;
     }

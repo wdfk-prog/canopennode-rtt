@@ -1452,6 +1452,19 @@ config PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST
         The demo uses the first generated SDO client object and is intended for
         automated validation with the package demo Object Dictionary.
 
+config PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC
+    bool "Enable demo EEPROM Storage diagnostic"
+    default n
+    depends on PKG_CANOPENNODE_USING_SDO_SERVER
+    depends on PKG_CANOPENNODE_USING_STORAGE_EEPROM
+    depends on PKG_CANOPENNODE_USING_STORAGE_AT24C
+    depends on PKG_CANOPENNODE_STORAGE_PERSIST_COMM
+    help
+        Publish test-only EEPROM Storage diagnostics through OD 0x2305 for
+        J07/B01. The diagnostic exposes the existing CO_storageEeprom raw layout,
+        captures the startup storage result and pre-master 0x1017 value, and
+        supports full raw baseline backup/restore plus controlled corruption.
+
 config PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST
     bool "Enable automatic demo NMT master test"
     default n

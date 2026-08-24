@@ -66,6 +66,7 @@ if GetDepend('PKG_USING_CANOPENNODE'):
                         or GetDepend('PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST')
                         or GetDepend('PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST')
+                        or GetDepend('PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'))
         _add_required_any(demo_enabled, 'demo dispatcher',
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo.c')])
@@ -82,6 +83,9 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST'),
                           'demo SDO client test',
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo_sdo_client.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC'),
+                          'demo Storage diagnostic',
+                          [os.path.join('port', 'rtthread', 'demo', 'CO_demo_storage.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'),
                           'demo NMT master test', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_nmt_master.c')])
 

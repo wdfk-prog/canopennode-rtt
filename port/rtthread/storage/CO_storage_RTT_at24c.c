@@ -42,6 +42,8 @@ typedef struct {
     const char *i2cBusName;  /**< RT-Thread I2C bus name passed to at24cxx_init(). */
     uint8_t addrInput;       /**< AT24CXX package address-input value. */
     size_t size;             /**< EEPROM capacity in bytes from at24cxx.h. */
+    size_t storageOffset;    /**< First EEPROM byte reserved for CANopenNode storage. */
+    size_t storageRegionSize; /**< Effective number of EEPROM bytes reserved for CANopenNode storage. */
     size_t nextAddress;      /**< Next allocated EEPROM address. */
     void *device;            /**< AT24CXX package device handle. */
     uint8_t initialized;     /**< Non-zero after the AT24CXX package device has been opened. */
@@ -97,7 +99,12 @@ static void co_storage_rtt_at24c_config_init(CO_storage_rtt_at24c_instance_t *in
     instance->i2cBusName = PKG_CANOPENNODE_STORAGE_AT24C_I2C_BUS_NAME;
     instance->addrInput = (uint8_t)PKG_CANOPENNODE_STORAGE_AT24C_ADDR_INPUT;
     instance->size = (size_t)AT24CXX_MAX_MEM_ADDRESS;
-    instance->nextAddress = (size_t)PKG_CANOPENNODE_STORAGE_AT24C_OFFSET;
+    instance->storageOffset = (size_t)PKG_CANOPENNODE_STORAGE_AT24C_OFFSET;
+    instance->storageRegionSize = (size_t)PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE;
+    if ((instance->storageRegionSize == 0U) && (instance->storageOffset < instance->size)) {
+        instance->storageRegionSize = instance->size - instance->storageOffset;
+    }
+    instance->nextAddress = instance->storageOffset;
     instance->device = device;
     instance->initialized = initialized;
 }
@@ -130,24 +137,32 @@ void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instan
  * @param instance AT24CXX device slot.
  * @param eepromAddr Start address.
  * @param len Number of bytes.
- * @return true if the range is inside EEPROM capacity, otherwise false.
+ * @return true if the range is inside the configured CANopenNode storage region, otherwise false.
  */
 static bool_t co_storage_rtt_at24c_range_valid(const CO_storage_rtt_at24c_instance_t *instance,
                                                size_t eepromAddr,
                                                size_t len)
 {
+    size_t regionEnd;
+
     if ((instance == NULL) || (instance->initialized == 0U) || (instance->device == RT_NULL)) {
         return false;
     }
-    if ((len == 0U) || (eepromAddr >= instance->size)) {
+    if ((instance->storageOffset >= instance->size) || (instance->storageRegionSize == 0U)
+        || (instance->storageRegionSize > (instance->size - instance->storageOffset))) {
         return false;
     }
 
-    return (len <= (instance->size - eepromAddr));
+    regionEnd = instance->storageOffset + instance->storageRegionSize;
+    if ((len == 0U) || (eepromAddr < instance->storageOffset) || (eepromAddr >= regionEnd)) {
+        return false;
+    }
+
+    return (len <= (regionEnd - eepromAddr));
 }
 
 /**
- * @brief Read a block through the AT24CXX package.
+ * @brief Read a block through the page-oriented AT24CXX package API.
  *
  * @param instance AT24CXX device slot.
  * @param data Destination buffer.
@@ -170,9 +185,9 @@ static bool_t co_storage_rtt_at24c_read_block(CO_storage_rtt_at24c_instance_t *i
         size_t remaining = len - offset;
         uint16_t chunk = (remaining > (size_t)UINT16_MAX) ? (uint16_t)UINT16_MAX : (uint16_t)remaining;
 
-        if (at24cxx_read((at24cxx_device_t)instance->device, (uint32_t)(eepromAddr + offset), &data[offset],
-                         chunk) != RT_EOK) {
-            CO_RTT_LOG_W("AT24CXX read failed: bus=%s addrInput=%u offset=%lu len=%u", instance->i2cBusName,
+        if (at24cxx_page_read((at24cxx_device_t)instance->device, (uint32_t)(eepromAddr + offset),
+                              &data[offset], chunk) != RT_EOK) {
+            CO_RTT_LOG_W("AT24CXX page read failed: bus=%s addrInput=%u offset=%lu len=%u", instance->i2cBusName,
                          instance->addrInput, (unsigned long)(eepromAddr + offset), chunk);
             return false;
         }
@@ -183,7 +198,7 @@ static bool_t co_storage_rtt_at24c_read_block(CO_storage_rtt_at24c_instance_t *i
 }
 
 /**
- * @brief Write a block through the AT24CXX package.
+ * @brief Write a block through the page-oriented AT24CXX package API.
  *
  * @param instance AT24CXX device slot.
  * @param data Source buffer.
@@ -206,9 +221,9 @@ static bool_t co_storage_rtt_at24c_write_block(CO_storage_rtt_at24c_instance_t *
         size_t remaining = len - offset;
         uint16_t chunk = (remaining > (size_t)UINT16_MAX) ? (uint16_t)UINT16_MAX : (uint16_t)remaining;
 
-        if (at24cxx_write((at24cxx_device_t)instance->device, (uint32_t)(eepromAddr + offset), &data[offset],
-                          chunk) != RT_EOK) {
-            CO_RTT_LOG_W("AT24CXX write failed: bus=%s addrInput=%u offset=%lu len=%u", instance->i2cBusName,
+        if (at24cxx_page_write((at24cxx_device_t)instance->device, (uint32_t)(eepromAddr + offset),
+                               &data[offset], chunk) != RT_EOK) {
+            CO_RTT_LOG_W("AT24CXX page write failed: bus=%s addrInput=%u offset=%lu len=%u", instance->i2cBusName,
                          instance->addrInput, (unsigned long)(eepromAddr + offset), chunk);
             return false;
         }
@@ -216,6 +231,78 @@ static bool_t co_storage_rtt_at24c_write_block(CO_storage_rtt_at24c_instance_t *
     }
 
     return true;
+}
+
+/**
+ * @brief Read or write one raw EEPROM block with page-oriented AT24CXX APIs.
+ *
+ * @param instance AT24CXX device slot.
+ * @param eepromAddr EEPROM start address.
+ * @param data Transfer buffer.
+ * @param len Number of bytes to transfer.
+ * @param write True for page-write, false for page-read.
+ * @return true when the complete transfer succeeds, otherwise false.
+ */
+static bool_t co_storage_rtt_at24c_raw_transfer(CO_storage_rtt_at24c_instance_t *instance,
+                                                 size_t eepromAddr, uint8_t *data, size_t len, bool_t write)
+{
+    size_t offset = 0U;
+
+    if ((data == NULL) || !co_storage_rtt_at24c_range_valid(instance, eepromAddr, len)) {
+        return false;
+    }
+
+    while (offset < len) {
+        const size_t remaining = len - offset;
+        const uint16_t chunk = (remaining > (size_t)UINT16_MAX) ? UINT16_MAX : (uint16_t)remaining;
+        const rt_err_t result = write
+            ? at24cxx_page_write((at24cxx_device_t)instance->device, (uint32_t)(eepromAddr + offset),
+                                 &data[offset], chunk)
+            : at24cxx_page_read((at24cxx_device_t)instance->device, (uint32_t)(eepromAddr + offset),
+                                &data[offset], chunk);
+
+        if (result != RT_EOK) {
+            CO_RTT_LOG_W("AT24CXX raw %s failed: bus=%s addrInput=%u offset=%lu len=%u",
+                         write ? "write" : "read", instance->i2cBusName, instance->addrInput,
+                         (unsigned long)(eepromAddr + offset), chunk);
+            return false;
+        }
+        offset += chunk;
+    }
+
+    return true;
+}
+
+bool_t co_storage_rtt_at24c_raw_get_info(void *storageModule, size_t *storageOffset,
+                                          size_t *storageRegionSize, size_t *eepromSize,
+                                          size_t *pageSize, uint8_t *addrInput)
+{
+    CO_storage_rtt_at24c_instance_t *instance = (CO_storage_rtt_at24c_instance_t *)storageModule;
+
+    if ((instance != &co_storage_rtt_at24c_instance) || (instance->initialized == 0U)
+        || (instance->device == RT_NULL) || (storageOffset == NULL) || (storageRegionSize == NULL)
+        || (eepromSize == NULL) || (pageSize == NULL) || (addrInput == NULL)) {
+        return false;
+    }
+
+    *storageOffset = instance->storageOffset;
+    *storageRegionSize = instance->storageRegionSize;
+    *eepromSize = instance->size;
+    *pageSize = (size_t)AT24CXX_PAGE_BYTE;
+    *addrInput = instance->addrInput;
+    return true;
+}
+
+bool_t co_storage_rtt_at24c_raw_read(void *storageModule, size_t eepromAddr, uint8_t *data, size_t len)
+{
+    return co_storage_rtt_at24c_raw_transfer((CO_storage_rtt_at24c_instance_t *)storageModule, eepromAddr, data,
+                                              len, false);
+}
+
+bool_t co_storage_rtt_at24c_raw_write(void *storageModule, size_t eepromAddr, uint8_t *data, size_t len)
+{
+    return co_storage_rtt_at24c_raw_transfer((CO_storage_rtt_at24c_instance_t *)storageModule, eepromAddr, data,
+                                              len, true);
 }
 
 /**
@@ -229,8 +316,13 @@ bool_t CO_eeprom_init(void *storageModule)
     CO_storage_rtt_at24c_instance_t *instance = (CO_storage_rtt_at24c_instance_t *)storageModule;
 
     if ((instance == NULL) || (instance->i2cBusName == NULL) || (instance->i2cBusName[0] == '\0')
-        || (instance->size == 0U) || (instance->nextAddress >= instance->size)) {
-        CO_RTT_LOG_E("AT24CXX init failed: invalid configuration");
+        || (instance->size == 0U) || (instance->storageOffset >= instance->size)
+        || (instance->storageRegionSize == 0U)
+        || (instance->storageRegionSize > (instance->size - instance->storageOffset))) {
+        CO_RTT_LOG_E("AT24CXX init failed: invalid storage region offset=%lu size=%lu eeprom=%lu",
+                     (unsigned long)((instance != NULL) ? instance->storageOffset : 0U),
+                     (unsigned long)((instance != NULL) ? instance->storageRegionSize : 0U),
+                     (unsigned long)((instance != NULL) ? instance->size : 0U));
         return false;
     }
 
@@ -243,9 +335,10 @@ bool_t CO_eeprom_init(void *storageModule)
     }
 
     instance->initialized = 1U;
-    CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu offset=%lu page=%u",
+    CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu region=[%lu,%lu) page=%u",
                  instance->i2cBusName, instance->addrInput, (unsigned long)instance->size,
-                 (unsigned long)instance->nextAddress, AT24CXX_PAGE_BYTE);
+                 (unsigned long)instance->storageOffset,
+                 (unsigned long)(instance->storageOffset + instance->storageRegionSize), AT24CXX_PAGE_BYTE);
 
     return true;
 }
@@ -274,7 +367,9 @@ size_t CO_eeprom_getAddr(void *storageModule, bool_t isAuto, size_t len, bool_t 
     }
 
     addr = instance->nextAddress;
-    if ((addr >= instance->size) || (len > (instance->size - addr))) {
+    if ((addr < instance->storageOffset)
+        || (addr >= (instance->storageOffset + instance->storageRegionSize))
+        || (len > ((instance->storageOffset + instance->storageRegionSize) - addr))) {
         return addr;
     }
 

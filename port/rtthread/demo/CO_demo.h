@@ -8,11 +8,16 @@
 
 #include "CANopen.h"
 
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
+#include "storage/CO_storage.h"
+#endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
+
 #if defined(PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST) \
     || defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) \
+    || defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) \
     || defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #define CO_DEMO_ENABLED 1
 #else
@@ -39,6 +44,9 @@
 #if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
 #include "CO_demo_sdo_client.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC)
+#include "CO_demo_storage.h"
+#endif /* defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #include "CO_demo_nmt_master.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -64,6 +72,9 @@ typedef struct {
 #if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
     CO_demo_sdo_client_t sdoClient; /**< Test-only non-blocking SDO client state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC)
+    CO_demo_storage_t storage; /**< Test-only EEPROM Storage diagnostic state. */
+#endif /* defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_t nmtMaster; /**< Automatic NMT master validation state. */
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
@@ -75,6 +86,26 @@ typedef struct {
  * @param demo Demo dispatcher state owned by the application instance.
  */
 void CO_demo_init(CO_demo_t *demo);
+
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
+/**
+ * @brief Notify enabled demo/test modules after RT-Thread storage initialization.
+ *
+ * This hook runs immediately after co_storage_rtt_init(), before CANopen
+ * communication objects can be reconfigured by the Host. Storage-specific
+ * demo modules may capture startup state without exposing their feature flags
+ * to the application wrapper.
+ *
+ * @param demo Demo dispatcher state owned by the application instance.
+ * @param storage Current initialized storage object.
+ * @param entries Storage entry array configured by the RT-Thread application.
+ * @param entriesCount Number of entries in @p entries.
+ * @param initResult Raw storage initialization return code.
+ * @param initError Backend-specific initialization detail or corruption bitmask.
+ */
+void CO_demo_on_storage_init(CO_demo_t *demo, CO_storage_t *storage, CO_storage_entry_t *entries,
+                             uint8_t entriesCount, CO_ReturnError_t initResult, uint32_t initError);
+#endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
 /**
  * @brief Bind enabled demo/test modules to a newly initialized CANopenNode stack.

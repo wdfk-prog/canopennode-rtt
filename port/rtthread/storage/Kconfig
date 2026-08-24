@@ -50,7 +50,8 @@ config PKG_CANOPENNODE_USING_STORAGE_EEPROM
         CO_storage_entry_t, and uses the built-in AT24CXX device adapter to
         provide the CO_eeprom_* target hooks. The built-in AT24CXX adapter is
         intentionally limited to one CANopenNode instance because it owns one
-        EEPROM layout starting from PKG_CANOPENNODE_STORAGE_AT24C_OFFSET.
+        EEPROM region configured by PKG_CANOPENNODE_STORAGE_AT24C_OFFSET and
+        PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE.
 
 config PKG_CANOPENNODE_USING_STORAGE_USER
     bool "Use user-provided storage backend"
@@ -89,18 +90,33 @@ config PKG_CANOPENNODE_STORAGE_AT24C_ADDR_INPUT
     default 0
     depends on PKG_CANOPENNODE_USING_STORAGE_AT24C
     help
-        Address-input value passed as AddrInput to at24cxx_init(). Use the same
-        value as the selected AT24CXX package and board wiring expect.
+        Address-input value passed as AddrInput to at24cxx_init(). The supplied
+        RT-Thread AT24CXX adapter uses 7-bit base address 0x50 OR AddrInput.
+        Keep the generic default unless board wiring requires another address.
+        Set AddrInput to 1 explicitly when the EEPROM must use address 0x51.
 
 config PKG_CANOPENNODE_STORAGE_AT24C_OFFSET
-    int "AT24CXX storage start offset"
+    int "AT24CXX storage region start offset"
     range 0 2147483647
     default 0
     depends on PKG_CANOPENNODE_USING_STORAGE_AT24C
     help
-        EEPROM start offset used by CANopenNode storage. The AT24CXX adapter
-        starts allocating CO_storageEeprom signatures and payloads from this
-        address.
+        First EEPROM byte reserved for CANopenNode storage. Configure this with
+        PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE so the complete region
+        [OFFSET, OFFSET + REGION_SIZE) does not overlap bootloader or application
+        EEPROM data.
+
+config PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE
+    int "AT24CXX storage reserved region size (0 = remaining EEPROM)"
+    range 0 2147483647
+    default 0
+    depends on PKG_CANOPENNODE_USING_STORAGE_AT24C
+    help
+        Number of EEPROM bytes reserved exclusively for CANopenNode storage.
+        Set a non-zero value when the EEPROM is shared with the bootloader or
+        application so all CO_storageEeprom and raw diagnostic access is bounded
+        to [OFFSET, OFFSET + REGION_SIZE). Value 0 preserves legacy behavior and
+        uses all physical EEPROM bytes from OFFSET to the end of the device.
 
 config PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE
     int "AT24CXX CRC read buffer size"

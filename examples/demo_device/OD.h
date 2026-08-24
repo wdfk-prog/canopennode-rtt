@@ -16,7 +16,7 @@
 
         Created:      2026/7/6 14:52:30
         Created By:   wdfk-prog
-        Modified:     2026/8/17 14:01:12
+        Modified:     2026/8/19 16:11:01
         Modified By:  wdfk-prog
 
     Device Info:
@@ -313,6 +313,35 @@ typedef struct {
         uint32_t result_value;
         uint32_t checksum;
     } x2303_sdo_client_test;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t request_seq;
+        uint8_t command;
+        uint8_t entry_sub_index;
+        uint32_t raw_offset;
+        uint8_t raw_size;
+        uint32_t raw_value;
+        uint32_t active_seq;
+        uint32_t complete_seq;
+        int32_t result;
+        uint8_t startup_state;
+        int32_t startup_result;
+        uint32_t startup_error;
+        uint32_t storage_offset;
+        uint32_t eeprom_size;
+        uint16_t page_size;
+        uint8_t addr_input;
+        uint32_t signature_address;
+        uint32_t data_address;
+        uint32_t data_length;
+        uint32_t raw_start;
+        uint32_t raw_length;
+        uint32_t signature_value;
+        uint8_t backup_valid;
+        uint16_t backup_crc;
+        uint32_t startup_seq;
+        uint16_t startup_probe;
+    } x2305_storage_diagnostic;
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -383,6 +412,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2302 &OD->list[46]
 #define OD_ENTRY_H2303 &OD->list[47]
 #define OD_ENTRY_H2304 &OD->list[48]
+#define OD_ENTRY_H2305 &OD->list[49]
 
 
 /*******************************************************************************
@@ -437,6 +467,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2302_gfc_diagnostic &OD->list[46]
 #define OD_ENTRY_H2303_sdo_client_test &OD->list[47]
 #define OD_ENTRY_H2304_sdo_server_block_test &OD->list[48]
+#define OD_ENTRY_H2305_storage_diagnostic &OD->list[49]
 
 
 /*******************************************************************************

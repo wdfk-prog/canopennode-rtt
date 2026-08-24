@@ -40,8 +40,12 @@ extern "C" {
 #endif /* CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT */
 
 #ifndef PKG_CANOPENNODE_STORAGE_AT24C_OFFSET
-#define PKG_CANOPENNODE_STORAGE_AT24C_OFFSET 0
+#error "PKG_CANOPENNODE_STORAGE_AT24C_OFFSET must be configured explicitly"
 #endif /* PKG_CANOPENNODE_STORAGE_AT24C_OFFSET */
+
+#ifndef PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE
+#error "PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE must be configured explicitly"
+#endif /* PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE */
 
 #ifndef PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE
 #define PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE 32
@@ -71,6 +75,47 @@ extern "C" {
 /* Exported variables ---------------------------------------------------------*/
 
 /* Exported functions prototypes ---------------------------------------------*/
+
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
+#if defined(PKG_CANOPENNODE_USING_STORAGE_EEPROM) && defined(PKG_CANOPENNODE_USING_STORAGE_AT24C)
+/**
+ * @brief Read AT24CXX geometry exposed for raw Storage access.
+ *
+ * @param storageModule AT24CXX backend instance owned by CANopenNode storage.
+ * @param storageOffset Configured first EEPROM address reserved for CANopenNode storage.
+ * @param storageRegionSize Effective number of EEPROM bytes reserved for CANopenNode storage.
+ * @param eepromSize EEPROM capacity in bytes.
+ * @param pageSize EEPROM page size in bytes.
+ * @param addrInput AT24CXX AddrInput value passed to at24cxx_init().
+ * @return true when the backend is initialized and all outputs are valid, otherwise false.
+ */
+bool_t co_storage_rtt_at24c_raw_get_info(void *storageModule, size_t *storageOffset,
+                                          size_t *storageRegionSize, size_t *eepromSize,
+                                          size_t *pageSize, uint8_t *addrInput);
+
+/**
+ * @brief Read raw EEPROM bytes through the AT24CXX backend access API.
+ *
+ * @param storageModule AT24CXX backend instance owned by CANopenNode storage.
+ * @param eepromAddr EEPROM start address.
+ * @param data Destination buffer.
+ * @param len Number of bytes to read.
+ * @return true when all requested bytes are read, otherwise false.
+ */
+bool_t co_storage_rtt_at24c_raw_read(void *storageModule, size_t eepromAddr, uint8_t *data, size_t len);
+
+/**
+ * @brief Write raw EEPROM bytes through the AT24CXX backend access API.
+ *
+ * @param storageModule AT24CXX backend instance owned by CANopenNode storage.
+ * @param eepromAddr EEPROM start address.
+ * @param data Source buffer.
+ * @param len Number of bytes to write.
+ * @return true when all requested bytes are written, otherwise false.
+ */
+bool_t co_storage_rtt_at24c_raw_write(void *storageModule, size_t eepromAddr, uint8_t *data, size_t len);
+#endif /* defined(PKG_CANOPENNODE_USING_STORAGE_EEPROM) && defined(PKG_CANOPENNODE_USING_STORAGE_AT24C) */
+#endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
 #ifdef __cplusplus
 }
