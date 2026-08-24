@@ -68,8 +68,8 @@ void co_storage_rtt_entry_init(CO_storage_entry_t *entry,
  * @param CANmodule CAN module passed to CO_storage_init().
  * @param OD_1010_StoreParameters OD entry for 0x1010 Store parameters.
  * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 Restore default parameters.
- * @param entries Storage entries. The array must exist permanently.
- * @param entriesCount Number of storage entries.
+ * @param entries Storage entries. May be NULL when entriesCount is zero; otherwise the array must exist permanently.
+ * @param entriesCount Number of storage entries. May be zero when only backend auxiliary persistence is used.
  * @param instanceName Optional application instance name used to separate backend data.
  * @param storageInitError Optional error detail. Stores a one-based failed entry index on read failure.
  * @return CO_ERROR_NO on success, CO_ERROR_ILLEGAL_ARGUMENT on invalid arguments, or another CANopenNode error code.
@@ -119,6 +119,30 @@ ODR_t co_storage_rtt_restore(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodul
  * @return true if automatic storage processing was skipped or completed without backend error, otherwise false.
  */
 bool_t co_storage_rtt_auto_process(CO_storage_t *storage, CO_t *co, bool_t saveAll);
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/**
+ * @brief Read bytes from the selected storage backend auxiliary area.
+ *
+ * @param storage Storage object initialized by co_storage_rtt_init().
+ * @param offset Byte offset relative to the backend auxiliary area.
+ * @param data Destination buffer.
+ * @param len Number of bytes to read.
+ * @return true when the selected backend reads all requested bytes, otherwise false.
+ */
+bool_t co_storage_rtt_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len);
+
+/**
+ * @brief Write bytes to the selected storage backend auxiliary area.
+ *
+ * @param storage Storage object initialized by co_storage_rtt_init().
+ * @param offset Byte offset relative to the backend auxiliary area.
+ * @param data Source buffer.
+ * @param len Number of bytes to write.
+ * @return true when the selected backend writes all requested bytes, otherwise false.
+ */
+bool_t co_storage_rtt_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 

@@ -72,17 +72,25 @@ extern "C" {
 #define CO_APP_RTT_STORAGE_ENTRY_COUNT_MANU 0U
 #endif /* defined(PKG_CANOPENNODE_STORAGE_PERSIST_MANU) */
 
-/** Number of storage entries owned by each CANopenNodeRTT instance. */
+/** Number of normal OD-backed storage entries owned by each CANopenNodeRTT instance. */
 #define CO_APP_RTT_STORAGE_ENTRY_COUNT      (CO_APP_RTT_STORAGE_ENTRY_COUNT_COMM \
                                            + CO_APP_RTT_STORAGE_ENTRY_COUNT_APP \
                                            + CO_APP_RTT_STORAGE_ENTRY_COUNT_MANU)
 
-#if CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U
-#error "At least one PKG_CANOPENNODE_STORAGE_PERSIST_* option must be enabled when CO_CONFIG_STORAGE_ENABLE is enabled."
-#endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U */
+#if (CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U) && !defined(PKG_CANOPENNODE_LSS_PERSIST)
+#error "Enable at least one PKG_CANOPENNODE_STORAGE_PERSIST_* option or PKG_CANOPENNODE_LSS_PERSIST."
+#endif /* (CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U) && !defined(PKG_CANOPENNODE_LSS_PERSIST) */
 #if CO_APP_RTT_STORAGE_ENTRY_COUNT > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT
 #error "Increase PKG_CANOPENNODE_STORAGE_MAX_ENTRIES_COUNT for the enabled OD_PERSIST_* storage groups."
 #endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT */
+
+#if CO_APP_RTT_STORAGE_ENTRY_COUNT > 0U
+/** Array capacity required for normal OD-backed storage entries. */
+#define CO_APP_RTT_STORAGE_ENTRY_CAPACITY   CO_APP_RTT_STORAGE_ENTRY_COUNT
+#else
+/** Keep the C array non-zero-sized when only backend auxiliary persistence is enabled. */
+#define CO_APP_RTT_STORAGE_ENTRY_CAPACITY   1U
+#endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT > 0U */
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
 /* Exported types ------------------------------------------------------------*/
@@ -111,7 +119,7 @@ typedef struct {
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
     CO_storage_t storage;            /**< CANopenNode storage object owned by this instance. */
-    CO_storage_entry_t storageEntries[CO_APP_RTT_STORAGE_ENTRY_COUNT]; /**< Storage entries owned by this instance. */
+    CO_storage_entry_t storageEntries[CO_APP_RTT_STORAGE_ENTRY_CAPACITY]; /**< Storage entries owned by this instance. */
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
     rt_thread_t mainThread;          /**< Mainline CANopen worker thread. */

@@ -19,6 +19,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 #include "CO_storage_RTT_backend.h"
+#include "CO_storage_RTT_at24c.h"
 
 #if (((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0) && defined(PKG_CANOPENNODE_USING_STORAGE_EEPROM)
 
@@ -218,13 +219,29 @@ static CO_ReturnError_t co_storage_rtt_eeprom_init(CO_storage_t *storage,
 {
     void *storageModule;
 
-    if ((entries == NULL) || (entriesCount == 0U) || (entriesCount > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT)) {
+    if ((storage == NULL) || ((entries == NULL) && (entriesCount > 0U))
+        || (entriesCount > CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     storageModule = co_storage_rtt_eeprom_module_get(storage, instanceName);
     if (storageModule == NULL) {
         return CO_ERROR_OUT_OF_MEMORY;
+    }
+
+    if (entriesCount == 0U) {
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+        storage->enabled = false;
+        if (!CO_eeprom_init(storageModule)) {
+            if (storageInitError != NULL) {
+                *storageInitError = UINT32_MAX;
+            }
+            return CO_ERROR_DATA_CORRUPT;
+        }
+        return CO_ERROR_NO;
+#else
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
     }
 
     co_storage_rtt_eeprom_entries_bind(entries, entriesCount, storageModule);
@@ -310,6 +327,21 @@ static bool_t co_storage_rtt_eeprom_auto_process(CO_storage_t *storage, bool_t s
     return ok;
 }
 
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/** Read bytes from the EEPROM backend auxiliary persistence area. */
+static bool_t co_storage_rtt_eeprom_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len)
+{
+    return co_storage_rtt_at24c_aux_read(storage, offset, data, len);
+}
+
+/** Write bytes to the EEPROM backend auxiliary persistence area. */
+static bool_t co_storage_rtt_eeprom_aux_write(CO_storage_t *storage, size_t offset,
+                                              const uint8_t *data, size_t len)
+{
+    return co_storage_rtt_at24c_aux_write(storage, offset, data, len);
+}
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+
 /** Selected generic EEPROM backend operations. */
 static const CO_storage_rtt_backend_ops_t co_storage_rtt_eeprom_ops = {
     .init = co_storage_rtt_eeprom_init,
@@ -317,6 +349,10 @@ static const CO_storage_rtt_backend_ops_t co_storage_rtt_eeprom_ops = {
     .store = co_storage_rtt_eeprom_store,
     .restore = co_storage_rtt_eeprom_restore,
     .auto_process = co_storage_rtt_eeprom_auto_process,
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    .aux_read = co_storage_rtt_eeprom_aux_read,
+    .aux_write = co_storage_rtt_eeprom_aux_write,
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 };
 
 /**

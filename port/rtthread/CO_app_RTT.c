@@ -35,6 +35,10 @@
 #include "CO_storage_RTT.h"
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+#include "CO_lss_persist_RTT.h"
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+
 #include <rthw.h>
 #if defined(PKG_CANOPENNODE_LEDS_USING_RTT_PIN)
 #include <drivers/dev_pin.h>
@@ -313,33 +317,152 @@ static CO_ReturnError_t co_app_rtt_storage_init(CANopenNodeRTT *app, uint32_t *s
 
     return err;
 }
+
+/**
+ * @brief Initialize Storage and normalize recoverable startup corruption.
+ *
+ * @param app CANopenNode RT-Thread application instance.
+ * @param auxiliaryOnly True to initialize only backend auxiliary persistence without registering OD Storage entries.
+ * @param dataCorrupt Set when persisted Storage data or the backend is unavailable.
+ * @param storageInitError Receives the backend detail or corruption bitmask.
+ * @param storageAvailable Set when the selected backend is initialized and can be accessed.
+ * @return RT_EOK when Storage is usable or recoverably corrupt, otherwise a negative RT-Thread error code.
+ */
+static rt_err_t co_app_rtt_storage_prepare(CANopenNodeRTT *app, bool_t auxiliaryOnly, bool_t *dataCorrupt,
+                                            uint32_t *storageInitError, bool_t *storageAvailable)
+{
+    CO_ReturnError_t err;
+
+    if ((dataCorrupt == NULL) || (storageInitError == NULL) || (storageAvailable == NULL)) {
+        return -RT_EINVAL;
+    }
+
+    *dataCorrupt = false;
+    *storageInitError = 0U;
+    *storageAvailable = false;
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    if (auxiliaryOnly) {
+        err = co_storage_rtt_init(&app->storage, app->canOpenStack->CANmodule, OD_ENTRY_H1010, OD_ENTRY_H1011,
+                                  NULL, 0U, app->canName, storageInitError);
+    } else
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+    {
+        (void)auxiliaryOnly;
+        err = co_app_rtt_storage_init(app, storageInitError);
+    }
+    if (err == CO_ERROR_NO) {
+        *storageAvailable = true;
+        return RT_EOK;
+    }
+    if (err != CO_ERROR_DATA_CORRUPT) {
+        return -RT_ERROR;
+    }
+
+    *dataCorrupt = true;
+    if (*storageInitError == UINT32_MAX) {
+        CO_RTT_LOG_W("CO storage backend unavailable: dev=%s detail=0x%08lx", app->canName,
+                     (unsigned long)*storageInitError);
+    } else {
+        *storageAvailable = true;
+        CO_RTT_LOG_W("CO storage persistent data invalid: dev=%s subIndexMask=0x%08lx", app->canName,
+                     (unsigned long)*storageInitError);
+    }
+
+    return RT_EOK;
+}
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
 /**
  * @brief Reset CANopen communication for an application instance.
  *
  * @param app CANopenNode RT-Thread application instance.
+ * @param loadPersistentLss True only for initial application startup, when saved LSS values may replace startup values.
  * @return RT_EOK on success, otherwise a negative RT-Thread error code.
  */
-static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app)
+static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadPersistentLss)
 {
     CO_t *co = app->canOpenStack;
     CO_ReturnError_t err;
     uint32_t err_info = 0U;
+#if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
+    bool_t storageDataCorrupt = false;
+    bool_t storageAvailable = false;
+    uint32_t storageInitError = 0U;
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+#if CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U
+    bool_t auxStoragePrepared = false;
+#endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U */
+    bool_t persistentLssLoaded = false;
+    const uint8_t startupNodeId = app->lssPendingNodeID;
+    const uint16_t startupBitrate = app->lssPendingBitrate;
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+#endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0)
-    uint16_t can_bitrate = app->lssPendingBitrate;
+    uint8_t can_node_id;
+    uint16_t can_bitrate;
 #else
-    uint16_t can_bitrate = app->baudrate;
+    const uint8_t can_node_id = app->desiredNodeID;
+    const uint16_t can_bitrate = app->baudrate;
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
 
-    CO_RTT_LOG_W("CANopen reset communication: dev=%s node=%u bitrate=%u", app->canName, app->desiredNodeID,
-                 can_bitrate);
+#if !defined(PKG_CANOPENNODE_LSS_PERSIST)
+    (void)loadPersistentLss;
+#endif /* !defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
     co->CANmodule->CANnormal = false;
     CO_CANsetConfigurationMode((void *)app->canName);
     CO_CANmodule_disable(co->CANmodule);
 
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    if (loadPersistentLss) {
+        /* The persisted bitrate must be available before the first CO_CANinit(). */
+        if (co_app_rtt_storage_prepare(app, true, &storageDataCorrupt, &storageInitError, &storageAvailable) != RT_EOK) {
+            return -RT_ERROR;
+        }
+#if CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U
+        auxStoragePrepared = true;
+#endif /* CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U */
+
+        if (storageAvailable) {
+            CO_lss_persist_load_result_t persistResult = co_lss_persist_rtt_load(
+                &app->storage, &app->lssPendingNodeID, &app->lssPendingBitrate);
+
+            if (persistResult == CO_LSS_PERSIST_LOAD_OK) {
+                persistentLssLoaded = true;
+                CO_RTT_LOG_I("LSS persistent configuration loaded: dev=%s node=%u bitrate=%u", app->canName,
+                             app->lssPendingNodeID, app->lssPendingBitrate);
+            } else if (persistResult == CO_LSS_PERSIST_LOAD_EMPTY) {
+                CO_RTT_LOG_I("LSS persistent configuration is empty: dev=%s, using startup values", app->canName);
+            } else if (persistResult == CO_LSS_PERSIST_LOAD_CONFIG_ERROR) {
+                CO_RTT_LOG_E("LSS persistent storage unavailable: dev=%s, using startup values", app->canName);
+            } else {
+                CO_RTT_LOG_W("LSS persistent configuration ignored: dev=%s result=%d, using startup values",
+                             app->canName, (int)persistResult);
+            }
+        }
+    }
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0)
+    can_node_id = app->lssPendingNodeID;
+    can_bitrate = app->lssPendingBitrate;
+#endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
+
+    CO_RTT_LOG_W("CANopen reset communication: dev=%s node=%u bitrate=%u", app->canName, can_node_id, can_bitrate);
+
     err = CO_CANinit(co, (void *)app->canName, can_bitrate);
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    if ((err != CO_ERROR_NO) && persistentLssLoaded) {
+        CO_RTT_LOG_W("CAN init rejected persistent LSS configuration: dev=%s node=%u bitrate=%u err=%d; "
+                     "retrying startup values", app->canName, can_node_id, can_bitrate, err);
+        app->lssPendingNodeID = startupNodeId;
+        app->lssPendingBitrate = startupBitrate;
+        can_node_id = startupNodeId;
+        can_bitrate = startupBitrate;
+        err = CO_CANinit(co, (void *)app->canName, can_bitrate);
+    }
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
     if (err != CO_ERROR_NO) {
         CO_RTT_LOG_E("CO_CANinit failed: dev=%s err=%d", app->canName, err);
         return -RT_ERROR;
@@ -356,21 +479,18 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app)
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
-    bool_t storageDataCorrupt = false;
-    uint32_t storageInitError = 0U;
-    err = co_app_rtt_storage_init(app, &storageInitError);
-    if (err == CO_ERROR_DATA_CORRUPT) {
-        storageDataCorrupt = true;
-        if (storageInitError == UINT32_MAX) {
-            CO_RTT_LOG_W("CO storage backend unavailable: dev=%s detail=0x%08lx", app->canName,
-                         (unsigned long)storageInitError);
-        } else {
-            CO_RTT_LOG_W("CO storage persistent data invalid: dev=%s subIndexMask=0x%08lx", app->canName,
-                         (unsigned long)storageInitError);
+#if defined(PKG_CANOPENNODE_LSS_PERSIST) && (CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U)
+    if (!auxStoragePrepared) {
+        if (co_app_rtt_storage_prepare(app, true, &storageDataCorrupt, &storageInitError, &storageAvailable) != RT_EOK) {
+            return -RT_ERROR;
         }
-    } else if (err != CO_ERROR_NO) {
+    }
+#else
+    /* Keep normal OD-backed Storage initialization after CO_CANinit(). */
+    if (co_app_rtt_storage_prepare(app, false, &storageDataCorrupt, &storageInitError, &storageAvailable) != RT_EOK) {
         return -RT_ERROR;
     }
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) && (CO_APP_RTT_STORAGE_ENTRY_COUNT == 0U) */
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
     err = CO_CANopenInit(co, NULL, NULL, OD, CO_APP_RTT_OD_STATUS_BITS, CO_APP_RTT_NMT_CONTROL,
@@ -459,7 +579,7 @@ static rt_err_t co_app_rtt_recreate_stack(CANopenNodeRTT *app)
         return ret;
     }
 
-    ret = co_app_rtt_reset_communication(app);
+    ret = co_app_rtt_reset_communication(app, false);
     if (ret != RT_EOK) {
         CO_CANmodule_disable(app->canOpenStack->CANmodule);
         CO_delete(app->canOpenStack);
@@ -778,7 +898,7 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
     if (ret != RT_EOK) {
         goto cleanup;
     }
-    ret = co_app_rtt_reset_communication(app);
+    ret = co_app_rtt_reset_communication(app, true);
     if (ret != RT_EOK) {
         goto cleanup;
     }

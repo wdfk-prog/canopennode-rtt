@@ -44,6 +44,10 @@ typedef struct {
     size_t size;             /**< EEPROM capacity in bytes from at24cxx.h. */
     size_t storageOffset;    /**< First EEPROM byte reserved for CANopenNode storage. */
     size_t storageRegionSize; /**< Effective number of EEPROM bytes reserved for CANopenNode storage. */
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    size_t auxOffset;        /**< First EEPROM byte reserved for backend auxiliary persistence. */
+    size_t auxRegionSize;    /**< Number of EEPROM bytes reserved for backend auxiliary persistence. */
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
     size_t nextAddress;      /**< Next allocated EEPROM address. */
     void *device;            /**< AT24CXX package device handle. */
     uint8_t initialized;     /**< Non-zero after the AT24CXX package device has been opened. */
@@ -104,6 +108,15 @@ static void co_storage_rtt_at24c_config_init(CO_storage_rtt_at24c_instance_t *in
     if ((instance->storageRegionSize == 0U) && (instance->storageOffset < instance->size)) {
         instance->storageRegionSize = instance->size - instance->storageOffset;
     }
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    instance->auxOffset = 0U;
+    instance->auxRegionSize = 0U;
+    if (instance->storageRegionSize > (size_t)AT24CXX_PAGE_BYTE) {
+        instance->auxRegionSize = (size_t)AT24CXX_PAGE_BYTE;
+        instance->storageRegionSize -= instance->auxRegionSize;
+        instance->auxOffset = instance->storageOffset + instance->storageRegionSize;
+    }
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
     instance->nextAddress = instance->storageOffset;
     instance->device = device;
     instance->initialized = initialized;
@@ -132,7 +145,26 @@ void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instan
 }
 
 /**
- * @brief Validate a requested EEPROM range.
+ * @brief Validate a requested range against the physical EEPROM capacity.
+ *
+ * @param instance AT24CXX device slot.
+ * @param eepromAddr Start address.
+ * @param len Number of bytes.
+ * @return true if the complete range is inside the initialized device, otherwise false.
+ */
+static bool_t co_storage_rtt_at24c_device_range_valid(const CO_storage_rtt_at24c_instance_t *instance,
+                                                      size_t eepromAddr, size_t len)
+{
+    if ((instance == NULL) || (instance->initialized == 0U) || (instance->device == RT_NULL)
+        || (instance->size == 0U) || (len == 0U) || (eepromAddr >= instance->size)) {
+        return false;
+    }
+
+    return (len <= (instance->size - eepromAddr));
+}
+
+/**
+ * @brief Validate a requested range against the CANopen Storage partition.
  *
  * @param instance AT24CXX device slot.
  * @param eepromAddr Start address.
@@ -140,12 +172,11 @@ void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instan
  * @return true if the range is inside the configured CANopenNode storage region, otherwise false.
  */
 static bool_t co_storage_rtt_at24c_range_valid(const CO_storage_rtt_at24c_instance_t *instance,
-                                               size_t eepromAddr,
-                                               size_t len)
+                                               size_t eepromAddr, size_t len)
 {
     size_t regionEnd;
 
-    if ((instance == NULL) || (instance->initialized == 0U) || (instance->device == RT_NULL)) {
+    if (!co_storage_rtt_at24c_device_range_valid(instance, eepromAddr, len)) {
         return false;
     }
     if ((instance->storageOffset >= instance->size) || (instance->storageRegionSize == 0U)
@@ -154,12 +185,33 @@ static bool_t co_storage_rtt_at24c_range_valid(const CO_storage_rtt_at24c_instan
     }
 
     regionEnd = instance->storageOffset + instance->storageRegionSize;
-    if ((len == 0U) || (eepromAddr < instance->storageOffset) || (eepromAddr >= regionEnd)) {
+    if ((eepromAddr < instance->storageOffset) || (eepromAddr >= regionEnd)) {
         return false;
     }
 
     return (len <= (regionEnd - eepromAddr));
 }
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/**
+ * @brief Validate a relative access range against the AT24CXX auxiliary area.
+ *
+ * @param instance AT24CXX device slot.
+ * @param offset Start offset relative to the auxiliary area.
+ * @param len Number of bytes.
+ * @return true if the range is inside the configured auxiliary area, otherwise false.
+ */
+static bool_t co_storage_rtt_at24c_aux_range_valid(const CO_storage_rtt_at24c_instance_t *instance,
+                                                   size_t offset, size_t len)
+{
+    if ((instance == NULL) || (instance->auxRegionSize == 0U) || (len == 0U)
+        || (offset >= instance->auxRegionSize) || (len > (instance->auxRegionSize - offset))) {
+        return false;
+    }
+
+    return co_storage_rtt_at24c_device_range_valid(instance, instance->auxOffset + offset, len);
+}
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
 /**
  * @brief Read a block through the page-oriented AT24CXX package API.
@@ -241,14 +293,19 @@ static bool_t co_storage_rtt_at24c_write_block(CO_storage_rtt_at24c_instance_t *
  * @param data Transfer buffer.
  * @param len Number of bytes to transfer.
  * @param write True for page-write, false for page-read.
+ * @param storageRegionOnly True to restrict the range to normal CANopen Storage; false to use physical device bounds.
  * @return true when the complete transfer succeeds, otherwise false.
  */
 static bool_t co_storage_rtt_at24c_raw_transfer(CO_storage_rtt_at24c_instance_t *instance,
-                                                 size_t eepromAddr, uint8_t *data, size_t len, bool_t write)
+                                                 size_t eepromAddr, uint8_t *data, size_t len, bool_t write,
+                                                 bool_t storageRegionOnly)
 {
     size_t offset = 0U;
+    const bool_t rangeValid = storageRegionOnly
+        ? co_storage_rtt_at24c_range_valid(instance, eepromAddr, len)
+        : co_storage_rtt_at24c_device_range_valid(instance, eepromAddr, len);
 
-    if ((data == NULL) || !co_storage_rtt_at24c_range_valid(instance, eepromAddr, len)) {
+    if ((data == NULL) || !rangeValid) {
         return false;
     }
 
@@ -296,14 +353,38 @@ bool_t co_storage_rtt_at24c_raw_get_info(void *storageModule, size_t *storageOff
 bool_t co_storage_rtt_at24c_raw_read(void *storageModule, size_t eepromAddr, uint8_t *data, size_t len)
 {
     return co_storage_rtt_at24c_raw_transfer((CO_storage_rtt_at24c_instance_t *)storageModule, eepromAddr, data,
-                                              len, false);
+                                              len, false, true);
 }
 
 bool_t co_storage_rtt_at24c_raw_write(void *storageModule, size_t eepromAddr, uint8_t *data, size_t len)
 {
     return co_storage_rtt_at24c_raw_transfer((CO_storage_rtt_at24c_instance_t *)storageModule, eepromAddr, data,
-                                              len, true);
+                                              len, true, true);
 }
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+bool_t co_storage_rtt_at24c_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len)
+{
+    CO_storage_rtt_at24c_instance_t *instance = &co_storage_rtt_at24c_instance;
+
+    if ((instance->storage != storage) || (data == NULL) || !co_storage_rtt_at24c_aux_range_valid(instance, offset, len)) {
+        return false;
+    }
+
+    return co_storage_rtt_at24c_raw_transfer(instance, instance->auxOffset + offset, data, len, false, false);
+}
+
+bool_t co_storage_rtt_at24c_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len)
+{
+    CO_storage_rtt_at24c_instance_t *instance = &co_storage_rtt_at24c_instance;
+
+    if ((instance->storage != storage) || (data == NULL) || !co_storage_rtt_at24c_aux_range_valid(instance, offset, len)) {
+        return false;
+    }
+
+    return co_storage_rtt_at24c_raw_transfer(instance, instance->auxOffset + offset, (uint8_t *)data, len, true, false);
+}
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
 /**
  * @brief Initialize the AT24CXX EEPROM module.
@@ -318,7 +399,13 @@ bool_t CO_eeprom_init(void *storageModule)
     if ((instance == NULL) || (instance->i2cBusName == NULL) || (instance->i2cBusName[0] == '\0')
         || (instance->size == 0U) || (instance->storageOffset >= instance->size)
         || (instance->storageRegionSize == 0U)
-        || (instance->storageRegionSize > (instance->size - instance->storageOffset))) {
+        || (instance->storageRegionSize > (instance->size - instance->storageOffset))
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+        || (instance->auxRegionSize != (size_t)AT24CXX_PAGE_BYTE)
+        || (instance->auxOffset != (instance->storageOffset + instance->storageRegionSize))
+        || (instance->auxRegionSize > (instance->size - instance->auxOffset))
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+        ) {
         CO_RTT_LOG_E("AT24CXX init failed: invalid storage region offset=%lu size=%lu eeprom=%lu",
                      (unsigned long)((instance != NULL) ? instance->storageOffset : 0U),
                      (unsigned long)((instance != NULL) ? instance->storageRegionSize : 0U),
@@ -335,10 +422,19 @@ bool_t CO_eeprom_init(void *storageModule)
     }
 
     instance->initialized = 1U;
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu region=[%lu,%lu) aux=[%lu,%lu) page=%u",
+                 instance->i2cBusName, instance->addrInput, (unsigned long)instance->size,
+                 (unsigned long)instance->storageOffset,
+                 (unsigned long)(instance->storageOffset + instance->storageRegionSize),
+                 (unsigned long)instance->auxOffset,
+                 (unsigned long)(instance->auxOffset + instance->auxRegionSize), AT24CXX_PAGE_BYTE);
+#else
     CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu region=[%lu,%lu) page=%u",
                  instance->i2cBusName, instance->addrInput, (unsigned long)instance->size,
                  (unsigned long)instance->storageOffset,
                  (unsigned long)(instance->storageOffset + instance->storageRegionSize), AT24CXX_PAGE_BYTE);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
     return true;
 }

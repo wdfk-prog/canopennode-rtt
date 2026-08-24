@@ -128,6 +128,27 @@ config PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE
 
 endif
 
+config PKG_CANOPENNODE_LSS_PERSIST
+    bool "Persist LSS Node-ID and bitrate"
+    default n
+    depends on PKG_CANOPENNODE_USING_STORAGE
+    depends on PKG_CANOPENNODE_USING_LSS_SLAVE
+    select PKG_CANOPENNODE_USING_CRC16
+    help
+        Persist the LSS pending Node-ID and bitrate through the selected RT-Thread
+        storage backend. The application loads the record after storage backend
+        initialization and before the first CO_CANinit(). Communication Reset
+        keeps the current in-RAM pending values and does not reload persistence.
+
+        Built-in backends provide a dedicated auxiliary persistence area that is
+        separate from normal CO_storage_entry_t payloads. A user-provided backend
+        must implement aux_read and aux_write in CO_storage_rtt_backend_ops_t.
+
+        The single-slot record uses CRC and a commit marker written last. An
+        erased, invalid, or interrupted record is ignored and startup falls back
+        to the configured Node-ID and bitrate. This option does not register the
+        LSS Store callback or perform runtime bitrate activation by itself.
+
 config PKG_CANOPENNODE_STORAGE_DFS_DIR
     string "CANopen DFS storage directory"
     default "/flash/canopen"

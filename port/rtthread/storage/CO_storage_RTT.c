@@ -42,8 +42,14 @@ static const CO_storage_rtt_backend_ops_t *co_storage_rtt_ops;
  */
 static bool_t co_storage_rtt_ops_valid(const CO_storage_rtt_backend_ops_t *ops)
 {
-    return ((ops != NULL) && (ops->init != NULL) && (ops->read != NULL) && (ops->store != NULL)
-            && (ops->restore != NULL));
+    bool_t valid = ((ops != NULL) && (ops->init != NULL) && (ops->read != NULL) && (ops->store != NULL)
+                    && (ops->restore != NULL));
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    valid = valid && (ops->aux_read != NULL) && (ops->aux_write != NULL);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+
+    return valid;
 }
 
 /**
@@ -80,8 +86,8 @@ void co_storage_rtt_entry_init(CO_storage_entry_t *entry,
  * @param CANmodule CAN module passed to CO_storage_init().
  * @param OD_1010_StoreParameters OD entry for 0x1010 Store parameters.
  * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 Restore default parameters.
- * @param entries Storage entries. The array must exist permanently.
- * @param entriesCount Number of storage entries.
+ * @param entries Storage entries. May be NULL when entriesCount is zero; otherwise the array must exist permanently.
+ * @param entriesCount Number of storage entries. May be zero when only backend auxiliary persistence is used.
  * @param instanceName Optional application instance name used to separate backend data.
  * @param storageInitError Optional error detail. Stores a one-based failed entry index on read failure.
  * @return CO_ERROR_NO on success, CO_ERROR_ILLEGAL_ARGUMENT on invalid arguments, or another CANopenNode error code.
@@ -179,5 +185,27 @@ bool_t co_storage_rtt_auto_process(CO_storage_t *storage, CO_t *co, bool_t saveA
 
     return ok;
 }
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+bool_t co_storage_rtt_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len)
+{
+    if ((storage == NULL) || (data == NULL) || (len == 0U) || (co_storage_rtt_ops == NULL)
+        || (co_storage_rtt_ops->aux_read == NULL)) {
+        return false;
+    }
+
+    return co_storage_rtt_ops->aux_read(storage, offset, data, len);
+}
+
+bool_t co_storage_rtt_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len)
+{
+    if ((storage == NULL) || (data == NULL) || (len == 0U) || (co_storage_rtt_ops == NULL)
+        || (co_storage_rtt_ops->aux_write == NULL)) {
+        return false;
+    }
+
+    return co_storage_rtt_ops->aux_write(storage, offset, data, len);
+}
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
