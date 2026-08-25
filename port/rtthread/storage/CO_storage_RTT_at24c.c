@@ -123,13 +123,73 @@ static void co_storage_rtt_at24c_config_init(CO_storage_rtt_at24c_instance_t *in
 }
 
 /**
+ * @brief Validate and open one configured AT24CXX device slot.
+ *
+ * This private helper is shared by the auxiliary provider setup and the normal
+ * CANopenNode CO_eeprom_init() hook. The public normal init hook is therefore not
+ * reused as the pre-CAN auxiliary initializer.
+ *
+ * @param instance AT24CXX device slot to initialize.
+ * @return true on successful initialization, otherwise false.
+ */
+static bool_t co_storage_rtt_at24c_device_init(CO_storage_rtt_at24c_instance_t *instance)
+{
+    bool_t firstInitialization;
+
+    if ((instance == NULL) || (instance->i2cBusName == NULL) || (instance->i2cBusName[0] == '\0')
+        || (instance->size == 0U) || (instance->storageOffset >= instance->size)
+        || (instance->storageRegionSize == 0U)
+        || (instance->storageRegionSize > (instance->size - instance->storageOffset))
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+        || (instance->auxRegionSize != (size_t)AT24CXX_PAGE_BYTE)
+        || (instance->auxOffset != (instance->storageOffset + instance->storageRegionSize))
+        || (instance->auxRegionSize > (instance->size - instance->auxOffset))
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+        ) {
+        CO_RTT_LOG_E("AT24CXX init failed: invalid storage region offset=%lu size=%lu eeprom=%lu",
+                     (unsigned long)((instance != NULL) ? instance->storageOffset : 0U),
+                     (unsigned long)((instance != NULL) ? instance->storageRegionSize : 0U),
+                     (unsigned long)((instance != NULL) ? instance->size : 0U));
+        return false;
+    }
+
+    firstInitialization = (instance->initialized == 0U);
+    if (instance->device == RT_NULL) {
+        instance->device = at24cxx_init(instance->i2cBusName, instance->addrInput);
+        if (instance->device == RT_NULL) {
+            CO_RTT_LOG_E("AT24CXX init failed: bus=%s addrInput=%u", instance->i2cBusName, instance->addrInput);
+            return false;
+        }
+    }
+
+    instance->initialized = 1U;
+    if (firstInitialization) {
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+        CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu region=[%lu,%lu) aux=[%lu,%lu) page=%u",
+                     instance->i2cBusName, instance->addrInput, (unsigned long)instance->size,
+                     (unsigned long)instance->storageOffset,
+                     (unsigned long)(instance->storageOffset + instance->storageRegionSize),
+                     (unsigned long)instance->auxOffset,
+                     (unsigned long)(instance->auxOffset + instance->auxRegionSize), AT24CXX_PAGE_BYTE);
+#else
+        CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu region=[%lu,%lu) page=%u",
+                     instance->i2cBusName, instance->addrInput, (unsigned long)instance->size,
+                     (unsigned long)instance->storageOffset,
+                     (unsigned long)(instance->storageOffset + instance->storageRegionSize), AT24CXX_PAGE_BYTE);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+    }
+
+    return true;
+}
+
+/**
  * @brief Get the AT24CXX EEPROM module for one storage object.
  *
  * @param storage Storage object requesting the EEPROM module.
  * @param instanceName Optional CANopenNodeRTT instance name. It is unused because this adapter is single-instance.
  * @return AT24CXX backend instance pointer, or NULL if the single module slot is already owned.
  */
-void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instanceName)
+rt_weak void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instanceName)
 {
     CO_storage_rtt_at24c_instance_t *instance;
 
@@ -363,7 +423,27 @@ bool_t co_storage_rtt_at24c_raw_write(void *storageModule, size_t eepromAddr, ui
 }
 
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
-bool_t co_storage_rtt_at24c_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len)
+rt_weak CO_ReturnError_t co_storage_rtt_eeprom_provider_aux_init(CO_storage_t *storage,
+                                                                 const char *instanceName,
+                                                                 uint32_t *storageInitError)
+{
+    CO_storage_rtt_at24c_instance_t *instance =
+        (CO_storage_rtt_at24c_instance_t *)co_storage_rtt_eeprom_module_get(storage, instanceName);
+
+    if (instance == NULL) {
+        return CO_ERROR_OUT_OF_MEMORY;
+    }
+    if (!co_storage_rtt_at24c_device_init(instance)) {
+        if (storageInitError != NULL) {
+            *storageInitError = UINT32_MAX;
+        }
+        return CO_ERROR_DATA_CORRUPT;
+    }
+
+    return CO_ERROR_NO;
+}
+
+rt_weak bool_t co_storage_rtt_eeprom_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len)
 {
     CO_storage_rtt_at24c_instance_t *instance = &co_storage_rtt_at24c_instance;
 
@@ -374,7 +454,7 @@ bool_t co_storage_rtt_at24c_aux_read(CO_storage_t *storage, size_t offset, uint8
     return co_storage_rtt_at24c_raw_transfer(instance, instance->auxOffset + offset, data, len, false, false);
 }
 
-bool_t co_storage_rtt_at24c_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len)
+rt_weak bool_t co_storage_rtt_eeprom_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len)
 {
     CO_storage_rtt_at24c_instance_t *instance = &co_storage_rtt_at24c_instance;
 
@@ -392,51 +472,9 @@ bool_t co_storage_rtt_at24c_aux_write(CO_storage_t *storage, size_t offset, cons
  * @param storageModule AT24CXX backend instance returned by co_storage_rtt_eeprom_module_get().
  * @return true on successful initialization, otherwise false.
  */
-bool_t CO_eeprom_init(void *storageModule)
+rt_weak bool_t CO_eeprom_init(void *storageModule)
 {
-    CO_storage_rtt_at24c_instance_t *instance = (CO_storage_rtt_at24c_instance_t *)storageModule;
-
-    if ((instance == NULL) || (instance->i2cBusName == NULL) || (instance->i2cBusName[0] == '\0')
-        || (instance->size == 0U) || (instance->storageOffset >= instance->size)
-        || (instance->storageRegionSize == 0U)
-        || (instance->storageRegionSize > (instance->size - instance->storageOffset))
-#if defined(PKG_CANOPENNODE_LSS_PERSIST)
-        || (instance->auxRegionSize != (size_t)AT24CXX_PAGE_BYTE)
-        || (instance->auxOffset != (instance->storageOffset + instance->storageRegionSize))
-        || (instance->auxRegionSize > (instance->size - instance->auxOffset))
-#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
-        ) {
-        CO_RTT_LOG_E("AT24CXX init failed: invalid storage region offset=%lu size=%lu eeprom=%lu",
-                     (unsigned long)((instance != NULL) ? instance->storageOffset : 0U),
-                     (unsigned long)((instance != NULL) ? instance->storageRegionSize : 0U),
-                     (unsigned long)((instance != NULL) ? instance->size : 0U));
-        return false;
-    }
-
-    if (instance->device == RT_NULL) {
-        instance->device = at24cxx_init(instance->i2cBusName, instance->addrInput);
-        if (instance->device == RT_NULL) {
-            CO_RTT_LOG_E("AT24CXX init failed: bus=%s addrInput=%u", instance->i2cBusName, instance->addrInput);
-            return false;
-        }
-    }
-
-    instance->initialized = 1U;
-#if defined(PKG_CANOPENNODE_LSS_PERSIST)
-    CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu region=[%lu,%lu) aux=[%lu,%lu) page=%u",
-                 instance->i2cBusName, instance->addrInput, (unsigned long)instance->size,
-                 (unsigned long)instance->storageOffset,
-                 (unsigned long)(instance->storageOffset + instance->storageRegionSize),
-                 (unsigned long)instance->auxOffset,
-                 (unsigned long)(instance->auxOffset + instance->auxRegionSize), AT24CXX_PAGE_BYTE);
-#else
-    CO_RTT_LOG_I("AT24CXX storage initialized: bus=%s addrInput=%u size=%lu region=[%lu,%lu) page=%u",
-                 instance->i2cBusName, instance->addrInput, (unsigned long)instance->size,
-                 (unsigned long)instance->storageOffset,
-                 (unsigned long)(instance->storageOffset + instance->storageRegionSize), AT24CXX_PAGE_BYTE);
-#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
-
-    return true;
+    return co_storage_rtt_at24c_device_init((CO_storage_rtt_at24c_instance_t *)storageModule);
 }
 
 /**
@@ -448,7 +486,7 @@ bool_t CO_eeprom_init(void *storageModule)
  * @param overflow Output flag set to true when the requested range does not fit.
  * @return Allocated EEPROM start address, or the failed start address when overflow is true.
  */
-size_t CO_eeprom_getAddr(void *storageModule, bool_t isAuto, size_t len, bool_t *overflow)
+rt_weak size_t CO_eeprom_getAddr(void *storageModule, bool_t isAuto, size_t len, bool_t *overflow)
 {
     CO_storage_rtt_at24c_instance_t *instance = (CO_storage_rtt_at24c_instance_t *)storageModule;
     size_t addr = 0U;
@@ -485,7 +523,7 @@ size_t CO_eeprom_getAddr(void *storageModule, bool_t isAuto, size_t len, bool_t 
  * @param eepromAddr EEPROM start address.
  * @param len Number of bytes to read.
  */
-void CO_eeprom_readBlock(void *storageModule, uint8_t *data, size_t eepromAddr, size_t len)
+rt_weak void CO_eeprom_readBlock(void *storageModule, uint8_t *data, size_t eepromAddr, size_t len)
 {
     CO_storage_rtt_at24c_instance_t *instance = (CO_storage_rtt_at24c_instance_t *)storageModule;
 
@@ -505,7 +543,7 @@ void CO_eeprom_readBlock(void *storageModule, uint8_t *data, size_t eepromAddr, 
  * @param len Number of bytes to write.
  * @return true on success, otherwise false.
  */
-bool_t CO_eeprom_writeBlock(void *storageModule, uint8_t *data, size_t eepromAddr, size_t len)
+rt_weak bool_t CO_eeprom_writeBlock(void *storageModule, uint8_t *data, size_t eepromAddr, size_t len)
 {
     return co_storage_rtt_at24c_write_block((CO_storage_rtt_at24c_instance_t *)storageModule, data, eepromAddr, len);
 }
@@ -518,7 +556,7 @@ bool_t CO_eeprom_writeBlock(void *storageModule, uint8_t *data, size_t eepromAdd
  * @param len Number of bytes included in the CRC calculation.
  * @return CRC16-CCITT value, or 0 if the EEPROM block cannot be read.
  */
-uint16_t CO_eeprom_getCrcBlock(void *storageModule, size_t eepromAddr, size_t len)
+rt_weak uint16_t CO_eeprom_getCrcBlock(void *storageModule, size_t eepromAddr, size_t len)
 {
     CO_storage_rtt_at24c_instance_t *instance = (CO_storage_rtt_at24c_instance_t *)storageModule;
     uint8_t buf[PKG_CANOPENNODE_STORAGE_AT24C_CRC_BUF_SIZE];
@@ -551,7 +589,7 @@ uint16_t CO_eeprom_getCrcBlock(void *storageModule, size_t eepromAddr, size_t le
  * @param eepromAddr EEPROM byte address.
  * @return true on success or when the byte already has the requested value, otherwise false.
  */
-bool_t CO_eeprom_updateByte(void *storageModule, uint8_t data, size_t eepromAddr)
+rt_weak bool_t CO_eeprom_updateByte(void *storageModule, uint8_t data, size_t eepromAddr)
 {
     CO_storage_rtt_at24c_instance_t *instance = (CO_storage_rtt_at24c_instance_t *)storageModule;
     uint8_t storedData;

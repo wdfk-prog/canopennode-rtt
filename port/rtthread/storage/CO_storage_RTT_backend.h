@@ -42,12 +42,16 @@ typedef struct {
     /**
      * @brief Initialize the selected storage backend and read persisted entries.
      *
+     * This is the normal OD-backed Storage initialization path. Auxiliary-only
+     * pre-CAN preparation uses aux_init and must not require this callback to be
+     * invoked twice during one application startup.
+     *
      * @param storage Storage object. It must exist permanently.
      * @param CANmodule CAN module passed to CO_storage_init().
      * @param OD_1010_StoreParameters OD entry for 0x1010 Store parameters.
      * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 Restore default parameters.
      * @param entries Storage entries. May be NULL when entriesCount is zero; otherwise the array must exist permanently.
-     * @param entriesCount Number of storage entries. May be zero when only backend auxiliary persistence is used.
+     * @param entriesCount Number of normal Storage entries. May be zero when no OD-backed Storage group is configured.
      * @param instanceName Optional application instance name used to separate backend data.
      * @param storageInitError Error detail pointer, never NULL when called by co_storage_rtt_init().
      * @return CO_ERROR_NO on success, otherwise a CANopenNode error code.
@@ -104,13 +108,30 @@ typedef struct {
 
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
     /**
+     * @brief Prepare the backend auxiliary persistence area before the first CAN initialization.
+     *
+     * This callback is intentionally separate from init. It may initialize the
+     * backend medium and bind backend-private state required by aux_read/aux_write,
+     * but it must not register normal OD Storage entries or require init to have
+     * run first.
+     *
+     * @param storage Storage object. It must exist permanently.
+     * @param instanceName Optional application instance name used to separate backend data.
+     * @param storageInitError Error detail pointer, never NULL when called by co_storage_rtt_aux_init().
+     * @return CO_ERROR_NO on success, otherwise a CANopenNode error code.
+     */
+    CO_ReturnError_t (*aux_init)(CO_storage_t *storage,
+                                 const char *instanceName,
+                                 uint32_t *storageInitError);
+
+    /**
      * @brief Read bytes from the backend auxiliary persistence area.
      *
      * The auxiliary area is reserved by the selected backend and is separate
      * from normal CO_storage_entry_t payloads. Offsets are relative to that
      * backend-owned area.
      *
-     * @param storage Storage object initialized by co_storage_rtt_init().
+     * @param storage Storage object prepared by co_storage_rtt_aux_init() or initialized by co_storage_rtt_init().
      * @param offset Byte offset relative to the auxiliary area.
      * @param data Destination buffer.
      * @param len Number of bytes to read.
@@ -125,7 +146,7 @@ typedef struct {
      * in program order. Backends with caches or deferred writes must flush them
      * before returning true so commit-last record semantics remain valid.
      *
-     * @param storage Storage object initialized by co_storage_rtt_init().
+     * @param storage Storage object prepared by co_storage_rtt_aux_init() or initialized by co_storage_rtt_init().
      * @param offset Byte offset relative to the auxiliary area.
      * @param data Source buffer.
      * @param len Number of bytes to write.
@@ -143,14 +164,56 @@ typedef struct {
 /**
  * @brief Get the EEPROM device module for one storage object.
  *
- * The built-in EEPROM storage backend stores this persistent module pointer in
- * every CO_storage_entry_t::storageModule before calling CO_storageEeprom_init().
+ * The generic EEPROM backend stores this persistent module pointer in every
+ * CO_storage_entry_t::storageModule before calling CO_storageEeprom_init(). The
+ * built-in AT24CXX provider supplies a weak implementation; another EEPROM
+ * provider may supply a strong replacement.
  *
  * @param storage Storage object requesting the EEPROM module.
  * @param instanceName Optional CANopenNodeRTT instance name.
  * @return EEPROM device module pointer, or NULL if no module slot is available.
  */
 void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instanceName);
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/**
+ * @brief Prepare the EEPROM provider auxiliary area before normal Storage init.
+ *
+ * A custom EEPROM provider implements this hook independently from CO_eeprom_init()
+ * so auxiliary pre-CAN preparation does not require the normal EEPROM Storage
+ * initializer to be idempotent.
+ *
+ * @param storage Storage object that owns the EEPROM provider instance.
+ * @param instanceName Optional CANopenNodeRTT instance name.
+ * @param storageInitError Optional provider error detail.
+ * @return CO_ERROR_NO on success, otherwise a CANopenNode error code.
+ */
+CO_ReturnError_t co_storage_rtt_eeprom_provider_aux_init(CO_storage_t *storage,
+                                                         const char *instanceName,
+                                                         uint32_t *storageInitError);
+
+/**
+ * @brief Read bytes from the EEPROM provider auxiliary persistence area.
+ *
+ * @param storage Storage object that owns the EEPROM provider instance.
+ * @param offset Byte offset relative to the provider-owned auxiliary area.
+ * @param data Destination buffer.
+ * @param len Number of bytes to read.
+ * @return true when all requested bytes are read, otherwise false.
+ */
+bool_t co_storage_rtt_eeprom_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len);
+
+/**
+ * @brief Write bytes to the EEPROM provider auxiliary persistence area.
+ *
+ * @param storage Storage object that owns the EEPROM provider instance.
+ * @param offset Byte offset relative to the provider-owned auxiliary area.
+ * @param data Source buffer.
+ * @param len Number of bytes to write.
+ * @return true when all requested bytes are written, otherwise false.
+ */
+bool_t co_storage_rtt_eeprom_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 #endif /* defined(PKG_CANOPENNODE_USING_STORAGE_EEPROM) */
 
 /**
@@ -163,8 +226,9 @@ void *co_storage_rtt_eeprom_module_get(CO_storage_t *storage, const char *instan
  * table must have static or otherwise permanent lifetime; init, read, store and
  * restore callbacks must be non-NULL, while auto_process may be NULL if the
  * backend does not support cyclic CO_storage_auto handling. When LSS persistence
- * is enabled, aux_read and aux_write must also be non-NULL and address a stable
- * backend-owned auxiliary area.
+ * is enabled, aux_init, aux_read and aux_write must also be non-NULL. aux_init is
+ * the dedicated pre-CAN auxiliary preparation hook; normal init remains a separate
+ * OD-backed Storage initialization path.
  *
  * @return Selected backend operation table, or NULL to make co_storage_rtt_init() fail with
  * CO_ERROR_ILLEGAL_ARGUMENT.

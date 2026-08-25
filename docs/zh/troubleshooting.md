@@ -119,7 +119,7 @@ Node-ID 1 default SDO response COB-ID: 0x581
 
 | Backend | 检查项 |
 |---|---|
-| DFS | `RT_USING_DFS` 已启用，mount point 存在，配置目录存在，路径长度符合 `PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH`。 |
+| DFS | `RT_USING_DFS` 已启用，mount point 存在，配置目录存在；完整路径（含结尾 NUL）必须能放入 DFS backend 内部固定的 128-byte 路径缓冲区。 |
 | EEPROM | `PKG_USING_AT24CXX` 已启用，I2C bus name 正确，AT24CXX address input 正确，storage offset 未与其他数据重叠。 |
 | User | 应用提供 strong `co_storage_rtt_backend_get_ops()` 符号和长期有效的 ops table。 |
 
