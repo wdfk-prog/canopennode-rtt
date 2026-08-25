@@ -166,6 +166,8 @@ bool_t co_lss_persist_rtt_store(CO_storage_t *storage, uint8_t nodeId, uint16_t 
 {
     CO_lss_persist_record_t record;
     CO_lss_persist_record_t verify;
+    uint8_t verifiedNodeId = 0U;
+    uint16_t verifiedBitrate = 0U;
     uint8_t invalidMarker[sizeof(record.commit)];
     uint8_t commitMarker[sizeof(record.commit)];
     const size_t commitOffset = CO_LSS_PERSIST_COMMIT_OFFSET;
@@ -194,12 +196,18 @@ bool_t co_lss_persist_rtt_store(CO_storage_t *storage, uint8_t nodeId, uint16_t 
         return false;
     }
 
-    /*
-     * The body was already read back before commit. aux_write() returning true
-     * guarantees the valid marker reached media in program order, so success is
-     * final here. A later readback failure must not turn a committed record into
-     * a reported store failure while leaving that record valid on media.
-     */
+    if (!co_storage_rtt_aux_read(storage, 0U, (uint8_t *)&verify, CO_LSS_PERSIST_RECORD_SIZE)
+        || !co_lss_persist_record_decode(&verify, &verifiedNodeId, &verifiedBitrate)
+        || (verifiedNodeId != nodeId) || (verifiedBitrate != bitrate)) {
+        /*
+         * Store success is reported only after the committed record can be read
+         * back and decoded completely. If verification fails after commit, make
+         * the slot invalid again when the backend still accepts writes.
+         */
+        (void)co_storage_rtt_aux_write(storage, commitOffset, invalidMarker, sizeof(invalidMarker));
+        return false;
+    }
+
     return true;
 }
 

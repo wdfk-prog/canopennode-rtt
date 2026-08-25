@@ -39,14 +39,15 @@ CO_lss_persist_load_result_t co_lss_persist_rtt_load(CO_storage_t *storage, uint
  * @brief Store an LSS Node-ID and bitrate in the selected storage backend.
  *
  * The previous commit marker is invalidated first and the valid marker is written
- * only after the body and CRC have been read back successfully. If persistence is
- * interrupted during the write, the record is intentionally invalid on the next
- * startup.
+ * only after the body and CRC have been read back successfully. After commit, the
+ * complete record is read back, decoded, CRC-checked, and compared with the
+ * requested Node-ID and bitrate before success is reported. If final verification
+ * fails, the implementation makes a best-effort attempt to invalidate the slot.
  *
  * @param storage Storage object prepared for auxiliary persistence.
  * @param nodeId Node-ID in range 1..127 or CO_LSS_NODE_ID_ASSIGNMENT.
  * @param bitrate CAN bitrate in kbit/s from the standard LSS timing table.
- * @return true after body readback verification and successful commit write, otherwise false.
+ * @return true only after committed full-record readback and validation succeeds, otherwise false.
  */
 bool_t co_lss_persist_rtt_store(CO_storage_t *storage, uint8_t nodeId, uint16_t bitrate);
 
