@@ -163,8 +163,10 @@ config PKG_CANOPENNODE_LSS_PERSIST
 
         The single-slot record uses CRC and a commit marker written last. An
         erased, invalid, or interrupted record is ignored and startup falls back
-        to the configured Node-ID and bitrate. This option does not register the
-        LSS Store callback or perform runtime bitrate activation by itself.
+        to the configured Node-ID and bitrate. The RT-Thread wrapper registers
+        the CANopenNode LSS Store callback and reports Store success only after
+        the committed record has been read back and validated completely.
+        Runtime LSS bitrate activation is not implemented by this option.
 
 config PKG_CANOPENNODE_STORAGE_DFS_DIR
     string "CANopen DFS storage directory"

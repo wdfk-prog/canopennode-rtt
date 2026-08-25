@@ -240,6 +240,38 @@ static rt_err_t co_app_rtt_new_stack(CANopenNodeRTT *app)
 }
 
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0)
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/**
+ * @brief Persist the pending LSS configuration requested by the CANopenNode LSS Store service.
+ *
+ * CANopenNode invokes this callback synchronously while processing LSS command 0x17.
+ * Returning true is therefore reserved for a fully committed and verified single-slot record.
+ *
+ * @param object CANopenNodeRTT application instance.
+ * @param nodeId Pending LSS Node-ID to store.
+ * @param bitrate Pending LSS bitrate in kbit/s to store.
+ * @return true when the committed record was read back and validated, otherwise false.
+ */
+static bool_t co_app_rtt_lss_store_config(void *object, uint8_t nodeId, uint16_t bitrate)
+{
+    CANopenNodeRTT *app = (CANopenNodeRTT *)object;
+    bool_t stored;
+
+    if (app == NULL) {
+        return false;
+    }
+
+    stored = co_lss_persist_rtt_store(&app->storage, nodeId, bitrate);
+    if (stored) {
+        CO_RTT_LOG_I("LSS configuration stored: dev=%s node=%u bitrate=%u", app->canName, nodeId, bitrate);
+    } else {
+        CO_RTT_LOG_E("LSS configuration store failed: dev=%s node=%u bitrate=%u", app->canName, nodeId, bitrate);
+    }
+
+    return stored;
+}
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
+
 /**
  * @brief Initialize the LSS slave object for an application instance.
  *
@@ -259,6 +291,9 @@ static CO_ReturnError_t co_app_rtt_lss_init(CANopenNodeRTT *app)
 
     err = CO_LSSinit(app->canOpenStack, &lss_address, &app->lssPendingNodeID, &app->lssPendingBitrate);
     if (err == CO_ERROR_NO) {
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+        CO_LSSslave_initCfgStoreCall(app->canOpenStack->LSSslave, app, co_app_rtt_lss_store_config);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
         app->activeNodeID = app->lssPendingNodeID;
         app->baudrate = app->lssPendingBitrate;
     }
