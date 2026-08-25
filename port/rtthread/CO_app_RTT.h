@@ -60,9 +60,9 @@ extern "C" {
 
 #if defined(PKG_CANOPENNODE_STORAGE_PERSIST_APP)
 /** Number of default storage entries contributed by OD_PERSIST_APP. */
-#define CO_APP_RTT_STORAGE_ENTRY_COUNT_APP  1U
+#define CO_APP_RTT_STORAGE_ENTRY_COUNT_APP 1U
 #else
-#define CO_APP_RTT_STORAGE_ENTRY_COUNT_APP  0U
+#define CO_APP_RTT_STORAGE_ENTRY_COUNT_APP 0U
 #endif /* defined(PKG_CANOPENNODE_STORAGE_PERSIST_APP) */
 
 #if defined(PKG_CANOPENNODE_STORAGE_PERSIST_MANU)
@@ -91,6 +91,22 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) && defined(PKG_CANOPENNODE_LSS_PERSIST)
+/**
+ * @brief Non-blocking runtime state for CiA 305 Activate Bit Timing.
+ *
+ * The LSS callback enters PRE_DELAY immediately after disabling new CANopen
+ * transmissions. The mainline worker performs the bitrate switch when the first
+ * delay expires and re-enables transmission only after POST_DELAY.
+ */
+typedef enum {
+    CO_APP_RTT_LSS_BITRATE_IDLE = 0,
+    CO_APP_RTT_LSS_BITRATE_PRE_DELAY,
+    CO_APP_RTT_LSS_BITRATE_POST_DELAY,
+    CO_APP_RTT_LSS_BITRATE_FAILED
+} CO_app_rtt_lss_bitrate_state_t;
+#endif /* LSS runtime bitrate */
+
 /**
  * @brief CANopenNode RT-Thread application instance.
  */
@@ -103,6 +119,13 @@ typedef struct {
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0)
     uint8_t lssPendingNodeID;        /**< Persistent pending Node-ID storage passed to CO_LSSinit(). */
     uint16_t lssPendingBitrate;      /**< Persistent pending bitrate storage passed to CO_LSSinit(). */
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    CO_app_rtt_lss_bitrate_state_t lssBitrateState; /**< Runtime Activate Bit Timing state. */
+    uint16_t lssPreviousBitrate;     /**< Active bitrate before the current activation request. */
+    uint16_t lssTargetBitrate;       /**< Pending bitrate selected by Configure Bit Timing. */
+    uint16_t lssBitrateDelayMs;      /**< CiA 305 delay applied before and after switching. */
+    uint32_t lssBitrateDeadlineMs;   /**< Current PRE/POST delay deadline in milliseconds. */
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
 
     uint8_t outStatusLEDGreen;       /**< CANopen green LED status output. */

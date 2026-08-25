@@ -241,6 +241,165 @@ static rt_err_t co_app_rtt_new_stack(CANopenNodeRTT *app)
 
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0)
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/** Check a millisecond deadline with uint32_t wraparound. */
+static bool_t co_app_rtt_lss_time_reached(uint32_t nowMs, uint32_t deadlineMs)
+{
+    return (((int32_t)(nowMs - deadlineMs)) >= 0) ? true : false;
+}
+
+/** Reset only the application-side Activate Bit Timing state. */
+static void co_app_rtt_lss_bitrate_reset_state(CANopenNodeRTT *app)
+{
+    app->lssBitrateState = CO_APP_RTT_LSS_BITRATE_IDLE;
+    app->lssPreviousBitrate = 0U;
+    app->lssTargetBitrate = 0U;
+    app->lssBitrateDelayMs = 0U;
+    app->lssBitrateDeadlineMs = 0U;
+}
+
+/** Finish a successful or recovered activation and allow new CANopen TX again. */
+static void co_app_rtt_lss_bitrate_finish(CANopenNodeRTT *app)
+{
+    if ((app->canOpenStack != NULL) && (app->canOpenStack->CANmodule != NULL)) {
+        CO_RTT_CANsetTxEnabled(app->canOpenStack->CANmodule, true);
+    }
+    co_app_rtt_lss_bitrate_reset_state(app);
+}
+
+/** Keep CANopen TX disabled after an unrecoverable runtime switch failure. */
+static void co_app_rtt_lss_bitrate_fail(CANopenNodeRTT *app)
+{
+    app->lssBitrateState = CO_APP_RTT_LSS_BITRATE_FAILED;
+    if ((app->canOpenStack != NULL) && (app->canOpenStack->CANmodule != NULL)) {
+        CO_RTT_CANsetTxEnabled(app->canOpenStack->CANmodule, false);
+        app->canOpenStack->CANmodule->CANnormal = false;
+    }
+    CO_RTT_LOG_E("LSS bitrate activation failed; reset/power-cycle required: dev=%s previous=%u target=%u",
+                 app->canName, app->lssPreviousBitrate, app->lssTargetBitrate);
+}
+
+/** CANopenNode LSS Configure Bit Timing capability callback. */
+static bool_t co_app_rtt_lss_check_bitrate(void *object, uint16_t bitrate)
+{
+    CANopenNodeRTT *app = (CANopenNodeRTT *)object;
+    bool_t supported;
+
+    if (app == NULL) {
+        return false;
+    }
+
+    supported = CO_RTT_CANisBitrateSupported(bitrate);
+    CO_RTT_LOG_D("LSS bitrate check: dev=%s bitrate=%u supported=%u",
+                 app->canName, bitrate, supported ? 1U : 0U);
+    return supported;
+}
+
+/**
+ * @brief CANopenNode LSS Activate Bit Timing callback.
+ *
+ * The callback never sleeps or reconfigures hardware. It only closes the
+ * CANopen-layer TX gate and starts PRE_DELAY. A frame that already entered the
+ * RT-Thread/HAL TX path before this atomic gate is closed is intentionally not
+ * aborted by the current implementation.
+ */
+static void co_app_rtt_lss_activate_bitrate(void *object, uint16_t delay)
+{
+    CANopenNodeRTT *app = (CANopenNodeRTT *)object;
+    CO_CANmodule_t *CANmodule;
+    uint32_t nowMs;
+
+    if ((app == NULL) || (app->canOpenStack == NULL) || (app->canOpenStack->CANmodule == NULL)) {
+        return;
+    }
+    if (app->lssBitrateState != CO_APP_RTT_LSS_BITRATE_IDLE) {
+        CO_RTT_LOG_W("LSS bitrate activate ignored while busy: dev=%s state=%d",
+                     app->canName, (int)app->lssBitrateState);
+        return;
+    }
+    if (!CO_RTT_CANisBitrateSupported(app->lssPendingBitrate)) {
+        CO_RTT_LOG_E("LSS bitrate activate rejected invalid pending bitrate: dev=%s bitrate=%u",
+                     app->canName, app->lssPendingBitrate);
+        return;
+    }
+
+    CANmodule = app->canOpenStack->CANmodule;
+    app->lssPreviousBitrate = app->baudrate;
+    app->lssTargetBitrate = app->lssPendingBitrate;
+    app->lssBitrateDelayMs = delay;
+
+    nowMs = rt_tick_get_millisecond();
+    CO_RTT_CANsetTxEnabled(CANmodule, false);
+    app->lssBitrateDeadlineMs = nowMs + delay;
+    app->lssBitrateState = CO_APP_RTT_LSS_BITRATE_PRE_DELAY;
+
+    CO_RTT_LOG_I("LSS bitrate PRE_DELAY started: dev=%s previous=%u target=%u delay=%u ms",
+                 app->canName, app->lssPreviousBitrate, app->lssTargetBitrate, delay);
+}
+
+/** Advance PRE_DELAY -> bitrate switch -> POST_DELAY without blocking co_main. */
+static void co_app_rtt_lss_bitrate_process(CANopenNodeRTT *app, uint32_t nowMs)
+{
+    CO_CANmodule_t *CANmodule;
+
+    if ((app == NULL) || (app->lssBitrateState == CO_APP_RTT_LSS_BITRATE_IDLE)
+        || (app->lssBitrateState == CO_APP_RTT_LSS_BITRATE_FAILED)) {
+        return;
+    }
+    if ((app->canOpenStack == NULL) || (app->canOpenStack->CANmodule == NULL)) {
+        co_app_rtt_lss_bitrate_fail(app);
+        return;
+    }
+
+    CANmodule = app->canOpenStack->CANmodule;
+
+    if ((app->lssBitrateState == CO_APP_RTT_LSS_BITRATE_PRE_DELAY)
+        && co_app_rtt_lss_time_reached(nowMs, app->lssBitrateDeadlineMs)) {
+        rt_err_t lockRet;
+        rt_err_t switchRet;
+        rt_err_t rollbackRet = -RT_ERROR;
+
+        lockRet = rt_mutex_take(&app->lifecycleMutex, RT_WAITING_FOREVER);
+        if (lockRet != RT_EOK) {
+            CO_RTT_LOG_E("take lifecycle mutex for LSS bitrate switch failed: dev=%s ret=%d", app->canName, lockRet);
+            co_app_rtt_lss_bitrate_fail(app);
+            return;
+        }
+
+        switchRet = CO_RTT_CANsetBitrate(CANmodule, app->lssTargetBitrate);
+        if (switchRet != RT_EOK) {
+            CO_RTT_LOG_E("LSS bitrate switch failed: dev=%s target=%u ret=%ld; rolling back to %u",
+                         app->canName, app->lssTargetBitrate, (long)switchRet, app->lssPreviousBitrate);
+            rollbackRet = CO_RTT_CANsetBitrate(CANmodule, app->lssPreviousBitrate);
+        }
+        (void)rt_mutex_release(&app->lifecycleMutex);
+
+        if (switchRet == RT_EOK) {
+            app->baudrate = app->lssTargetBitrate;
+            app->lssBitrateDeadlineMs = nowMs + app->lssBitrateDelayMs;
+            app->lssBitrateState = CO_APP_RTT_LSS_BITRATE_POST_DELAY;
+            CO_RTT_LOG_I("LSS bitrate switched: dev=%s bitrate=%u; POST_DELAY=%u ms",
+                         app->canName, app->baudrate, app->lssBitrateDelayMs);
+        } else if (rollbackRet == RT_EOK) {
+            app->baudrate = app->lssPreviousBitrate;
+            app->lssPendingBitrate = app->lssPreviousBitrate;
+            CO_RTT_LOG_W("LSS bitrate rollback succeeded: dev=%s bitrate=%u", app->canName, app->baudrate);
+            co_app_rtt_lss_bitrate_finish(app);
+            return;
+        } else {
+            CO_RTT_LOG_E("LSS bitrate rollback failed: dev=%s bitrate=%u ret=%ld",
+                         app->canName, app->lssPreviousBitrate, (long)rollbackRet);
+            co_app_rtt_lss_bitrate_fail(app);
+            return;
+        }
+    }
+
+    if ((app->lssBitrateState == CO_APP_RTT_LSS_BITRATE_POST_DELAY)
+        && co_app_rtt_lss_time_reached(nowMs, app->lssBitrateDeadlineMs)) {
+        CO_RTT_LOG_I("LSS bitrate activation complete: dev=%s bitrate=%u", app->canName, app->baudrate);
+        co_app_rtt_lss_bitrate_finish(app);
+    }
+}
+
 /**
  * @brief Persist the pending LSS configuration requested by the CANopenNode LSS Store service.
  *
@@ -292,7 +451,11 @@ static CO_ReturnError_t co_app_rtt_lss_init(CANopenNodeRTT *app)
     err = CO_LSSinit(app->canOpenStack, &lss_address, &app->lssPendingNodeID, &app->lssPendingBitrate);
     if (err == CO_ERROR_NO) {
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
+        co_app_rtt_lss_bitrate_reset_state(app);
+        CO_RTT_CANsetTxEnabled(app->canOpenStack->CANmodule, true);
         CO_LSSslave_initCfgStoreCall(app->canOpenStack->LSSslave, app, co_app_rtt_lss_store_config);
+        CO_LSSslave_initCkBitRateCall(app->canOpenStack->LSSslave, app, co_app_rtt_lss_check_bitrate);
+        CO_LSSslave_initActBitRateCall(app->canOpenStack->LSSslave, app, co_app_rtt_lss_activate_bitrate);
 #endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
         app->activeNodeID = app->lssPendingNodeID;
         app->baudrate = app->lssPendingBitrate;
@@ -653,6 +816,11 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         app->timeOldMs = time_current_ms;
 
         reset_status = CO_process(co, ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0, time_difference_us, NULL);
+#if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) && defined(PKG_CANOPENNODE_LSS_PERSIST)
+        if (reset_status == CO_RESET_NOT) {
+            co_app_rtt_lss_bitrate_process(app, time_current_ms);
+        }
+#endif /* LSS runtime bitrate */
 #if CO_DEMO_ENABLED
         CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms, time_difference_us, reset_status);
 #endif /* CO_DEMO_ENABLED */
@@ -886,6 +1054,9 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0)
     app->lssPendingNodeID = nodeID;
     app->lssPendingBitrate = bitrate;
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    co_app_rtt_lss_bitrate_reset_state(app);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
     app->outStatusLEDGreen = 0U;
     app->outStatusLEDRed = 0U;
