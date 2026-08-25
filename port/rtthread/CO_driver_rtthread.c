@@ -26,6 +26,7 @@
 #include "CO_driver.h"
 #include "co_rtt_log.h"
 
+#include <rtatomic.h>
 #include <string.h>
 
 /* Private function prototypes -----------------------------------------------*/
@@ -51,6 +52,62 @@ static rt_uint32_t co_rtt_bitrate_to_baud(uint16_t bitrate)
     default:
         return 0U;
     }
+}
+
+bool_t CO_RTT_CANisBitrateSupported(uint16_t bitrate)
+{
+    return (co_rtt_bitrate_to_baud(bitrate) != 0U) ? true : false;
+}
+
+void CO_RTT_CANsetTxEnabled(CO_CANmodule_t *CANmodule, bool_t enabled)
+{
+    if (CANmodule == NULL) {
+        return;
+    }
+
+    rt_atomic_store(&CANmodule->txEnabled, enabled ? 1 : 0);
+}
+
+bool_t CO_RTT_CANisTxEnabled(CO_CANmodule_t *CANmodule)
+{
+    if (CANmodule == NULL) {
+        return false;
+    }
+
+    return (rt_atomic_load(&CANmodule->txEnabled) != 0) ? true : false;
+}
+
+rt_err_t CO_RTT_CANsetBitrate(CO_CANmodule_t *CANmodule, uint16_t bitrate)
+{
+    rt_uint32_t baud;
+    rt_err_t ret;
+
+    if ((CANmodule == NULL) || (CANmodule->dev == RT_NULL)) {
+        return -RT_EINVAL;
+    }
+
+    baud = co_rtt_bitrate_to_baud(bitrate);
+    if (baud == 0U) {
+        return -RT_EINVAL;
+    }
+
+    CANmodule->CANnormal = false;
+    ret = rt_device_control(CANmodule->dev, RT_CAN_CMD_SET_BAUD, (void *)(rt_ubase_t)baud);
+    if (ret != RT_EOK) {
+        CO_RTT_LOG_E("runtime CAN bitrate switch failed: bitrate=%u ret=%ld", bitrate, (long)ret);
+        return ret;
+    }
+
+    /* RT_CAN_CMD_SET_BAUD may reinitialize the target controller. Reuse the
+     * normal-mode path to restore configured filters/RX/start sequencing. */
+    CO_CANsetNormalMode(CANmodule);
+    if (!CANmodule->CANnormal) {
+        CO_RTT_LOG_E("runtime CAN bitrate restart failed: bitrate=%u", bitrate);
+        return -RT_ERROR;
+    }
+
+    CO_RTT_LOG_I("runtime CAN bitrate switched: bitrate=%u kbit/s", bitrate);
+    return RT_EOK;
 }
 
 /**
@@ -789,6 +846,7 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule, void *CANptr, CO_C
     CANmodule->txArray = txArray;
     CANmodule->txSize = txSize;
     CANmodule->CANnormal = false;
+    rt_atomic_store(&CANmodule->txEnabled, 1);
     CANmodule->useCANrxFilters = false;
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;
@@ -893,6 +951,7 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
         return;
     }
 
+    CO_RTT_CANsetTxEnabled(CANmodule, false);
     CANmodule->CANnormal = false;
 
     if (CANmodule->dev == RT_NULL) {
@@ -1010,14 +1069,28 @@ CO_CANtx_t *CO_CANtxBufferInit(CO_CANmodule_t *CANmodule, uint16_t index, uint16
  * frame or reports a syscall/argument/timeout error. This port does not keep a
  * separate CANopenNode software-pending TX queue in CO_CANtx_t::bufferFull.
  *
+ * During an LSS Activate Bit Timing window txEnabled is cleared atomically. New
+ * CANopen sends are then intentionally suppressed and reported as successful to
+ * avoid turning protocol-mandated silence into a CAN error. This software gate
+ * deliberately does not abort a frame that already entered RT-Thread/HAL before
+ * the gate was cleared; target TX-abort support can extend that boundary later.
+ *
  * @param CANmodule CANopenNode CAN module.
  * @param buffer Configured TX buffer.
- * @return CO_ERROR_NO on successful write, otherwise a mapped error code.
+ * @return CO_ERROR_NO on successful or intentionally suppressed write, otherwise a mapped error code.
  */
 CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
 {
     CO_ReturnError_t ret;
     bool_t overflow;
+
+    if ((CANmodule == NULL) || (buffer == NULL)) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    if (!CO_RTT_CANisTxEnabled(CANmodule)) {
+        return CO_ERROR_NO;
+    }
 
     CO_LOCK_CAN_SEND(CANmodule);
     overflow = buffer->bufferFull;

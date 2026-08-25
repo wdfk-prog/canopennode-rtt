@@ -150,6 +150,7 @@ typedef struct {
     uint16_t CANerrorStatus;         /**< CANopenNode CAN error status bitfield. */
     uint16_t CANtxEventStatus;       /**< One-shot TX event bits consumed by CO_CANmodule_process(). */
     volatile bool_t CANnormal;       /**< True after the RT-Thread CAN device enters normal operation. */
+    rt_atomic_t txEnabled;           /**< Atomic software gate for new CANopen transmissions through CO_CANsend(). */
     volatile bool_t useCANrxFilters; /**< True if RT-Thread HDR filters are active for all RX buffers. */
     volatile bool_t bufferInhibitFlag; /**< Reserved for CANopenNode-compatible synchronous TPDO inhibit state. */
     volatile bool_t firstCANtxMessage; /**< True while the first CANopen transmit message is pending. */
@@ -291,6 +292,18 @@ static inline void co_rtt_flag_clear(void *volatile *rxNew)
 /* Exported variables ---------------------------------------------------------*/
 
 /* Exported functions prototypes ---------------------------------------------*/
+
+/** @brief Return true when the RT-Thread port supports the requested CAN bitrate in kbit/s. */
+bool_t CO_RTT_CANisBitrateSupported(uint16_t bitrate);
+
+/** @brief Reconfigure an initialized RT-Thread CAN module to a supported bitrate in kbit/s. */
+rt_err_t CO_RTT_CANsetBitrate(CO_CANmodule_t *CANmodule, uint16_t bitrate);
+
+/** @brief Enable or suppress new CANopen transmissions entering CO_CANsend(). */
+void CO_RTT_CANsetTxEnabled(CO_CANmodule_t *CANmodule, bool_t enabled);
+
+/** @brief Return the current atomic CANopen transmit-gate state. */
+bool_t CO_RTT_CANisTxEnabled(CO_CANmodule_t *CANmodule);
 
 #ifdef __cplusplus
 }

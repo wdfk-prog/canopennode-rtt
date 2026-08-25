@@ -67,14 +67,14 @@ config PKG_CANOPENNODE_USING_STORAGE_USER
 
         When PKG_CANOPENNODE_LSS_PERSIST is enabled, the table must additionally
         provide aux_init, aux_read and aux_write. aux_init is the dedicated
-        pre-CAN preparation path and is independent from normal Storage init.
+        pre-CAN auxiliary preparation path and is independent from normal Storage init.
 
 endchoice
 
 if PKG_CANOPENNODE_USING_STORAGE_EEPROM
 
 config PKG_CANOPENNODE_USING_STORAGE_AT24C
-    bool "Use built-in AT24CXX EEPROM device provider"
+    bool "Use built-in RT-Thread AT24CXX EEPROM device provider"
     default y
     depends on PKG_USING_AT24CXX
     depends on PKG_CANOPENNODE_CAN_BINDING_COUNT = 1
@@ -166,7 +166,16 @@ config PKG_CANOPENNODE_LSS_PERSIST
         to the configured Node-ID and bitrate. The RT-Thread wrapper registers
         the CANopenNode LSS Store callback and reports Store success only after
         the committed record has been read back and validated completely.
-        Runtime LSS bitrate activation is not implemented by this option.
+
+        The same wrapper also registers LSS bitrate-check and activate callbacks.
+        The standard 10/20/50/125/250/500/800/1000 kbit/s values are accepted,
+        and Activate Bit Timing is executed as non-blocking PRE_DELAY -> switch ->
+        POST_DELAY processing. During both delay windows an atomic txEnabled gate
+        in CO_CANsend() suppresses new CANopen transmissions. Runtime switching
+        uses RT_CAN_CMD_SET_BAUD and restores the previous bitrate on a recoverable
+        switch failure. The current software gate does not abort a frame that had
+        already entered the RT-Thread/HAL transmit path before txEnabled was
+        cleared; a future target TX-abort API may extend that boundary.
 
 config PKG_CANOPENNODE_STORAGE_DFS_DIR
     string "CANopen DFS storage directory"
