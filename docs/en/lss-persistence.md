@@ -8,23 +8,24 @@ This page describes how the RT-Thread wrapper stores and restores LSS Node-ID an
 
 ```mermaid
 flowchart TD
-    A[CO_new] --> B[Initialize selected Storage backend]
+    A[CO_new] --> B[Prepare selected Storage auxiliary backend]
     B --> C[Read and validate LSS record]
     C --> D[Resolve pending Node-ID and bitrate]
     D --> E[CO_CANinit]
     E --> F[CO_LSSinit]
-    F --> G[CO_CANopenInit]
+    F --> G[Initialize normal OD-backed Storage]
+    G --> H[CO_CANopenInit]
 ```
 
-The first `CO_CANinit()` can therefore use the persisted bitrate. Communication Reset keeps the current in-RAM LSS pending values and does not reload persistence. Reset Node or a real power cycle executes the application startup path and loads the record again.
+The first `CO_CANinit()` can therefore use the persisted bitrate without invoking the normal Storage backend `init` callback before CAN initialization. Communication Reset keeps the current in-RAM LSS pending values and does not reload persistence. Reset Node or a real power cycle executes the application startup path and loads the record again.
 
 The feature provides:
 
-- a backend-neutral auxiliary read/write contract in `CO_storage_rtt_backend_ops_t`;
+- a backend-neutral auxiliary `aux_init`/read/write contract in `CO_storage_rtt_backend_ops_t`;
 - a single-slot LSS record with format, CRC and commit validation;
 - startup loading before the first CAN initialization;
 - standard LSS timing-table validation for persisted bitrates;
-- fallback to application startup values when the record is absent, invalid, or rejected by CAN initialization.
+- fallback to application startup values when the record is absent, invalid, or a different persisted bitrate is rejected by CAN initialization.
 
 Enabling this feature alone does not register the LSS Store callback and does not implement runtime bitrate activation.
 
@@ -42,9 +43,10 @@ PKG_CANOPENNODE_LSS_PERSIST=y
 
 Backend behavior:
 
-- DFS stores auxiliary bytes in a backend-owned `*_storage_aux.bin` file.
-- The built-in AT24CXX EEPROM backend automatically reserves the final EEPROM page of its configured Storage region as the auxiliary area. Normal CANopen Storage allocations use the remaining leading bytes. No separate LSS EEPROM offset is configured.
-- A user-provided backend must implement `aux_read` and `aux_write` in `CO_storage_rtt_backend_ops_t`. Offsets passed to these callbacks are relative to the backend-owned auxiliary area.
+- DFS stores auxiliary bytes in a backend-owned `*_storage_aux.bin` file and uses a separate auxiliary initialization path to bind the instance before the first CAN initialization.
+- The generic EEPROM Storage backend obtains its media access from an EEPROM device provider. The built-in AT24CXX provider automatically reserves the final EEPROM page of its configured Storage region as the auxiliary area. Normal CANopen Storage allocations use the remaining leading bytes. No separate LSS EEPROM offset is configured.
+- A custom EEPROM provider can replace the weak built-in provider hooks and must provide `co_storage_rtt_eeprom_module_get()` plus the `CO_eeprom_*` target hooks. When LSS persistence is enabled, it must also provide `co_storage_rtt_eeprom_provider_aux_init()`, `co_storage_rtt_eeprom_aux_read()` and `co_storage_rtt_eeprom_aux_write()`.
+- A user-provided Storage backend must implement `aux_init`, `aux_read` and `aux_write` in `CO_storage_rtt_backend_ops_t`. `aux_init` is the dedicated pre-CAN preparation hook and is separate from the normal OD-backed Storage `init` callback.
 
 For the AT24CXX backend, `PKG_CANOPENNODE_STORAGE_AT24C_OFFSET` and `PKG_CANOPENNODE_STORAGE_AT24C_REGION_SIZE` still define the complete package-owned region. When LSS persistence is enabled, that region must be larger than one EEPROM page because the last page is reserved for auxiliary persistence.
 
@@ -73,24 +75,24 @@ The single-slot write sequence is:
 ```text
 write invalid commit
  -> write body + CRC
- -> read back body
+ -> read back and compare body
  -> write valid commit
- -> read back full record
- -> validate complete record
 ```
+
+The body is fully verified while the commit marker is still invalid. The auxiliary backend contract requires a successful `aux_write()` to mean that bytes have reached the backend media in program order. Therefore, after the valid commit write succeeds, the store operation is complete and does not perform a later verification step that could report failure while leaving a valid committed record on media. If the valid-commit write itself reports failure, the implementation makes a best-effort write of the invalid marker before returning failure.
 
 An interrupted write is not accepted as valid on the next startup. The single-slot design does not retain the previous version; an invalid record causes startup to use the application-provided Node-ID and bitrate.
 
 ## Reset semantics
 
-- Initial application startup: initialize Storage, load the LSS record, then execute the first `CO_CANinit()`.
-- Communication Reset: recreate `CO_t` and rebind Storage without reloading the LSS record.
+- Initial application startup: prepare the Storage auxiliary path, load the LSS record, execute the first `CO_CANinit()`, initialize LSS, then run normal OD-backed Storage initialization.
+- Communication Reset: recreate `CO_t` and rebind normal Storage without reloading the LSS record.
 - Reset Node / power cycle: execute application initialization again and reload the record.
 
 This follows the CANopenNode LSS pending-value lifecycle: persistent values are initialized on program startup and must not overwrite pending values during Communication Reset.
 
 ## Recovery behavior
 
-A syntactically valid standard LSS bitrate can still be rejected by a specific RT-Thread CAN device. When the first CAN initialization fails after loading a persistent LSS record, the wrapper restores the original application startup Node-ID and bitrate and retries CAN initialization once. This keeps a portable or stale persistence record from permanently preventing the node from starting.
+A syntactically valid standard LSS bitrate can still be rejected by a specific RT-Thread CAN device. When the first CAN initialization fails after loading a persistent LSS record, the wrapper retries with the application startup values only if the persisted bitrate differs from the startup bitrate. `CO_CANinit()` is bitrate-dependent, so retrying when both bitrates are identical would only repeat the same CAN initialization.
 
 Invalid format, CRC, commit marker, Node-ID, bitrate, missing auxiliary data, or backend I/O errors never replace the application startup values. Target hardware must still validate real reset, power-cycle, and media-failure behavior.

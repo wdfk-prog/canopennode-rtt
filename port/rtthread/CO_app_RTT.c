@@ -319,10 +319,10 @@ static CO_ReturnError_t co_app_rtt_storage_init(CANopenNodeRTT *app, uint32_t *s
 }
 
 /**
- * @brief Initialize Storage and normalize recoverable startup corruption.
+ * @brief Prepare Storage and normalize recoverable startup corruption.
  *
  * @param app CANopenNode RT-Thread application instance.
- * @param auxiliaryOnly True to initialize only backend auxiliary persistence without registering OD Storage entries.
+ * @param auxiliaryOnly True to prepare only backend auxiliary persistence without invoking normal OD Storage init.
  * @param dataCorrupt Set when persisted Storage data or the backend is unavailable.
  * @param storageInitError Receives the backend detail or corruption bitmask.
  * @param storageAvailable Set when the selected backend is initialized and can be accessed.
@@ -343,8 +343,7 @@ static rt_err_t co_app_rtt_storage_prepare(CANopenNodeRTT *app, bool_t auxiliary
 
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
     if (auxiliaryOnly) {
-        err = co_storage_rtt_init(&app->storage, app->canOpenStack->CANmodule, OD_ENTRY_H1010, OD_ENTRY_H1011,
-                                  NULL, 0U, app->canName, storageInitError);
+        err = co_storage_rtt_aux_init(&app->storage, app->canName, storageInitError);
     } else
 #endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
     {
@@ -446,7 +445,7 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
 
     err = CO_CANinit(co, (void *)app->canName, can_bitrate);
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
-    if ((err != CO_ERROR_NO) && persistentLssLoaded) {
+    if ((err != CO_ERROR_NO) && persistentLssLoaded && (can_bitrate != startupBitrate)) {
         CO_RTT_LOG_W("CAN init rejected persistent LSS configuration: dev=%s node=%u bitrate=%u err=%d; "
                      "retrying startup values", app->canName, can_node_id, can_bitrate, err);
         app->lssPendingNodeID = startupNodeId;
@@ -472,7 +471,7 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
 #endif /* (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) */
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
-    /* Normalize normal OD-backed Storage after CO_CANinit(); zero entries are valid with LSS auxiliary persistence. */
+    /* Normal OD-backed Storage initialization is intentionally separate from pre-CAN auxiliary preparation. */
     if (co_app_rtt_storage_prepare(app, false, &storageDataCorrupt, &storageInitError, &storageAvailable) != RT_EOK) {
         return -RT_ERROR;
     }

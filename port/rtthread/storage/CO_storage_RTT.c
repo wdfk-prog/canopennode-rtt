@@ -31,7 +31,7 @@
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
 
-/** Selected backend operations after successful validation in co_storage_rtt_init(). */
+/** Selected backend operations after successful validation. */
 static const CO_storage_rtt_backend_ops_t *co_storage_rtt_ops;
 
 /**
@@ -46,10 +46,21 @@ static bool_t co_storage_rtt_ops_valid(const CO_storage_rtt_backend_ops_t *ops)
                     && (ops->restore != NULL));
 
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
-    valid = valid && (ops->aux_read != NULL) && (ops->aux_write != NULL);
+    valid = valid && (ops->aux_init != NULL) && (ops->aux_read != NULL) && (ops->aux_write != NULL);
 #endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
     return valid;
+}
+
+/**
+ * @brief Select and validate the configured storage backend.
+ *
+ * @return true when a complete backend operation table is available, otherwise false.
+ */
+static bool_t co_storage_rtt_backend_prepare(void)
+{
+    co_storage_rtt_ops = co_storage_rtt_backend_get_ops();
+    return co_storage_rtt_ops_valid(co_storage_rtt_ops);
 }
 
 /**
@@ -87,7 +98,7 @@ void co_storage_rtt_entry_init(CO_storage_entry_t *entry,
  * @param OD_1010_StoreParameters OD entry for 0x1010 Store parameters.
  * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 Restore default parameters.
  * @param entries Storage entries. May be NULL when entriesCount is zero; otherwise the array must exist permanently.
- * @param entriesCount Number of storage entries. May be zero when only backend auxiliary persistence is used.
+ * @param entriesCount Number of normal Storage entries. May be zero when no OD-backed Storage group is configured.
  * @param instanceName Optional application instance name used to separate backend data.
  * @param storageInitError Optional error detail. Stores a one-based failed entry index on read failure.
  * @return CO_ERROR_NO on success, CO_ERROR_ILLEGAL_ARGUMENT on invalid arguments, or another CANopenNode error code.
@@ -103,8 +114,6 @@ CO_ReturnError_t co_storage_rtt_init(CO_storage_t *storage,
 {
     uint32_t storageInitErrorLocal = 0U;
 
-    co_storage_rtt_ops = co_storage_rtt_backend_get_ops();
-
     if (storageInitError == NULL) {
         storageInitError = &storageInitErrorLocal;
     }
@@ -113,13 +122,36 @@ CO_ReturnError_t co_storage_rtt_init(CO_storage_t *storage,
     if (storage != NULL) {
         storage->enabled = false;
     }
-    if ((storage == NULL) || ((entries == NULL) && (entriesCount > 0U)) || !co_storage_rtt_ops_valid(co_storage_rtt_ops)) {
+    if ((storage == NULL) || ((entries == NULL) && (entriesCount > 0U)) || !co_storage_rtt_backend_prepare()) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
     return co_storage_rtt_ops->init(storage, CANmodule, OD_1010_StoreParameters, OD_1011_RestoreDefaultParameters,
                                     entries, entriesCount, instanceName, storageInitError);
 }
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+CO_ReturnError_t co_storage_rtt_aux_init(CO_storage_t *storage,
+                                         const char *instanceName,
+                                         uint32_t *storageInitError)
+{
+    uint32_t storageInitErrorLocal = 0U;
+
+    if (storageInitError == NULL) {
+        storageInitError = &storageInitErrorLocal;
+    }
+    *storageInitError = 0U;
+
+    if (storage == NULL) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+    if (!co_storage_rtt_backend_prepare()) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    return co_storage_rtt_ops->aux_init(storage, instanceName, storageInitError);
+}
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
 /**
  * @brief Read one CANopenNode storage entry into RAM.

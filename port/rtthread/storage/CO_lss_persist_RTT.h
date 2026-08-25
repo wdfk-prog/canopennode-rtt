@@ -28,7 +28,7 @@ typedef enum {
  *
  * Output values are changed only after the complete record passes validation.
  *
- * @param storage Initialized RT-Thread storage object.
+ * @param storage Storage object prepared for auxiliary persistence.
  * @param nodeId In/out Node-ID. Preserved when no valid record can be loaded.
  * @param bitrate In/out CAN bitrate in kbit/s. Preserved when no valid record can be loaded.
  * @return Load result describing whether a saved configuration was applied.
@@ -43,10 +43,10 @@ CO_lss_persist_load_result_t co_lss_persist_rtt_load(CO_storage_t *storage, uint
  * interrupted during the write, the record is intentionally invalid on the next
  * startup.
  *
- * @param storage Initialized RT-Thread storage object.
+ * @param storage Storage object prepared for auxiliary persistence.
  * @param nodeId Node-ID in range 1..127 or CO_LSS_NODE_ID_ASSIGNMENT.
  * @param bitrate CAN bitrate in kbit/s from the standard LSS timing table.
- * @return true after complete write and readback validation, otherwise false.
+ * @return true after body readback verification and successful commit write, otherwise false.
  */
 bool_t co_lss_persist_rtt_store(CO_storage_t *storage, uint8_t nodeId, uint16_t bitrate);
 

@@ -166,8 +166,6 @@ bool_t co_lss_persist_rtt_store(CO_storage_t *storage, uint8_t nodeId, uint16_t 
 {
     CO_lss_persist_record_t record;
     CO_lss_persist_record_t verify;
-    uint8_t decodedNodeId = 0U;
-    uint16_t decodedBitrate = 0U;
     uint8_t invalidMarker[sizeof(record.commit)];
     uint8_t commitMarker[sizeof(record.commit)];
     const size_t commitOffset = CO_LSS_PERSIST_COMMIT_OFFSET;
@@ -191,16 +189,18 @@ bool_t co_lss_persist_rtt_store(CO_storage_t *storage, uint8_t nodeId, uint16_t 
 
     CO_setUint16(commitMarker, CO_LSS_PERSIST_COMMIT_MARKER);
     if (!co_storage_rtt_aux_write(storage, commitOffset, commitMarker, sizeof(commitMarker))) {
-        return false;
-    }
-    if (!co_storage_rtt_aux_read(storage, 0U, (uint8_t *)&verify, CO_LSS_PERSIST_RECORD_SIZE)) {
-        return false;
-    }
-    if (!co_lss_persist_record_decode(&verify, &decodedNodeId, &decodedBitrate)) {
+        /* A failed callback may still have partially reached media. Best-effort invalidate the slot again. */
+        (void)co_storage_rtt_aux_write(storage, commitOffset, invalidMarker, sizeof(invalidMarker));
         return false;
     }
 
-    return ((decodedNodeId == nodeId) && (decodedBitrate == bitrate));
+    /*
+     * The body was already read back before commit. aux_write() returning true
+     * guarantees the valid marker reached media in program order, so success is
+     * final here. A later readback failure must not turn a committed record into
+     * a reported store failure while leaving that record valid on media.
+     */
+    return true;
 }
 
 #endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */

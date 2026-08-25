@@ -25,9 +25,6 @@ if GetDepend('PKG_CANOPENNODE_USING_STORAGE'):
         storage_impl_count += 1
     if storage_impl_count != 1:
         raise RuntimeError('Exactly one CANopenNode RT-Thread storage implementation must be enabled')
-    if GetDepend('PKG_CANOPENNODE_USING_STORAGE_EEPROM') and not GetDepend('PKG_CANOPENNODE_USING_STORAGE_AT24C'):
-        raise RuntimeError('CANopenNode EEPROM storage requires the built-in AT24CXX device adapter')
-
     _add_required(os.path.join('CANopenNode', 'storage', 'CO_storage.c'))
     _add_required(os.path.join('port', 'rtthread', 'storage', 'CO_storage_RTT.c'))
 

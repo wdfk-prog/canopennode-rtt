@@ -119,7 +119,7 @@ Check:
 
 | Backend | Checks |
 |---|---|
-| DFS | `RT_USING_DFS` enabled, mount point exists, configured directory exists, path length fits `PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH`. |
+| DFS | `RT_USING_DFS` enabled, mount point exists, configured directory exists; the complete path, including the terminating NUL, must fit the DFS backend's fixed 128-byte path buffer. |
 | EEPROM | `PKG_USING_AT24CXX` enabled, I2C bus name correct, AT24CXX address input correct, storage offset does not overlap other data. |
 | User | Application provides a strong `co_storage_rtt_backend_get_ops()` symbol and permanent ops table. |
 

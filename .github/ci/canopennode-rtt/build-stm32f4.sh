@@ -257,7 +257,6 @@ append_canopennode_storage_dfs()
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_STORAGE_DFS"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_DFS_DIR" '"/flash/canopen"'
-    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH" "128"
 }
 
 append_canopennode_storage_eeprom_at24c()

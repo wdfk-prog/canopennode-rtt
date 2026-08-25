@@ -63,13 +63,15 @@ void co_storage_rtt_entry_init(CO_storage_entry_t *entry,
  * The selected backend operation table performs backend-specific setup, attaches
  * permanent backend-private data to every entry, registers OD 0x1010/0x1011
  * callbacks, and reads persisted values before CO_CANopenInit() consumes OD data.
+ * Auxiliary-only pre-CAN preparation is performed separately by
+ * co_storage_rtt_aux_init().
  *
  * @param storage Storage object. It must exist permanently.
  * @param CANmodule CAN module passed to CO_storage_init().
  * @param OD_1010_StoreParameters OD entry for 0x1010 Store parameters.
  * @param OD_1011_RestoreDefaultParameters OD entry for 0x1011 Restore default parameters.
  * @param entries Storage entries. May be NULL when entriesCount is zero; otherwise the array must exist permanently.
- * @param entriesCount Number of storage entries. May be zero when only backend auxiliary persistence is used.
+ * @param entriesCount Number of normal Storage entries. May be zero when no OD-backed Storage group is configured.
  * @param instanceName Optional application instance name used to separate backend data.
  * @param storageInitError Optional error detail. Stores a one-based failed entry index on read failure.
  * @return CO_ERROR_NO on success, CO_ERROR_ILLEGAL_ARGUMENT on invalid arguments, or another CANopenNode error code.
@@ -82,6 +84,25 @@ CO_ReturnError_t co_storage_rtt_init(CO_storage_t *storage,
                                      uint8_t entriesCount,
                                      const char *instanceName,
                                      uint32_t *storageInitError);
+
+#if defined(PKG_CANOPENNODE_LSS_PERSIST)
+/**
+ * @brief Prepare only the selected backend auxiliary persistence area.
+ *
+ * This path is used before the first CO_CANinit() so LSS Node-ID and bitrate can
+ * be loaded without invoking the normal OD-backed Storage init callback. The
+ * backend may initialize its medium and bind auxiliary-private state, but must
+ * not register OD 0x1010/0x1011 callbacks here.
+ *
+ * @param storage Storage object. It must exist permanently.
+ * @param instanceName Optional application instance name used to separate backend data.
+ * @param storageInitError Optional backend error detail.
+ * @return CO_ERROR_NO on success, CO_ERROR_ILLEGAL_ARGUMENT on invalid arguments, or another CANopenNode error code.
+ */
+CO_ReturnError_t co_storage_rtt_aux_init(CO_storage_t *storage,
+                                         const char *instanceName,
+                                         uint32_t *storageInitError);
+#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 
 /**
  * @brief Read one CANopenNode storage entry into RAM.
@@ -124,7 +145,7 @@ bool_t co_storage_rtt_auto_process(CO_storage_t *storage, CO_t *co, bool_t saveA
 /**
  * @brief Read bytes from the selected storage backend auxiliary area.
  *
- * @param storage Storage object initialized by co_storage_rtt_init().
+ * @param storage Storage object prepared by co_storage_rtt_aux_init() or initialized by co_storage_rtt_init().
  * @param offset Byte offset relative to the backend auxiliary area.
  * @param data Destination buffer.
  * @param len Number of bytes to read.
@@ -135,7 +156,7 @@ bool_t co_storage_rtt_aux_read(CO_storage_t *storage, size_t offset, uint8_t *da
 /**
  * @brief Write bytes to the selected storage backend auxiliary area.
  *
- * @param storage Storage object initialized by co_storage_rtt_init().
+ * @param storage Storage object prepared by co_storage_rtt_aux_init() or initialized by co_storage_rtt_init().
  * @param offset Byte offset relative to the backend auxiliary area.
  * @param data Source buffer.
  * @param len Number of bytes to write.

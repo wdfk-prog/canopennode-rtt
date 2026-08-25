@@ -38,6 +38,12 @@
 #endif /* CO_CONFIG_STORAGE_MAX_ENTRIES_COUNT */
 
 /*
+ * Internal DFS path buffer capacity, including the terminating NUL. Path
+ * builders reject paths that do not fit instead of using truncated names.
+ */
+#define CO_STORAGE_RTT_DFS_MAX_PATH    128U
+
+/*
  * dfs_file_open() uses the same numeric open flag contract as RT-Thread DFS
  * POSIX wrappers, but this backend intentionally avoids POSIX-only headers and
  * keeps the required file-open values local to this backend.
@@ -256,11 +262,33 @@ static CO_storage_rtt_dfs_instance_t *co_storage_rtt_dfs_instance_find(CO_storag
     return NULL;
 }
 
+/** Prepare only the DFS auxiliary persistence state. */
+static CO_ReturnError_t co_storage_rtt_dfs_aux_init(CO_storage_t *storage,
+                                                    const char *instanceName,
+                                                    uint32_t *storageInitError)
+{
+    CO_storage_rtt_dfs_instance_t *instance;
+
+    (void)storageInitError;
+
+    if (storage == NULL) {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    instance = co_storage_rtt_dfs_instance_get(storage);
+    if (instance == NULL) {
+        return CO_ERROR_OUT_OF_MEMORY;
+    }
+
+    instance->instanceName = instanceName;
+    return CO_ERROR_NO;
+}
+
 /** Read bytes from the DFS backend auxiliary persistence file. */
 static bool_t co_storage_rtt_dfs_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len)
 {
     CO_storage_rtt_dfs_instance_t *instance = co_storage_rtt_dfs_instance_find(storage);
-    char path[PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH];
+    char path[CO_STORAGE_RTT_DFS_MAX_PATH];
     struct dfs_file fd;
     ssize_t readLen;
     int ret;
@@ -302,7 +330,7 @@ static bool_t co_storage_rtt_dfs_aux_read(CO_storage_t *storage, size_t offset, 
 static bool_t co_storage_rtt_dfs_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len)
 {
     CO_storage_rtt_dfs_instance_t *instance = co_storage_rtt_dfs_instance_find(storage);
-    char path[PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH];
+    char path[CO_STORAGE_RTT_DFS_MAX_PATH];
     struct dfs_file fd;
     ssize_t written;
     int ret;
@@ -442,7 +470,7 @@ static bool_t co_storage_rtt_dfs_header_matches(const CO_storage_entry_t *entry,
  */
 static ODR_t co_storage_rtt_dfs_store(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule)
 {
-    char path[PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH];
+    char path[CO_STORAGE_RTT_DFS_MAX_PATH];
     struct dfs_file fd;
     CO_storage_rtt_dfs_header_t header;
     int ret;
@@ -528,7 +556,7 @@ static ODR_t co_storage_rtt_dfs_store(CO_storage_entry_t *entry, CO_CANmodule_t 
  */
 static ODR_t co_storage_rtt_dfs_restore(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule)
 {
-    char path[PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH];
+    char path[CO_STORAGE_RTT_DFS_MAX_PATH];
     struct dfs_file fd;
     int ret;
 
@@ -590,7 +618,7 @@ static ODR_t co_storage_rtt_dfs_restore(CO_storage_entry_t *entry, CO_CANmodule_
  */
 static ODR_t co_storage_rtt_dfs_read(CO_storage_entry_t *entry, CO_CANmodule_t *CANmodule)
 {
-    char path[PKG_CANOPENNODE_STORAGE_DFS_MAX_PATH];
+    char path[CO_STORAGE_RTT_DFS_MAX_PATH];
     struct dfs_file fd;
     CO_storage_rtt_dfs_header_t header;
     uint8_t extraByte;
@@ -779,7 +807,7 @@ static CO_ReturnError_t co_storage_rtt_dfs_init(CO_storage_t *storage,
     }
 
     err = CO_storage_init(storage, CANmodule, OD_1010_StoreParameters, OD_1011_RestoreDefaultParameters,
-                          co_storage_rtt_store, co_storage_rtt_restore, entries, entriesCount);
+                          co_storage_rtt_dfs_store, co_storage_rtt_dfs_restore, entries, entriesCount);
     if (err != CO_ERROR_NO) {
         storage->enabled = false;
         return err;
@@ -818,6 +846,7 @@ static const CO_storage_rtt_backend_ops_t co_storage_rtt_dfs_ops = {
     .restore = co_storage_rtt_dfs_restore,
     .auto_process = co_storage_rtt_dfs_auto_process,
 #if defined(PKG_CANOPENNODE_LSS_PERSIST)
+    .aux_init = co_storage_rtt_dfs_aux_init,
     .aux_read = co_storage_rtt_dfs_aux_read,
     .aux_write = co_storage_rtt_dfs_aux_write,
 #endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */

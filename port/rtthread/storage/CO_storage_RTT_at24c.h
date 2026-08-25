@@ -115,29 +115,6 @@ bool_t co_storage_rtt_at24c_raw_read(void *storageModule, size_t eepromAddr, uin
  */
 bool_t co_storage_rtt_at24c_raw_write(void *storageModule, size_t eepromAddr, uint8_t *data, size_t len);
 
-#if defined(PKG_CANOPENNODE_LSS_PERSIST)
-/**
- * @brief Read bytes from the AT24CXX auxiliary persistence area.
- *
- * @param storage Storage object that owns the AT24CXX backend instance.
- * @param offset Start offset relative to the reserved auxiliary area.
- * @param data Destination buffer.
- * @param len Number of bytes to read.
- * @return true when all requested bytes are read, otherwise false.
- */
-bool_t co_storage_rtt_at24c_aux_read(CO_storage_t *storage, size_t offset, uint8_t *data, size_t len);
-
-/**
- * @brief Write bytes to the AT24CXX auxiliary persistence area.
- *
- * @param storage Storage object that owns the AT24CXX backend instance.
- * @param offset Start offset relative to the reserved auxiliary area.
- * @param data Source buffer.
- * @param len Number of bytes to write.
- * @return true when all requested bytes are written, otherwise false.
- */
-bool_t co_storage_rtt_at24c_aux_write(CO_storage_t *storage, size_t offset, const uint8_t *data, size_t len);
-#endif /* defined(PKG_CANOPENNODE_LSS_PERSIST) */
 #endif /* defined(PKG_CANOPENNODE_USING_STORAGE_EEPROM) && defined(PKG_CANOPENNODE_USING_STORAGE_AT24C) */
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
 
