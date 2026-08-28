@@ -5,11 +5,11 @@ FileRevision=1
 LastEDS=
 EDSVersion=4.0
 Description=CANopenNode demo device for RT-Thread
-CreationTime=2:52PM
+CreationTime=6:52AM
 CreationDate=07-06-2026
 CreatedBy=wdfk-prog
-ModificationTime=4:11PM
-ModificationDate=08-19-2026
+ModificationTime=8:26AM
+ModificationDate=08-21-2026
 ModifiedBy=wdfk-prog
 
 [DeviceInfo]
@@ -125,7 +125,7 @@ DefaultValue=0x00000001
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=38
+SupportedObjects=44
 1=0x1002
 2=0x1003
 3=0x1005
@@ -146,24 +146,30 @@ SupportedObjects=38
 18=0x1200
 19=0x1280
 20=0x1300
-21=0x1400
-22=0x1401
-23=0x1402
-24=0x1403
-25=0x1600
-26=0x1601
-27=0x1602
-28=0x1603
-29=0x1800
-30=0x1801
-31=0x1802
-32=0x1803
-33=0x1804
-34=0x1A00
-35=0x1A01
-36=0x1A02
-37=0x1A03
-38=0x1A04
+21=0x1301
+22=0x1302
+23=0x1381
+24=0x1382
+25=0x13FE
+26=0x13FF
+27=0x1400
+28=0x1401
+29=0x1402
+30=0x1403
+31=0x1600
+32=0x1601
+33=0x1602
+34=0x1603
+35=0x1800
+36=0x1801
+37=0x1802
+38=0x1803
+39=0x1804
+40=0x1A00
+41=0x1A01
+42=0x1A02
+43=0x1A03
+44=0x1A04
 
 [1002]
 ParameterName=Manufacturer status register
@@ -712,6 +718,252 @@ ObjectType=0x7
 DataType=0x0005
 AccessType=rw
 DefaultValue=0x01
+PDOMapping=0
+
+[1301]
+ParameterName=SRDO communication parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x7
+
+[1301sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+PDOMapping=0
+
+[1301sub1]
+ParameterName=Information direction
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x02
+PDOMapping=0
+
+[1301sub2]
+ParameterName=Safety cycle time
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=100
+PDOMapping=0
+
+[1301sub3]
+ParameterName=Safety related validation time
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=20
+PDOMapping=0
+
+[1301sub4]
+ParameterName=Transmission type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=254
+PDOMapping=0
+
+[1301sub5]
+ParameterName=COB-ID 1 normal
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000101
+PDOMapping=0
+
+[1301sub6]
+ParameterName=COB-ID 2 inverted
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000102
+PDOMapping=0
+
+[1302]
+ParameterName=SRDO communication parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x7
+
+[1302sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+PDOMapping=0
+
+[1302sub1]
+ParameterName=Information direction
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x01
+PDOMapping=0
+
+[1302sub2]
+ParameterName=Safety cycle time
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=100
+PDOMapping=0
+
+[1302sub3]
+ParameterName=Safety related validation time
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=20
+PDOMapping=0
+
+[1302sub4]
+ParameterName=Transmission type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=254
+PDOMapping=0
+
+[1302sub5]
+ParameterName=COB-ID 1 normal
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000103
+PDOMapping=0
+
+[1302sub6]
+ParameterName=COB-ID 2 inverted
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000104
+PDOMapping=0
+
+[1381]
+ParameterName=SRDO mapping parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x3
+
+[1381sub0]
+ParameterName=Number of mapped application objects in SRDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=2
+PDOMapping=0
+
+[1381sub1]
+ParameterName=Application object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x23060120
+PDOMapping=0
+
+[1381sub2]
+ParameterName=Application object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x23060220
+PDOMapping=0
+
+[1382]
+ParameterName=SRDO mapping parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x3
+
+[1382sub0]
+ParameterName=Number of mapped application objects in SRDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=2
+PDOMapping=0
+
+[1382sub1]
+ParameterName=Application object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x23060320
+PDOMapping=0
+
+[1382sub2]
+ParameterName=Application object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x23060420
+PDOMapping=0
+
+[13FE]
+ParameterName=SRDO configuration valid
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xA5
+PDOMapping=0
+
+[13FF]
+ParameterName=SRDO checksum
+ObjectType=0x8
+;StorageLocation=PERSIST_COMM
+SubNumber=0x3
+
+[13FFsub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[13FFsub1]
+ParameterName=SRDO1 checksum
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0xA1B7
+PDOMapping=0
+
+[13FFsub2]
+ParameterName=SRDO2 checksum
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0x49D8
 PDOMapping=0
 
 [1400]
@@ -1966,7 +2218,7 @@ DefaultValue=0x00000000
 PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=9
+SupportedObjects=10
 1=0x2100
 2=0x2101
 3=0x2200
@@ -1976,6 +2228,7 @@ SupportedObjects=9
 7=0x2303
 8=0x2304
 9=0x2305
+10=0x2306
 
 [2100]
 ParameterName=status_value
@@ -2590,5 +2843,119 @@ ObjectType=0x7
 DataType=0x0006
 AccessType=ro
 DefaultValue=0x0000
+PDOMapping=0
+
+[2306]
+ParameterName=srdo_diagnostic
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0xC
+
+[2306sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x0B
+PDOMapping=0
+
+[2306sub1]
+ParameterName=rx_normal
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[2306sub2]
+ParameterName=rx_inverted
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0xFFFFFFFF
+PDOMapping=0
+
+[2306sub3]
+ParameterName=tx_normal
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x12345678
+PDOMapping=0
+
+[2306sub4]
+ParameterName=tx_inverted
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0xEDCBA987
+PDOMapping=0
+
+[2306sub5]
+ParameterName=aggregate_state
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[2306sub6]
+ParameterName=rx_state
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[2306sub7]
+ParameterName=tx_state
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=ro
+DefaultValue=0
+PDOMapping=0
+
+[2306sub8]
+ParameterName=state_seq
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[2306sub9]
+ParameterName=tx_request_seq
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[2306subA]
+ParameterName=tx_complete_seq
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[2306subB]
+ParameterName=tx_request_result
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=ro
+DefaultValue=0
 PDOMapping=0
 

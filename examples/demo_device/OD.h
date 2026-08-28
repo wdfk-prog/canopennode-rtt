@@ -14,9 +14,9 @@
         Project File: project.xdd
         File Version: 1.0.0
 
-        Created:      2026/7/6 14:52:30
+        Created:      07/06/2026 06:52:30
         Created By:   wdfk-prog
-        Modified:     2026/8/19 16:11:01
+        Modified:     08/21/2026 08:26:04
         Modified By:  wdfk-prog
 
     Device Info:
@@ -45,6 +45,7 @@
 #define OD_CNT_SDO_SRV 1
 #define OD_CNT_SDO_CLI 1
 #define OD_CNT_GFC 1
+#define OD_CNT_SRDO 2
 #define OD_CNT_RPDO 4
 #define OD_CNT_TPDO 5
 
@@ -56,6 +57,7 @@
 #define OD_CNT_ARR_1010 4
 #define OD_CNT_ARR_1011 4
 #define OD_CNT_ARR_1016 8
+#define OD_CNT_ARR_13FF 2
 
 
 /*******************************************************************************
@@ -90,6 +92,37 @@ typedef struct {
         uint8_t node_IDOfTheSDOServer;
     } x1280_SDOClientParameter;
     uint8_t x1300_globalFail_safeCommandParameter;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint8_t informationDirection;
+        uint16_t safetyCycleTime;
+        uint8_t safetyRelatedValidationTime;
+        uint8_t transmissionType;
+        uint32_t COB_ID1Normal;
+        uint32_t COB_ID2Inverted;
+    } x1301_SRDOCommunicationParameter;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint8_t informationDirection;
+        uint16_t safetyCycleTime;
+        uint8_t safetyRelatedValidationTime;
+        uint8_t transmissionType;
+        uint32_t COB_ID1Normal;
+        uint32_t COB_ID2Inverted;
+    } x1302_SRDOCommunicationParameter;
+    struct {
+        uint8_t numberOfMappedApplicationObjectsInSRDO;
+        uint32_t applicationObject1;
+        uint32_t applicationObject2;
+    } x1381_SRDOMappingParameter;
+    struct {
+        uint8_t numberOfMappedApplicationObjectsInSRDO;
+        uint32_t applicationObject1;
+        uint32_t applicationObject2;
+    } x1382_SRDOMappingParameter;
+    uint8_t x13FE_SRDOConfigurationValid;
+    uint8_t x13FF_SRDOChecksum_sub0;
+    uint16_t x13FF_SRDOChecksum[OD_CNT_ARR_13FF];
     struct {
         uint8_t highestSub_indexSupported;
         uint32_t COB_IDUsedByRPDO;
@@ -342,6 +375,20 @@ typedef struct {
         uint32_t startup_seq;
         uint16_t startup_probe;
     } x2305_storage_diagnostic;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t rx_normal;
+        uint32_t rx_inverted;
+        uint32_t tx_normal;
+        uint32_t tx_inverted;
+        int8_t aggregate_state;
+        int8_t rx_state;
+        int8_t tx_state;
+        uint32_t state_seq;
+        uint32_t tx_request_seq;
+        uint32_t tx_complete_seq;
+        int32_t tx_request_result;
+    } x2306_srdo_diagnostic;
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -386,33 +433,40 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1200 &OD->list[20]
 #define OD_ENTRY_H1280 &OD->list[21]
 #define OD_ENTRY_H1300 &OD->list[22]
-#define OD_ENTRY_H1400 &OD->list[23]
-#define OD_ENTRY_H1401 &OD->list[24]
-#define OD_ENTRY_H1402 &OD->list[25]
-#define OD_ENTRY_H1403 &OD->list[26]
-#define OD_ENTRY_H1600 &OD->list[27]
-#define OD_ENTRY_H1601 &OD->list[28]
-#define OD_ENTRY_H1602 &OD->list[29]
-#define OD_ENTRY_H1603 &OD->list[30]
-#define OD_ENTRY_H1800 &OD->list[31]
-#define OD_ENTRY_H1801 &OD->list[32]
-#define OD_ENTRY_H1802 &OD->list[33]
-#define OD_ENTRY_H1803 &OD->list[34]
-#define OD_ENTRY_H1804 &OD->list[35]
-#define OD_ENTRY_H1A00 &OD->list[36]
-#define OD_ENTRY_H1A01 &OD->list[37]
-#define OD_ENTRY_H1A02 &OD->list[38]
-#define OD_ENTRY_H1A03 &OD->list[39]
-#define OD_ENTRY_H1A04 &OD->list[40]
-#define OD_ENTRY_H2100 &OD->list[41]
-#define OD_ENTRY_H2101 &OD->list[42]
-#define OD_ENTRY_H2200 &OD->list[43]
-#define OD_ENTRY_H2300 &OD->list[44]
-#define OD_ENTRY_H2301 &OD->list[45]
-#define OD_ENTRY_H2302 &OD->list[46]
-#define OD_ENTRY_H2303 &OD->list[47]
-#define OD_ENTRY_H2304 &OD->list[48]
-#define OD_ENTRY_H2305 &OD->list[49]
+#define OD_ENTRY_H1301 &OD->list[23]
+#define OD_ENTRY_H1302 &OD->list[24]
+#define OD_ENTRY_H1381 &OD->list[25]
+#define OD_ENTRY_H1382 &OD->list[26]
+#define OD_ENTRY_H13FE &OD->list[27]
+#define OD_ENTRY_H13FF &OD->list[28]
+#define OD_ENTRY_H1400 &OD->list[29]
+#define OD_ENTRY_H1401 &OD->list[30]
+#define OD_ENTRY_H1402 &OD->list[31]
+#define OD_ENTRY_H1403 &OD->list[32]
+#define OD_ENTRY_H1600 &OD->list[33]
+#define OD_ENTRY_H1601 &OD->list[34]
+#define OD_ENTRY_H1602 &OD->list[35]
+#define OD_ENTRY_H1603 &OD->list[36]
+#define OD_ENTRY_H1800 &OD->list[37]
+#define OD_ENTRY_H1801 &OD->list[38]
+#define OD_ENTRY_H1802 &OD->list[39]
+#define OD_ENTRY_H1803 &OD->list[40]
+#define OD_ENTRY_H1804 &OD->list[41]
+#define OD_ENTRY_H1A00 &OD->list[42]
+#define OD_ENTRY_H1A01 &OD->list[43]
+#define OD_ENTRY_H1A02 &OD->list[44]
+#define OD_ENTRY_H1A03 &OD->list[45]
+#define OD_ENTRY_H1A04 &OD->list[46]
+#define OD_ENTRY_H2100 &OD->list[47]
+#define OD_ENTRY_H2101 &OD->list[48]
+#define OD_ENTRY_H2200 &OD->list[49]
+#define OD_ENTRY_H2300 &OD->list[50]
+#define OD_ENTRY_H2301 &OD->list[51]
+#define OD_ENTRY_H2302 &OD->list[52]
+#define OD_ENTRY_H2303 &OD->list[53]
+#define OD_ENTRY_H2304 &OD->list[54]
+#define OD_ENTRY_H2305 &OD->list[55]
+#define OD_ENTRY_H2306 &OD->list[56]
 
 
 /*******************************************************************************
@@ -441,33 +495,40 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1200_SDOServerParameter &OD->list[20]
 #define OD_ENTRY_H1280_SDOClientParameter &OD->list[21]
 #define OD_ENTRY_H1300_globalFail_safeCommandParameter &OD->list[22]
-#define OD_ENTRY_H1400_RPDOCommunicationParameter &OD->list[23]
-#define OD_ENTRY_H1401_RPDOCommunicationParameter &OD->list[24]
-#define OD_ENTRY_H1402_RPDOCommunicationParameter &OD->list[25]
-#define OD_ENTRY_H1403_RPDOCommunicationParameter &OD->list[26]
-#define OD_ENTRY_H1600_RPDOMappingParameter &OD->list[27]
-#define OD_ENTRY_H1601_RPDOMappingParameter &OD->list[28]
-#define OD_ENTRY_H1602_RPDOMappingParameter &OD->list[29]
-#define OD_ENTRY_H1603_RPDOMappingParameter &OD->list[30]
-#define OD_ENTRY_H1800_TPDOCommunicationParameter &OD->list[31]
-#define OD_ENTRY_H1801_TPDOCommunicationParameter &OD->list[32]
-#define OD_ENTRY_H1802_TPDOCommunicationParameter &OD->list[33]
-#define OD_ENTRY_H1803_TPDOCommunicationParameter &OD->list[34]
-#define OD_ENTRY_H1804_TPDOCommunicationParameter &OD->list[35]
-#define OD_ENTRY_H1A00_TPDOMappingParameter &OD->list[36]
-#define OD_ENTRY_H1A01_TPDOMappingParameter &OD->list[37]
-#define OD_ENTRY_H1A02_TPDOMappingParameter &OD->list[38]
-#define OD_ENTRY_H1A03_TPDOMappingParameter &OD->list[39]
-#define OD_ENTRY_H1A04_TPDOMappingParameter &OD->list[40]
-#define OD_ENTRY_H2100_status_value &OD->list[41]
-#define OD_ENTRY_H2101_counter_value &OD->list[42]
-#define OD_ENTRY_H2200_control_value &OD->list[43]
-#define OD_ENTRY_H2300_time_consumer_diagnostic &OD->list[44]
-#define OD_ENTRY_H2301_emcy_consumer_diagnostic &OD->list[45]
-#define OD_ENTRY_H2302_gfc_diagnostic &OD->list[46]
-#define OD_ENTRY_H2303_sdo_client_test &OD->list[47]
-#define OD_ENTRY_H2304_sdo_server_block_test &OD->list[48]
-#define OD_ENTRY_H2305_storage_diagnostic &OD->list[49]
+#define OD_ENTRY_H1301_SRDOCommunicationParameter &OD->list[23]
+#define OD_ENTRY_H1302_SRDOCommunicationParameter &OD->list[24]
+#define OD_ENTRY_H1381_SRDOMappingParameter &OD->list[25]
+#define OD_ENTRY_H1382_SRDOMappingParameter &OD->list[26]
+#define OD_ENTRY_H13FE_SRDOConfigurationValid &OD->list[27]
+#define OD_ENTRY_H13FF_SRDOChecksum &OD->list[28]
+#define OD_ENTRY_H1400_RPDOCommunicationParameter &OD->list[29]
+#define OD_ENTRY_H1401_RPDOCommunicationParameter &OD->list[30]
+#define OD_ENTRY_H1402_RPDOCommunicationParameter &OD->list[31]
+#define OD_ENTRY_H1403_RPDOCommunicationParameter &OD->list[32]
+#define OD_ENTRY_H1600_RPDOMappingParameter &OD->list[33]
+#define OD_ENTRY_H1601_RPDOMappingParameter &OD->list[34]
+#define OD_ENTRY_H1602_RPDOMappingParameter &OD->list[35]
+#define OD_ENTRY_H1603_RPDOMappingParameter &OD->list[36]
+#define OD_ENTRY_H1800_TPDOCommunicationParameter &OD->list[37]
+#define OD_ENTRY_H1801_TPDOCommunicationParameter &OD->list[38]
+#define OD_ENTRY_H1802_TPDOCommunicationParameter &OD->list[39]
+#define OD_ENTRY_H1803_TPDOCommunicationParameter &OD->list[40]
+#define OD_ENTRY_H1804_TPDOCommunicationParameter &OD->list[41]
+#define OD_ENTRY_H1A00_TPDOMappingParameter &OD->list[42]
+#define OD_ENTRY_H1A01_TPDOMappingParameter &OD->list[43]
+#define OD_ENTRY_H1A02_TPDOMappingParameter &OD->list[44]
+#define OD_ENTRY_H1A03_TPDOMappingParameter &OD->list[45]
+#define OD_ENTRY_H1A04_TPDOMappingParameter &OD->list[46]
+#define OD_ENTRY_H2100_status_value &OD->list[47]
+#define OD_ENTRY_H2101_counter_value &OD->list[48]
+#define OD_ENTRY_H2200_control_value &OD->list[49]
+#define OD_ENTRY_H2300_time_consumer_diagnostic &OD->list[50]
+#define OD_ENTRY_H2301_emcy_consumer_diagnostic &OD->list[51]
+#define OD_ENTRY_H2302_gfc_diagnostic &OD->list[52]
+#define OD_ENTRY_H2303_sdo_client_test &OD->list[53]
+#define OD_ENTRY_H2304_sdo_server_block_test &OD->list[54]
+#define OD_ENTRY_H2305_storage_diagnostic &OD->list[55]
+#define OD_ENTRY_H2306_srdo_diagnostic &OD->list[56]
 
 
 /*******************************************************************************
@@ -506,11 +567,11 @@ extern OD_ATTR_OD OD_t *OD;
     (config).CNT_LEDS = 0;\
     (config).CNT_GFC = OD_CNT_GFC;\
     (config).ENTRY_H1300 = OD_ENTRY_H1300;\
-    (config).CNT_SRDO = 0;\
-    (config).ENTRY_H1301 = NULL;\
-    (config).ENTRY_H1381 = NULL;\
-    (config).ENTRY_H13FE = NULL;\
-    (config).ENTRY_H13FF = NULL;\
+    (config).CNT_SRDO = OD_CNT_SRDO;\
+    (config).ENTRY_H1301 = OD_ENTRY_H1301;\
+    (config).ENTRY_H1381 = OD_ENTRY_H1381;\
+    (config).ENTRY_H13FE = OD_ENTRY_H13FE;\
+    (config).ENTRY_H13FF = OD_ENTRY_H13FF;\
     (config).CNT_LSS_SLV = 0;\
     (config).CNT_LSS_MST = 0;\
     (config).CNT_GTWA = 0;\
