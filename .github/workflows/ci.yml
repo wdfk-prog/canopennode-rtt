@@ -43,6 +43,7 @@ jobs:
           - demo-storage-dfs
           - demo-storage-eeprom-at24c
           - demo-safety-debug
+          - demo-b-stage-cumulative
     env:
       ARM_GCC_ARCHIVE: gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
       ARM_GCC_DIR: /opt/gcc-arm-none-eabi
