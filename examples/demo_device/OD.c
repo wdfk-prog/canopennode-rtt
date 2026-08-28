@@ -49,6 +49,37 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .node_IDOfTheSDOServer = 0x01
     },
     .x1300_globalFail_safeCommandParameter = 0x01,
+    .x1301_SRDOCommunicationParameter = {
+        .highestSub_indexSupported = 0x06,
+        .informationDirection = 0x02,
+        .safetyCycleTime = 0x0064,
+        .safetyRelatedValidationTime = 0x14,
+        .transmissionType = 0xFE,
+        .COB_ID1Normal = 0x00000101,
+        .COB_ID2Inverted = 0x00000102
+    },
+    .x1302_SRDOCommunicationParameter = {
+        .highestSub_indexSupported = 0x06,
+        .informationDirection = 0x01,
+        .safetyCycleTime = 0x0064,
+        .safetyRelatedValidationTime = 0x14,
+        .transmissionType = 0xFE,
+        .COB_ID1Normal = 0x00000103,
+        .COB_ID2Inverted = 0x00000104
+    },
+    .x1381_SRDOMappingParameter = {
+        .numberOfMappedApplicationObjectsInSRDO = 0x02,
+        .applicationObject1 = 0x23060120,
+        .applicationObject2 = 0x23060220
+    },
+    .x1382_SRDOMappingParameter = {
+        .numberOfMappedApplicationObjectsInSRDO = 0x02,
+        .applicationObject1 = 0x23060320,
+        .applicationObject2 = 0x23060420
+    },
+    .x13FE_SRDOConfigurationValid = 0xA5,
+    .x13FF_SRDOChecksum_sub0 = 0x02,
+    .x13FF_SRDOChecksum = {0xA1B7, 0x49D8},
     .x1400_RPDOCommunicationParameter = {
         .highestSub_indexSupported = 0x05,
         .COB_IDUsedByRPDO = 0x00000200,
@@ -300,6 +331,20 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
         .backup_crc = 0x0000,
         .startup_seq = 0x00000000,
         .startup_probe = 0x0000
+    },
+    .x2306_srdo_diagnostic = {
+        .highestSub_indexSupported = 0x0B,
+        .rx_normal = 0x00000000,
+        .rx_inverted = 0xFFFFFFFF,
+        .tx_normal = 0x12345678,
+        .tx_inverted = 0xEDCBA987,
+        .aggregate_state = 0,
+        .rx_state = 0,
+        .tx_state = 0,
+        .state_seq = 0x00000000,
+        .tx_request_seq = 0x00000000,
+        .tx_complete_seq = 0x00000000,
+        .tx_request_result = 0
     }
 };
 
@@ -332,6 +377,12 @@ typedef struct {
     OD_obj_record_t o_1200_SDOServerParameter[3];
     OD_obj_record_t o_1280_SDOClientParameter[4];
     OD_obj_var_t o_1300_globalFail_safeCommandParameter;
+    OD_obj_record_t o_1301_SRDOCommunicationParameter[7];
+    OD_obj_record_t o_1302_SRDOCommunicationParameter[7];
+    OD_obj_record_t o_1381_SRDOMappingParameter[3];
+    OD_obj_record_t o_1382_SRDOMappingParameter[3];
+    OD_obj_var_t o_13FE_SRDOConfigurationValid;
+    OD_obj_array_t o_13FF_SRDOChecksum;
     OD_obj_record_t o_1400_RPDOCommunicationParameter[4];
     OD_obj_record_t o_1401_RPDOCommunicationParameter[4];
     OD_obj_record_t o_1402_RPDOCommunicationParameter[4];
@@ -359,6 +410,7 @@ typedef struct {
     OD_obj_record_t o_2303_sdo_client_test[16];
     OD_obj_var_t o_2304_sdo_server_block_test;
     OD_obj_record_t o_2305_storage_diagnostic[27];
+    OD_obj_record_t o_2306_srdo_diagnostic[12];
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -551,6 +603,147 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .dataOrig = &OD_PERSIST_COMM.x1300_globalFail_safeCommandParameter,
         .attribute = ODA_SDO_RW,
         .dataLength = 1
+    },
+    .o_1301_SRDOCommunicationParameter = {
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1301_SRDOCommunicationParameter.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1301_SRDOCommunicationParameter.informationDirection,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1301_SRDOCommunicationParameter.safetyCycleTime,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 2
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1301_SRDOCommunicationParameter.safetyRelatedValidationTime,
+            .subIndex = 3,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1301_SRDOCommunicationParameter.transmissionType,
+            .subIndex = 4,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1301_SRDOCommunicationParameter.COB_ID1Normal,
+            .subIndex = 5,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1301_SRDOCommunicationParameter.COB_ID2Inverted,
+            .subIndex = 6,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        }
+    },
+    .o_1302_SRDOCommunicationParameter = {
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1302_SRDOCommunicationParameter.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1302_SRDOCommunicationParameter.informationDirection,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1302_SRDOCommunicationParameter.safetyCycleTime,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 2
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1302_SRDOCommunicationParameter.safetyRelatedValidationTime,
+            .subIndex = 3,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1302_SRDOCommunicationParameter.transmissionType,
+            .subIndex = 4,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1302_SRDOCommunicationParameter.COB_ID1Normal,
+            .subIndex = 5,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1302_SRDOCommunicationParameter.COB_ID2Inverted,
+            .subIndex = 6,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        }
+    },
+    .o_1381_SRDOMappingParameter = {
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1381_SRDOMappingParameter.numberOfMappedApplicationObjectsInSRDO,
+            .subIndex = 0,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1381_SRDOMappingParameter.applicationObject1,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1381_SRDOMappingParameter.applicationObject2,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        }
+    },
+    .o_1382_SRDOMappingParameter = {
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1382_SRDOMappingParameter.numberOfMappedApplicationObjectsInSRDO,
+            .subIndex = 0,
+            .attribute = ODA_SDO_RW,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1382_SRDOMappingParameter.applicationObject1,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1382_SRDOMappingParameter.applicationObject2,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        }
+    },
+    .o_13FE_SRDOConfigurationValid = {
+        .dataOrig = &OD_PERSIST_COMM.x13FE_SRDOConfigurationValid,
+        .attribute = ODA_SDO_RW,
+        .dataLength = 1
+    },
+    .o_13FF_SRDOChecksum = {
+        .dataOrig0 = &OD_PERSIST_COMM.x13FF_SRDOChecksum_sub0,
+        .dataOrig = &OD_PERSIST_COMM.x13FF_SRDOChecksum[0],
+        .attribute0 = ODA_SDO_R,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataElementLength = 2,
+        .dataElementSizeof = sizeof(uint16_t)
     },
     .o_1400_RPDOCommunicationParameter = {
         {
@@ -1745,6 +1938,80 @@ static CO_PROGMEM ODObjs_t ODObjs = {
             .attribute = ODA_SDO_R | ODA_MB,
             .dataLength = 2
         }
+    },
+    .o_2306_srdo_diagnostic = {
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.rx_normal,
+            .subIndex = 1,
+            .attribute = ODA_SDO_R | ODA_RSRDO | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.rx_inverted,
+            .subIndex = 2,
+            .attribute = ODA_SDO_R | ODA_RSRDO | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.tx_normal,
+            .subIndex = 3,
+            .attribute = ODA_SDO_RW | ODA_TSRDO | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.tx_inverted,
+            .subIndex = 4,
+            .attribute = ODA_SDO_RW | ODA_TSRDO | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.aggregate_state,
+            .subIndex = 5,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.rx_state,
+            .subIndex = 6,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.tx_state,
+            .subIndex = 7,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.state_seq,
+            .subIndex = 8,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.tx_request_seq,
+            .subIndex = 9,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.tx_complete_seq,
+            .subIndex = 10,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x2306_srdo_diagnostic.tx_request_result,
+            .subIndex = 11,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        }
     }
 };
 
@@ -1776,6 +2043,12 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x1200, 0x03, ODT_REC, &ODObjs.o_1200_SDOServerParameter, NULL},
     {0x1280, 0x04, ODT_REC, &ODObjs.o_1280_SDOClientParameter, NULL},
     {0x1300, 0x01, ODT_VAR, &ODObjs.o_1300_globalFail_safeCommandParameter, NULL},
+    {0x1301, 0x07, ODT_REC, &ODObjs.o_1301_SRDOCommunicationParameter, NULL},
+    {0x1302, 0x07, ODT_REC, &ODObjs.o_1302_SRDOCommunicationParameter, NULL},
+    {0x1381, 0x03, ODT_REC, &ODObjs.o_1381_SRDOMappingParameter, NULL},
+    {0x1382, 0x03, ODT_REC, &ODObjs.o_1382_SRDOMappingParameter, NULL},
+    {0x13FE, 0x01, ODT_VAR, &ODObjs.o_13FE_SRDOConfigurationValid, NULL},
+    {0x13FF, 0x03, ODT_ARR, &ODObjs.o_13FF_SRDOChecksum, NULL},
     {0x1400, 0x04, ODT_REC, &ODObjs.o_1400_RPDOCommunicationParameter, NULL},
     {0x1401, 0x04, ODT_REC, &ODObjs.o_1401_RPDOCommunicationParameter, NULL},
     {0x1402, 0x04, ODT_REC, &ODObjs.o_1402_RPDOCommunicationParameter, NULL},
@@ -1803,6 +2076,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x2303, 0x10, ODT_REC, &ODObjs.o_2303_sdo_client_test, NULL},
     {0x2304, 0x01, ODT_VAR, &ODObjs.o_2304_sdo_server_block_test, NULL},
     {0x2305, 0x1B, ODT_REC, &ODObjs.o_2305_storage_diagnostic, NULL},
+    {0x2306, 0x0C, ODT_REC, &ODObjs.o_2306_srdo_diagnostic, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 

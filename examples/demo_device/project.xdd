@@ -167,6 +167,38 @@
               <USINT />
             </q1:varDeclaration>
           </q1:struct>
+          <q1:struct name="SRDO communication parameter" uniqueID="UID_REC_1301">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_130100"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Information direction" uniqueID="UID_RECSUB_130101"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Safety cycle time" uniqueID="UID_RECSUB_130102"><UINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Safety related validation time" uniqueID="UID_RECSUB_130103"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_130104"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 1 normal" uniqueID="UID_RECSUB_130105"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 2 inverted" uniqueID="UID_RECSUB_130106"><UDINT /></q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="SRDO communication parameter" uniqueID="UID_REC_1302">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_130200"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Information direction" uniqueID="UID_RECSUB_130201"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Safety cycle time" uniqueID="UID_RECSUB_130202"><UINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Safety related validation time" uniqueID="UID_RECSUB_130203"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_130204"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 1 normal" uniqueID="UID_RECSUB_130205"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 2 inverted" uniqueID="UID_RECSUB_130206"><UDINT /></q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="SRDO mapping parameter" uniqueID="UID_REC_1381">
+            <q1:varDeclaration name="Number of mapped application objects in SRDO" uniqueID="UID_RECSUB_138100"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_138101"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_138102"><UDINT /></q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="SRDO mapping parameter" uniqueID="UID_REC_1382">
+            <q1:varDeclaration name="Number of mapped application objects in SRDO" uniqueID="UID_RECSUB_138200"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_138201"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_138202"><UDINT /></q1:varDeclaration>
+          </q1:struct>
+          <q1:array name="SRDO checksum" uniqueID="UID_ARR_13FF">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <UINT />
+          </q1:array>
           <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_1400">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_140000">
               <USINT />
@@ -776,6 +808,20 @@
             <q1:varDeclaration name="startup_probe" uniqueID="UID_RECSUB_23051A">
               <UINT />
             </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="srdo_diagnostic" uniqueID="UID_REC_2306">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230600"><USINT /></q1:varDeclaration>
+            <q1:varDeclaration name="rx_normal" uniqueID="UID_RECSUB_230601"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="rx_inverted" uniqueID="UID_RECSUB_230602"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="tx_normal" uniqueID="UID_RECSUB_230603"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="tx_inverted" uniqueID="UID_RECSUB_230604"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="aggregate_state" uniqueID="UID_RECSUB_230605"><SINT /></q1:varDeclaration>
+            <q1:varDeclaration name="rx_state" uniqueID="UID_RECSUB_230606"><SINT /></q1:varDeclaration>
+            <q1:varDeclaration name="tx_state" uniqueID="UID_RECSUB_230607"><SINT /></q1:varDeclaration>
+            <q1:varDeclaration name="state_seq" uniqueID="UID_RECSUB_230608"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="tx_request_seq" uniqueID="UID_RECSUB_230609"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="tx_complete_seq" uniqueID="UID_RECSUB_23060A"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="tx_request_result" uniqueID="UID_RECSUB_23060B"><DINT /></q1:varDeclaration>
           </q1:struct>
         </q1:dataTypeList>
         <q1:parameterList>
@@ -1439,6 +1485,154 @@ The life time factor multiplied with the guard time gives the life time for the 
             <q1:defaultValue value="0x01" />
             <q1:property name="CO_countLabel" value="GFC" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1301">
+            <label lang="en">SRDO communication parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1301" />
+            <q1:property name="CO_countLabel" value="SRDO" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x06" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130101" access="readWrite">
+            <label lang="en">Information direction</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130102" access="readWrite">
+            <label lang="en">Safety cycle time</label>
+            <UINT />
+            <q1:defaultValue value="100" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130103" access="readWrite">
+            <label lang="en">Safety related validation time</label>
+            <USINT />
+            <q1:defaultValue value="20" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130104" access="readWrite">
+            <label lang="en">Transmission type</label>
+            <USINT />
+            <q1:defaultValue value="254" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130105" access="readWrite">
+            <label lang="en">COB-ID 1 normal</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000101" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130106" access="readWrite">
+            <label lang="en">COB-ID 2 inverted</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000102" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1302">
+            <label lang="en">SRDO communication parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1302" />
+            <q1:property name="CO_countLabel" value="SRDO" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130200">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x06" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130201" access="readWrite">
+            <label lang="en">Information direction</label>
+            <USINT />
+            <q1:defaultValue value="0x01" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130202" access="readWrite">
+            <label lang="en">Safety cycle time</label>
+            <UINT />
+            <q1:defaultValue value="100" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130203" access="readWrite">
+            <label lang="en">Safety related validation time</label>
+            <USINT />
+            <q1:defaultValue value="20" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130204" access="readWrite">
+            <label lang="en">Transmission type</label>
+            <USINT />
+            <q1:defaultValue value="254" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130205" access="readWrite">
+            <label lang="en">COB-ID 1 normal</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000103" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_130206" access="readWrite">
+            <label lang="en">COB-ID 2 inverted</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000104" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1381">
+            <label lang="en">SRDO mapping parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1381" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_138100" access="readWrite">
+            <label lang="en">Number of mapped application objects in SRDO</label>
+            <USINT />
+            <q1:defaultValue value="2" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_138101" access="readWrite">
+            <label lang="en">Application object 1</label>
+            <UDINT />
+            <q1:defaultValue value="0x23060120" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_138102" access="readWrite">
+            <label lang="en">Application object 2</label>
+            <UDINT />
+            <q1:defaultValue value="0x23060220" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1382">
+            <label lang="en">SRDO mapping parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1382" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_138200" access="readWrite">
+            <label lang="en">Number of mapped application objects in SRDO</label>
+            <USINT />
+            <q1:defaultValue value="2" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_138201" access="readWrite">
+            <label lang="en">Application object 1</label>
+            <UDINT />
+            <q1:defaultValue value="0x23060320" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_138202" access="readWrite">
+            <label lang="en">Application object 2</label>
+            <UDINT />
+            <q1:defaultValue value="0x23060420" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_13FE" access="readWrite">
+            <label lang="en">SRDO configuration valid</label>
+            <USINT />
+            <q1:defaultValue value="0xA5" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_13FF">
+            <label lang="en">SRDO checksum</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_13FF" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_13FF00">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_13FF01" access="readWrite">
+            <label lang="en">SRDO1 checksum</label>
+            <UINT />
+            <q1:defaultValue value="0xA1B7" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_13FF02" access="readWrite">
+            <label lang="en">SRDO2 checksum</label>
+            <UINT />
+            <q1:defaultValue value="0x49D8" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1400">
             <description lang="en">* COB-ID used by RPDO:
@@ -2670,6 +2864,74 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UINT />
             <q1:defaultValue value="0x0000" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2306">
+            <label lang="en">srdo_diagnostic</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_2306" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230600">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x0B" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230601" access="read">
+            <label lang="en">rx_normal</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+            <q1:property name="CO_accessSRDO" value="rx" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230602" access="read">
+            <label lang="en">rx_inverted</label>
+            <UDINT />
+            <q1:defaultValue value="0xFFFFFFFF" />
+            <q1:property name="CO_accessSRDO" value="rx" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230603" access="readWrite">
+            <label lang="en">tx_normal</label>
+            <UDINT />
+            <q1:defaultValue value="0x12345678" />
+            <q1:property name="CO_accessSRDO" value="tx" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230604" access="readWrite">
+            <label lang="en">tx_inverted</label>
+            <UDINT />
+            <q1:defaultValue value="0xEDCBA987" />
+            <q1:property name="CO_accessSRDO" value="tx" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230605" access="read">
+            <label lang="en">aggregate_state</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230606" access="read">
+            <label lang="en">rx_state</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230607" access="read">
+            <label lang="en">tx_state</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230608" access="read">
+            <label lang="en">state_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_230609" access="readWrite">
+            <label lang="en">tx_request_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23060A" access="read">
+            <label lang="en">tx_complete_seq</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_23060B" access="read">
+            <label lang="en">tx_request_result</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -2822,6 +3084,40 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="03" name="Node-ID of the SDO server" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_128003" />
           </CANopenObject>
           <CANopenObject index="1300" name="Global fail-safe command parameter" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1300" />
+          <CANopenObject index="1301" name="SRDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1301" subNumber="7">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130100" />
+            <CANopenSubObject subIndex="01" name="Information direction" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130101" />
+            <CANopenSubObject subIndex="02" name="Safety cycle time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130102" />
+            <CANopenSubObject subIndex="03" name="Safety related validation time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130103" />
+            <CANopenSubObject subIndex="04" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130104" />
+            <CANopenSubObject subIndex="05" name="COB-ID 1 normal" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130105" />
+            <CANopenSubObject subIndex="06" name="COB-ID 2 inverted" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130106" />
+          </CANopenObject>
+          <CANopenObject index="1302" name="SRDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1302" subNumber="7">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130200" />
+            <CANopenSubObject subIndex="01" name="Information direction" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130201" />
+            <CANopenSubObject subIndex="02" name="Safety cycle time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130202" />
+            <CANopenSubObject subIndex="03" name="Safety related validation time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130203" />
+            <CANopenSubObject subIndex="04" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130204" />
+            <CANopenSubObject subIndex="05" name="COB-ID 1 normal" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130205" />
+            <CANopenSubObject subIndex="06" name="COB-ID 2 inverted" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_130206" />
+          </CANopenObject>
+          <CANopenObject index="1381" name="SRDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1381" subNumber="3">
+            <CANopenSubObject subIndex="00" name="Number of mapped application objects in SRDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_138100" />
+            <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_138101" />
+            <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_138102" />
+          </CANopenObject>
+          <CANopenObject index="1382" name="SRDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1382" subNumber="3">
+            <CANopenSubObject subIndex="00" name="Number of mapped application objects in SRDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_138200" />
+            <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_138201" />
+            <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_138202" />
+          </CANopenObject>
+          <CANopenObject index="13FE" name="SRDO configuration valid" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_13FE" />
+          <CANopenObject index="13FF" name="SRDO checksum" objectType="8" uniqueIDRef="UID_OBJ_13FF" subNumber="3">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_13FF00" />
+            <CANopenSubObject subIndex="01" name="SRDO1 checksum" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_13FF01" />
+            <CANopenSubObject subIndex="02" name="SRDO2 checksum" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_13FF02" />
+          </CANopenObject>
           <CANopenObject index="1400" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1400" subNumber="4">
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140000" />
             <CANopenSubObject subIndex="01" name="COB-ID used by RPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140001" />
@@ -3059,6 +3355,20 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="18" name="backup_crc" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230518" />
             <CANopenSubObject subIndex="19" name="startup_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230519" />
             <CANopenSubObject subIndex="1A" name="startup_probe" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23051A" />
+          </CANopenObject>
+          <CANopenObject index="2306" name="srdo_diagnostic" objectType="9" uniqueIDRef="UID_OBJ_2306" subNumber="12">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230600" />
+            <CANopenSubObject subIndex="01" name="rx_normal" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230601" />
+            <CANopenSubObject subIndex="02" name="rx_inverted" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230602" />
+            <CANopenSubObject subIndex="03" name="tx_normal" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230603" />
+            <CANopenSubObject subIndex="04" name="tx_inverted" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230604" />
+            <CANopenSubObject subIndex="05" name="aggregate_state" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230605" />
+            <CANopenSubObject subIndex="06" name="rx_state" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230606" />
+            <CANopenSubObject subIndex="07" name="tx_state" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230607" />
+            <CANopenSubObject subIndex="08" name="state_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230608" />
+            <CANopenSubObject subIndex="09" name="tx_request_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_230609" />
+            <CANopenSubObject subIndex="0A" name="tx_complete_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23060A" />
+            <CANopenSubObject subIndex="0B" name="tx_request_result" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23060B" />
           </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>
