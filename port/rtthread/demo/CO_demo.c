@@ -36,6 +36,9 @@ void CO_demo_init(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_init(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC)
+    CO_demo_srdo_init();
+#endif /* defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC) */
 }
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
@@ -92,6 +95,11 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co)
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_bind(&demo->nmtMaster, co);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC)
+    if (!CO_demo_srdo_bind(co)) {
+        bound = false;
+    }
+#endif /* defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC) */
 
     return bound;
 }
@@ -127,6 +135,9 @@ void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t no
     (void)nowMs;
     (void)resetStatus;
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC)
+    CO_demo_srdo_process(co);
+#endif /* defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC) */
 }
 
 void CO_demo_reset(CO_demo_t *demo)
@@ -153,6 +164,9 @@ void CO_demo_reset(CO_demo_t *demo)
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_reset(&demo->nmtMaster);
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC)
+    CO_demo_srdo_reset();
+#endif /* defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC) */
 }
 
 void CO_demo_deinit(CO_demo_t *demo)

@@ -18,7 +18,8 @@
     || defined(PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST) \
     || defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) \
     || defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) \
-    || defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
+    || defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) \
+    || defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC)
 #define CO_DEMO_ENABLED 1
 #else
 #define CO_DEMO_ENABLED 0
@@ -50,6 +51,9 @@
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
 #include "CO_demo_nmt_master.h"
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
+#if defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC)
+#include "CO_demo_srdo.h"
+#endif /* defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC) */
 
 #ifdef __cplusplus
 extern "C" {
