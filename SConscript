@@ -60,14 +60,28 @@ if GetDepend('PKG_USING_CANOPENNODE'):
     _add_required_any(GetDepend('PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE'),
                       'ASCII gateway RT-Thread console bridge',
                       [os.path.join('port', 'rtthread', 'CO_gateway_RTT.c')])
+    if (GetDepend('PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC')
+            and not GetDepend('PKG_CANOPENNODE_USING_DEMO_OD')):
+        raise RuntimeError(
+            'PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC requires the generated demo OD; '
+            'enable PKG_CANOPENNODE_USING_DEMO_OD or disable the J09/B09S fixture.')
+
     if GetDepend('PKG_CANOPENNODE_USING_DEMO_OD'):
+        if (GetDepend('PKG_CANOPENNODE_USING_SRDO')
+                and not GetDepend('PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC')):
+            raise RuntimeError(
+                'The generated demo OD contains the fixed J09/B09S SRDO profile; '
+                'enable PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC or disable '
+                'PKG_CANOPENNODE_USING_DEMO_OD and provide a product OD.')
+
         demo_enabled = (GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC')
                         or GetDepend('PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST')
                         or GetDepend('PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST')
                         or GetDepend('PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC')
-                        or GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'))
+                        or GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST')
+                        or GetDepend('PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC'))
         _add_required_any(demo_enabled, 'demo dispatcher',
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC'),
@@ -88,6 +102,8 @@ if GetDepend('PKG_USING_CANOPENNODE'):
                           [os.path.join('port', 'rtthread', 'demo', 'CO_demo_storage.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST'),
                           'demo NMT master test', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_nmt_master.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC'),
+                          'demo SRDO diagnostic', [os.path.join('port', 'rtthread', 'demo', 'CO_demo_srdo.c')])
 
     _add_required(os.path.join('CANopenNode', 'CANopen.c'))
     _add_required(os.path.join('CANopenNode', '301', 'CO_NMT_Heartbeat.c'))

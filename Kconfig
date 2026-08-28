@@ -1420,6 +1420,28 @@ config PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC
         This option validates protocol behavior only. It does not implement a
         functional-safety state machine or control real safety actuators.
 
+config PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC
+    bool "Enable demo J09/B09S SRDO diagnostic fixture"
+    default n
+    depends on PKG_CANOPENNODE_USING_SDO_SERVER
+    depends on PKG_CANOPENNODE_CAN_BINDING_COUNT = 1
+    depends on PKG_CANOPENNODE_USING_DEMO_OD
+    select PKG_CANOPENNODE_USING_SRDO
+    select PKG_CANOPENNODE_SRDO_CHECK_TX
+    help
+        Enable the test-only J09/B09S SRDO fixture in the generated demo Object
+        Dictionary. The fixture exposes two deterministic SRDO channels and OD
+        0x2306 state/TX-request observability for Host protocol validation.
+
+        The generated OD_RAM.x2306_srdo_diagnostic object is global, so this
+        fixture is intentionally limited to one CANopenNodeRTT instance / CAN
+        binding. Multi-instance products must keep this fixture disabled and
+        provide instance-specific Object Dictionaries and diagnostics.
+
+        This option validates CANopenNode SRDO protocol behavior only. It does
+        not claim SIL/PL compliance, functional-safety certification, redundant
+        hardware coverage, WCET proof or machine-level safety timing.
+
 config PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST
     bool "Enable demo SDO server block-transfer DOMAIN fixture"
     default n
