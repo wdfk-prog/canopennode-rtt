@@ -18,7 +18,8 @@
         "demo-manual-multiple-od",
         "demo-storage-dfs",
         "demo-storage-eeprom-at24c",
-        "demo-safety-debug"
+        "demo-safety-debug",
+        "demo-b-stage-cumulative"
       ]
     }
   ],

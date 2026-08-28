@@ -292,6 +292,95 @@ append_canopennode_manual_multiple_od()
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_MULTIPLE_OD"
 }
 
+append_canopennode_b_stage_cumulative()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    # P-B00 baseline plus P-B07/P-B08 persistence foundation.
+    append_canopennode_storage_eeprom_at24c "$config_file" "$rtconfig_file"
+
+    # Baseline diagnostics/regression helpers that remain compatible
+    # with the final cumulative profile.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_TIMERNEXT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_CALLBACK_CHANGE"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TIME_PRODUCER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_BITWISE_MAPPING"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_EM_CONSUMER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC"
+
+    # P-B01 NMT Master capability. The automatic NMT-master fixture is
+    # intentionally not enabled because the Gateway console owns NMT
+    # transactions in this cumulative compile/link profile.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_MASTER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_HB_CONS_QUERY_FUNCT"
+
+    # P-B03/P-B06 SDO Client local/segmented/block capability.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SDO_CLIENT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_SEGMENTED"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_BLOCK"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_LOCAL"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_BUFFER_SIZE"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_BUFFER_SIZE" "1000"
+
+    # P-B03 GFC consumer/producer and automated diagnostic bridge.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_GFC"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GFC_CONSUMER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GFC_PRODUCER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC"
+
+    # P-B05 CiA 309-3 Gateway ASCII over the existing RT-Thread MSH bridge.
+    append_config_define "$config_file" "$rtconfig_file" "RT_USING_FINSH"
+    append_config_define "$config_file" "$rtconfig_file" "FINSH_USING_MSH"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_FIFO"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_FIFO_ALT_READ"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_FIFO_CRC16_CCITT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_FIFO_ASCII_COMMANDS"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_FIFO_ASCII_DATATYPES"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_LSS_MASTER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_GATEWAY_ASCII"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_SDO"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_NMT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_LSS"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_LOG"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_ERROR_DESC"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_PRINT_HELP"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_ASCII_PRINT_LEDS"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTW_BLOCK_DL_LOOP" "1"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_COMM_BUF_SIZE" "200"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GTWA_LOG_BUF_SIZE" "2000"
+
+    # P-B06 SDO Server Block fixture; CRC16/FIFO are already enabled above.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BLOCK"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BUFFER_SIZE"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BUFFER_SIZE" "1024"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST"
+
+    # P-B07 Storage EEPROM diagnostic. The storage helper also enables
+    # P-B08 LSS persistence callbacks/store and the default LSS slave.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC"
+
+    # P-B09 SRDO on top of all preceding compatible capabilities.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SRDO"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SRDO_CHECK_TX"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SRDO_MINIMUM_DELAY" "0"
+
+    # Keep final-profile diagnostics comparable with demo-safety-debug.
+    append_config_define "$config_file" "$rtconfig_file" "RT_USING_ULOG"
+    append_config_define "$config_file" "$rtconfig_file" "RT_CAN_USING_HDR"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_RTT_CAN_FILTER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_DEBUG"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEBUG_COMMON"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEBUG_SDO_CLIENT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEBUG_SDO_SERVER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_FRAME_TRACE"
+}
+
 append_canopennode_profile()
 {
     local config_file="$1"
@@ -414,6 +503,10 @@ append_canopennode_profile()
             append_canopennode_storage_eeprom_at24c "$config_file" "$rtconfig_file"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC"
             ;;
+        demo-b-stage-cumulative)
+    log "CI Kconfig profile demo-b-stage-cumulative: final P-B09 cumulative compile/link coverage"
+    append_canopennode_b_stage_cumulative "$config_file" "$rtconfig_file"
+    ;;
         demo-safety-debug)
             log "CI Kconfig profile demo-safety-debug: GFC/SRDO, CAN HDR filter, ulog debug"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -426,6 +519,7 @@ append_canopennode_profile()
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SRDO"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SRDO_CHECK_TX"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC"
             append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SRDO_MINIMUM_DELAY" "0"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_DEBUG"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_DEBUG_COMMON"
@@ -437,7 +531,8 @@ append_canopennode_profile()
             printf '%s\n' \
                 "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-emcy-consumer demo-gfc" \
                 "  demo-nmt-master-test demo-sdo-client-test demo-sdo-block-test demo-sdo-client-gateway" \
-                "  demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" >&2
+                "  demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" \
+                "  demo-b-stage-cumulative" >&2
             exit 1
             ;;
     esac
@@ -446,7 +541,7 @@ append_canopennode_profile()
 profile_uses_at24cxx_github_source()
 {
     case "$CANOPENNODE_CI_PROFILE" in
-        demo-storage-eeprom-at24c)
+        demo-storage-eeprom-at24c|demo-b-stage-cumulative)
             return 0
             ;;
         *)
@@ -514,7 +609,7 @@ verify_profile_dependencies()
     local at24cxx_dir="$bsp_dir/packages/at24cxx"
 
     case "$CANOPENNODE_CI_PROFILE" in
-        demo-storage-eeprom-at24c)
+        demo-storage-eeprom-at24c|demo-b-stage-cumulative)
             if [ ! -f "$at24cxx_dir/at24cxx.h" ] || [ ! -f "$at24cxx_dir/at24cxx.c" ]; then
                 echo "AT24CXX source was not fetched from GitHub for profile=$CANOPENNODE_CI_PROFILE" >&2
                 echo "Expected: $at24cxx_dir/at24cxx.h and $at24cxx_dir/at24cxx.c" >&2
@@ -602,6 +697,37 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "at24cxx.o"
             verify_profile_object "$bsp_dir" "crc16-ccitt.o"
             ;;
+        demo-b-stage-cumulative)
+    verify_profile_object "$bsp_dir" "OD.o"
+    verify_profile_object "$bsp_dir" "CO_demo.o"
+    verify_profile_object "$bsp_dir" "CO_demo_time.o"
+    verify_profile_object "$bsp_dir" "CO_demo_emcy_consumer.o"
+    verify_profile_object "$bsp_dir" "CO_demo_gfc.o"
+    verify_profile_object "$bsp_dir" "CO_demo_sdo_block.o"
+    verify_profile_object "$bsp_dir" "CO_demo_storage.o"
+    verify_profile_object "$bsp_dir" "CO_demo_srdo.o"
+    verify_profile_object "$bsp_dir" "CO_HBconsumer.o"
+    verify_profile_object "$bsp_dir" "CO_Emergency.o"
+    verify_profile_object "$bsp_dir" "CO_SDOserver.o"
+    verify_profile_object "$bsp_dir" "CO_SDOclient.o"
+    verify_profile_object "$bsp_dir" "CO_SYNC.o"
+    verify_profile_object "$bsp_dir" "CO_PDO.o"
+    verify_profile_object "$bsp_dir" "CO_GFC.o"
+    verify_profile_object "$bsp_dir" "CO_SRDO.o"
+    verify_profile_object "$bsp_dir" "CO_LSSslave.o"
+    verify_profile_object "$bsp_dir" "CO_LSSmaster.o"
+    verify_profile_object "$bsp_dir" "CO_gateway_ascii.o"
+    verify_profile_object "$bsp_dir" "CO_gateway_RTT.o"
+    verify_profile_object "$bsp_dir" "CO_fifo.o"
+    verify_profile_object "$bsp_dir" "CO_lss_persist_RTT.o"
+    verify_profile_object "$bsp_dir" "CO_storage.o"
+    verify_profile_object "$bsp_dir" "CO_storageEeprom.o"
+    verify_profile_object "$bsp_dir" "CO_storage_RTT.o"
+    verify_profile_object "$bsp_dir" "CO_storage_RTT_eeprom.o"
+    verify_profile_object "$bsp_dir" "CO_storage_RTT_at24c.o"
+    verify_profile_object "$bsp_dir" "at24cxx.o"
+    verify_profile_object "$bsp_dir" "crc16-ccitt.o"
+    ;;
         demo-safety-debug)
             verify_profile_object "$bsp_dir" "CO_GFC.o"
             verify_profile_object "$bsp_dir" "CO_SRDO.o"
