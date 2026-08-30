@@ -38,18 +38,58 @@ config PKG_CANOPENNODE_CAN_BINDING_COUNT
         separate RT-Thread CAN devices.
 
 config PKG_CANOPENNODE_USING_RTT_CAN_FILTER
-    bool "Use RT-Thread CAN HDR filters when available"
+    bool "Use coarse RT-Thread CAN HDR filters as CANopen RX ingress"
     default n
-    depends on RT_CAN_USING_HDR && RT_USING_HEAP
+    depends on RT_CAN_USING_HDR
+    depends on PKG_CANOPENNODE_CAN_BINDING_COUNT = 1
     help
-        Try to configure RT-Thread CAN HDR filters from CANopenNode RX buffers
-        when CAN normal mode starts and when CANopenNode reconfigures an RX
-        buffer at runtime. If the CAN controller does not provide enough HDR
-        banks or filter setup fails, the port falls back to software RX dispatch
-        in the co_rx thread. CO_CANrx_t remains lightweight and stores only the
-        CANopenNode identifier, mask, callback object and an optional HDR bank
-        index.
+        Compile the active CANopenNode RX rules into a bounded set of coarse
+        standard-ID RT-Thread HDR mask filters. Hardware filters are only an
+        ingress prefilter: co_rx always performs the final CANopenNode
+        ident/mask/RTR match before dispatching callbacks.
 
+        Runtime COB-ID changes mark the hardware filter set dirty and refresh
+        the bounded coarse table before CO_CANrxBufferInit() returns when CAN is
+        already in normal mode. The normal mainline path also retries a pending
+        refresh. If the bounded compiler cannot represent all active rules, it
+        falls back to broad standard-frame ingress filters without narrowing the
+        CANopenNode software rule set.
+
+        The generic STM32 bxCAN RT-Thread mask-filter path compares RTR, so DTR
+        and RTR rules consume separate coarse-filter coverage. Configure at
+        least two banks when both data and remote frames must be received.
+
+        Enabling this option gives the single configured CANopenNode CAN module
+        exclusive ownership of the HDR bank range selected below. Multi-binding
+        configurations keep this option unavailable because one global bank
+        range cannot describe controllers with different filter-bank partitions.
+        Reduce the range or disable this option if another component configures
+        HDR filters on the same CAN device.
+
+config PKG_CANOPENNODE_RX_HDR_BANK_BASE
+    int "CANopen RX first HDR bank"
+    range 0 27
+    default 0
+    depends on PKG_CANOPENNODE_USING_RTT_CAN_FILTER
+    help
+        First hardware filter bank exclusively owned by the CANopen RX ingress
+        compiler. Every ingress filter uses an explicit bank index starting at
+        this value; the port does not rely on driver auto-assignment. On the
+        current STM32 bxCAN driver, use banks 0..13 for CAN1 and 14..27 for
+        CAN2. The default 0 matches the package default CAN device, can1.
+
+config PKG_CANOPENNODE_RX_HDR_BANK_COUNT
+    int "CANopen RX HDR bank count"
+    range 2 14
+    default 8
+    depends on PKG_CANOPENNODE_USING_RTT_CAN_FILTER
+    help
+        Number of consecutive hardware filter banks exclusively owned by the
+        CANopen RX ingress compiler, beginning at
+        PKG_CANOPENNODE_RX_HDR_BANK_BASE. More banks preserve narrower hardware
+        masks and reject more unrelated traffic. The configured range must be
+        valid for the selected CAN controller/BSP. The software matcher remains
+        authoritative regardless of this value.
 
 menu "RT-Thread runtime options"
 

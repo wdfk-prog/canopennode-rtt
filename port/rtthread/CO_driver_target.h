@@ -108,9 +108,6 @@ typedef struct {
     uint16_t mask;        /**< Identifier and RTR mask with the same alignment as ident. */
     void *object;         /**< CANopenNode object passed to the receive callback. */
     void (*pCANrx_callback)(void *object, void *message); /**< Fast receive callback. */
-#ifdef RT_CAN_USING_HDR
-    rt_int32_t hdr_bank;  /**< Optional RT-Thread hardware filter bank, or -1 for software dispatch. */
-#endif /* RT_CAN_USING_HDR */
 } CO_CANrx_t;
 
 /**
@@ -136,6 +133,9 @@ typedef struct {
     volatile rt_bool_t rxRunning;    /**< True while the RX helper may access RX buffers or callback objects. */
 
     struct rt_mutex canSendMutex;    /**< Protects CANopenNode transmit buffer state. */
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    struct rt_mutex rxRuleMutex;     /**< Protects receive-rule publication and matching snapshots. */
+#endif
     struct rt_mutex emcyMutex;       /**< Protects CANopenNode Emergency state. */
     struct rt_mutex odMutex;         /**< Protects PDO-mappable Object Dictionary access. */
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
@@ -151,7 +151,10 @@ typedef struct {
     uint16_t CANtxEventStatus;       /**< One-shot TX event bits consumed by CO_CANmodule_process(). */
     volatile bool_t CANnormal;       /**< True after the RT-Thread CAN device enters normal operation. */
     rt_atomic_t txEnabled;           /**< Atomic software gate for new CANopen transmissions through CO_CANsend(). */
-    volatile bool_t useCANrxFilters; /**< True if RT-Thread HDR filters are active for all RX buffers. */
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    rt_atomic_t rxFilterDirty;       /**< Non-zero when software RX rules require a coarse HDR rebuild. */
+#endif
+    volatile bool_t useCANrxFilters; /**< True while coarse hardware CANopen ingress filters are active. */
     volatile bool_t bufferInhibitFlag; /**< Reserved for CANopenNode-compatible synchronous TPDO inhibit state. */
     volatile bool_t firstCANtxMessage; /**< True while the first CANopen transmit message is pending. */
     volatile uint16_t CANtxCount;    /**< Number of CANopenNode software-pending transmit buffers. */

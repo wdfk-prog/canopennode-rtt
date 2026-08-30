@@ -24,6 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 #include "CO_driver.h"
+#include "CO_can_filter_RTT.h"
 #include "co_rtt_log.h"
 
 #include <rtatomic.h>
@@ -99,7 +100,7 @@ rt_err_t CO_RTT_CANsetBitrate(CO_CANmodule_t *CANmodule, uint16_t bitrate)
     }
 
     /* RT_CAN_CMD_SET_BAUD may reinitialize the target controller. Reuse the
-     * normal-mode path to restore configured filters/RX/start sequencing. */
+     * normal-mode path to restore CANopen ingress/RX/start sequencing. */
     CO_CANsetNormalMode(CANmodule);
     if (!CANmodule->CANnormal) {
         CO_RTT_LOG_E("runtime CAN bitrate restart failed: bitrate=%u", bitrate);
@@ -340,160 +341,6 @@ static CO_ReturnError_t co_rtt_submit_msg(CO_CANmodule_t *CANmodule, CO_CANtx_t 
     return ret;
 }
 
-#ifdef RT_CAN_USING_HDR
-#ifdef PKG_CANOPENNODE_USING_RTT_CAN_FILTER
-/**
- * @brief Clear RT-Thread HDR bank indexes stored in CANopenNode RX buffers.
- *
- * @param CANmodule CANopenNode CAN module.
- */
-static void co_rtt_clear_rx_hdr_banks(CO_CANmodule_t *CANmodule)
-{
-    uint16_t i;
-
-    for (i = 0U; i < CANmodule->rxSize; i++) {
-        CANmodule->rxArray[i].hdr_bank = -1;
-    }
-}
-
-/**
- * @brief Configure an accept-all standard-frame HDR fallback for software RX dispatch.
- *
- * Two HDR banks are required to accept both standard data and standard RTR frames. If
- * this fallback cannot be configured, software dispatch cannot be guaranteed to see
- * every standard frame, so CAN normal mode must not be entered.
- *
- * @param CANmodule CANopenNode CAN module.
- * @return RT_EOK on success, otherwise a negative RT-Thread error code.
- */
-static rt_err_t co_rtt_apply_accept_all_filter(CO_CANmodule_t *CANmodule)
-{
-    struct rt_can_filter_item items[2];
-    struct rt_can_filter_config config;
-    rt_can_t can = (rt_can_t)CANmodule->dev;
-    rt_err_t ret;
-
-    if (can->config.maxhdr < 2U) {
-        CO_RTT_LOG_E("accept-all CAN filter unavailable: maxhdr=%lu", (unsigned long)can->config.maxhdr);
-        return -RT_ERROR;
-    }
-
-    memset(items, 0, sizeof(items));
-    items[0].id = 0U;
-    items[0].ide = RT_CAN_STDID;
-    items[0].rtr = RT_CAN_DTR;
-    items[0].mode = 0U;
-    items[0].mask = 0U;
-    items[0].hdr_bank = 0;
-    items[0].rxfifo = 0U;
-    items[1].id = 0U;
-    items[1].ide = RT_CAN_STDID;
-    items[1].rtr = RT_CAN_RTR;
-    items[1].mode = 0U;
-    items[1].mask = 0U;
-    items[1].hdr_bank = 1;
-    items[1].rxfifo = 0U;
-
-    config.count = 2U;
-    config.actived = 1U;
-    config.items = items;
-    ret = rt_device_control(CANmodule->dev, RT_CAN_CMD_SET_FILTER, &config);
-    if (ret != RT_EOK) {
-        CO_RTT_LOG_E("accept-all CAN filter setup failed: ret=%ld", (long)ret);
-        return ret;
-    }
-
-    co_rtt_clear_rx_hdr_banks(CANmodule);
-    CANmodule->useCANrxFilters = false;
-    CO_RTT_LOG_W("using accept-all standard CAN filter fallback for software RX dispatch");
-
-    return RT_EOK;
-}
-
-/**
- * @brief Configure RT-Thread HDR filters from CANopenNode RX buffers.
- *
- * If optimized per-buffer HDR filters cannot be configured, this function falls
- * back to accept-all standard-frame filters so software dispatch still receives
- * every standard frame. Failure of both paths prevents CAN normal mode.
- *
- * @param CANmodule CANopenNode CAN module.
- * @return RT_EOK on success, otherwise a negative RT-Thread error code.
- */
-static rt_err_t co_rtt_apply_rx_filters(CO_CANmodule_t *CANmodule)
-{
-#ifdef RT_USING_HEAP
-    struct rt_can_filter_item *items = RT_NULL;
-    struct rt_can_filter_config config;
-    rt_err_t ret = RT_EOK;
-    uint16_t i;
-    rt_can_t can = (rt_can_t)CANmodule->dev;
-
-    if ((can->config.maxhdr == 0U) || (CANmodule->rxSize > can->config.maxhdr)) {
-        ret = -RT_ERROR;
-        CO_RTT_LOG_W("hardware RX filters unavailable: rxSize=%u maxhdr=%lu", CANmodule->rxSize,
-                     (unsigned long)can->config.maxhdr);
-        goto fallback_accept_all;
-    }
-
-    items = (struct rt_can_filter_item *)rt_calloc(CANmodule->rxSize, sizeof(struct rt_can_filter_item));
-    if (items == RT_NULL) {
-        ret = -RT_ENOMEM;
-        CO_RTT_LOG_W("hardware RX filter allocation failed: count=%u", CANmodule->rxSize);
-        goto fallback_accept_all;
-    }
-
-    for (i = 0U; i < CANmodule->rxSize; i++) {
-        CO_CANrx_t *rx = &CANmodule->rxArray[i];
-
-        items[i].id = (rt_uint32_t)(rx->ident & CO_RTT_CAN_STD_MASK);
-        items[i].ide = RT_CAN_STDID;
-        items[i].rtr = ((rx->ident & CO_RTT_CAN_RTR_FLAG) != 0U) ? RT_CAN_RTR : RT_CAN_DTR;
-        items[i].mode = 0U;
-        items[i].mask = (rt_uint32_t)(rx->mask & CO_RTT_CAN_STD_MASK);
-        items[i].hdr_bank = (rt_int32_t)i;
-        items[i].rxfifo = 0U;
-        rx->hdr_bank = (rt_int32_t)i;
-    }
-
-    config.count = CANmodule->rxSize;
-    config.actived = 1U;
-    config.items = items;
-
-    ret = rt_device_control(CANmodule->dev, RT_CAN_CMD_SET_FILTER, &config);
-    if (ret != RT_EOK) {
-        CO_RTT_LOG_W("hardware RX filter setup failed: ret=%ld", (long)ret);
-        goto fallback_accept_all;
-    }
-
-    CANmodule->useCANrxFilters = true;
-    CO_RTT_LOG_I("enabled %u hardware RX filters", CANmodule->rxSize);
-    goto cleanup;
-
-fallback_accept_all:
-    co_rtt_clear_rx_hdr_banks(CANmodule);
-    CANmodule->useCANrxFilters = false;
-
-    ret = co_rtt_apply_accept_all_filter(CANmodule);
-    if (ret != RT_EOK) {
-        CO_RTT_LOG_E("accept-all CAN RX filter fallback failed: ret=%ld", (long)ret);
-    }
-
-cleanup:
-    if (items != RT_NULL) {
-        rt_free(items);
-    }
-
-    return ret;
-#else
-    CANmodule->useCANrxFilters = false;
-    CO_RTT_LOG_E("hardware RX filters require RT_USING_HEAP for dynamic filter table allocation");
-    return -RT_ERROR;
-#endif /* RT_USING_HEAP */
-}
-
-#endif /* PKG_CANOPENNODE_USING_RTT_CAN_FILTER */
-#endif /* RT_CAN_USING_HDR */
 
 /**
  * @brief Dispatch one RT-Thread CAN RX frame to CANopenNode receive callbacks.
@@ -511,22 +358,37 @@ static void co_rtt_can_dispatch(CO_CANmodule_t *CANmodule, const CO_CANrxMsg_t *
         return;
     }
 
-#ifdef RT_CAN_USING_HDR
-    if (CANmodule->useCANrxFilters && (msg->hdr_index >= 0) && ((uint16_t)msg->hdr_index < CANmodule->rxSize)) {
-        CO_CANrx_t *rx = &CANmodule->rxArray[msg->hdr_index];
-
-        if (rx->pCANrx_callback != NULL) {
-            rx->pCANrx_callback(rx->object, (void *)msg);
-        }
-        return;
-    }
-#endif /* RT_CAN_USING_HDR */
-
     msgIdent = (uint16_t)(msg->id & CO_RTT_CAN_STD_MASK);
     if (msg->rtr == RT_CAN_RTR) {
         msgIdent |= CO_RTT_CAN_RTR_FLAG;
     }
 
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    {
+        void *callback_object = NULL;
+        void (*callback)(void *object, void *message) = NULL;
+
+        if (rt_mutex_take(&CANmodule->rxRuleMutex, RT_WAITING_FOREVER) != RT_EOK) {
+            CO_RTT_LOG_W("CAN RX rule lock failed");
+            return;
+        }
+
+        for (i = 0U; i < CANmodule->rxSize; i++) {
+            CO_CANrx_t *rx = &CANmodule->rxArray[i];
+
+            if ((rx->pCANrx_callback != NULL) && ((((uint16_t)(msgIdent ^ rx->ident)) & rx->mask) == 0U)) {
+                callback_object = rx->object;
+                callback = rx->pCANrx_callback;
+                break;
+            }
+        }
+
+        (void)rt_mutex_release(&CANmodule->rxRuleMutex);
+        if (callback != NULL) {
+            callback(callback_object, (void *)msg);
+        }
+    }
+#else
     for (i = 0U; i < CANmodule->rxSize; i++) {
         CO_CANrx_t *rx = &CANmodule->rxArray[i];
 
@@ -535,6 +397,7 @@ static void co_rtt_can_dispatch(CO_CANmodule_t *CANmodule, const CO_CANrxMsg_t *
             break;
         }
     }
+#endif
 }
 
 /**
@@ -770,9 +633,9 @@ void CO_CANsetNormalMode(CO_CANmodule_t *CANmodule)
     }
 #ifdef RT_CAN_USING_HDR
 #ifdef PKG_CANOPENNODE_USING_RTT_CAN_FILTER
-    ret = co_rtt_apply_rx_filters(CANmodule);
+    ret = co_rtt_can_filter_refresh(CANmodule, true);
     if (ret != RT_EOK) {
-        CO_RTT_LOG_E("configure CAN RX filters failed: ret=%ld", (long)ret);
+        CO_RTT_LOG_E("configure CANopen RX ingress HDR failed: ret=%ld", (long)ret);
         return;
     }
 #endif /* PKG_CANOPENNODE_USING_RTT_CAN_FILTER */
@@ -847,6 +710,9 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule, void *CANptr, CO_C
     CANmodule->txSize = txSize;
     CANmodule->CANnormal = false;
     rt_atomic_store(&CANmodule->txEnabled, 1);
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    rt_atomic_store(&CANmodule->rxFilterDirty, 1);
+#endif
     CANmodule->useCANrxFilters = false;
     CANmodule->bufferInhibitFlag = false;
     CANmodule->firstCANtxMessage = true;
@@ -859,16 +725,6 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule, void *CANptr, CO_C
 
     memset(rxArray, 0, (size_t)rxSize * sizeof(rxArray[0]));
     memset(txArray, 0, (size_t)txSize * sizeof(txArray[0]));
-#ifdef RT_CAN_USING_HDR
-    {
-        uint16_t i;
-
-        for (i = 0U; i < rxSize; i++) {
-            rxArray[i].hdr_bank = -1;
-        }
-    }
-#endif /* RT_CAN_USING_HDR */
-
     if (rt_sem_init(&CANmodule->rx_sem, "co_rx", 0U, RT_IPC_FLAG_FIFO) != RT_EOK) {
         CANmodule->dev = RT_NULL;
         CO_RTT_LOG_E("CAN module init failed: RX semaphore init failed");
@@ -880,9 +736,20 @@ CO_ReturnError_t CO_CANmodule_init(CO_CANmodule_t *CANmodule, void *CANptr, CO_C
         goto err_rx_sem;
     }
 
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    if (rt_mutex_init(&CANmodule->rxRuleMutex, "co_rxr", RT_IPC_FLAG_PRIO) != RT_EOK) {
+        CO_RTT_LOG_E("CAN module init failed: RX rule mutex init failed");
+        goto err_rx_exit_sem;
+    }
+#endif
+
     if (rt_mutex_init(&CANmodule->canSendMutex, "co_tx", RT_IPC_FLAG_PRIO) != RT_EOK) {
         CO_RTT_LOG_E("CAN module init failed: CAN send mutex init failed");
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+        goto err_rx_rule_mutex;
+#else
         goto err_rx_exit_sem;
+#endif
     }
 
     if (rt_mutex_init(&CANmodule->emcyMutex, "co_em", RT_IPC_FLAG_PRIO) != RT_EOK) {
@@ -932,6 +799,10 @@ err_emcy_mutex:
     (void)rt_mutex_detach(&CANmodule->emcyMutex);
 err_can_send_mutex:
     (void)rt_mutex_detach(&CANmodule->canSendMutex);
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+err_rx_rule_mutex:
+    (void)rt_mutex_detach(&CANmodule->rxRuleMutex);
+#endif
 err_rx_exit_sem:
     (void)rt_sem_detach(&CANmodule->rxExitSem);
 err_rx_sem:
@@ -966,6 +837,9 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
     (void)rt_mutex_detach(&CANmodule->odMutex);
     (void)rt_mutex_detach(&CANmodule->emcyMutex);
     (void)rt_mutex_detach(&CANmodule->canSendMutex);
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    (void)rt_mutex_detach(&CANmodule->rxRuleMutex);
+#endif
     (void)rt_sem_detach(&CANmodule->rxExitSem);
     (void)rt_sem_detach(&CANmodule->rx_sem);
     CANmodule->dev = RT_NULL;
@@ -988,41 +862,45 @@ CO_ReturnError_t CO_CANrxBufferInit(CO_CANmodule_t *CANmodule, uint16_t index, u
                                     void *object, void (*CANrx_callback)(void *object, void *message))
 {
     CO_CANrx_t *buffer;
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    rt_err_t filter_ret;
+#endif
 
     if ((CANmodule == NULL) || (CANmodule->rxArray == NULL) || (index >= CANmodule->rxSize)) {
         CO_RTT_LOG_E("RX buffer init failed: index=%u rxSize=%u", index, (CANmodule != NULL) ? CANmodule->rxSize : 0U);
         return CO_ERROR_ILLEGAL_ARGUMENT;
     }
 
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    if (rt_mutex_take(&CANmodule->rxRuleMutex, RT_WAITING_FOREVER) != RT_EOK) {
+        CO_RTT_LOG_E("RX buffer init failed: RX rule mutex");
+        return CO_ERROR_SYSCALL;
+    }
+#endif
+
     buffer = &CANmodule->rxArray[index];
     buffer->ident = (uint16_t)((ident & CO_RTT_CAN_STD_MASK) | (rtr ? CO_RTT_CAN_RTR_FLAG : 0U));
     buffer->mask = (uint16_t)((mask & CO_RTT_CAN_STD_MASK) | CO_RTT_CAN_RTR_FLAG);
     buffer->object = object;
     buffer->pCANrx_callback = CANrx_callback;
-#ifdef RT_CAN_USING_HDR
-    buffer->hdr_bank = -1;
-#endif /* RT_CAN_USING_HDR */
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    rt_atomic_store(&CANmodule->rxFilterDirty, 1);
+    (void)rt_mutex_release(&CANmodule->rxRuleMutex);
+#endif
+
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    if (CANmodule->CANnormal) {
+        filter_ret = co_rtt_can_filter_refresh(CANmodule, false);
+        if (filter_ret != RT_EOK) {
+            CO_RTT_LOG_E("runtime CANopen RX ingress refresh failed: ret=%ld", (long)filter_ret);
+            return CO_ERROR_SYSCALL;
+        }
+    }
+#endif
 
     CO_RTT_LOG_D("RX buffer configured: index=%u ident=0x%03x mask=0x%03x rtr=%u", index, ident & CO_RTT_CAN_STD_MASK,
                  mask & CO_RTT_CAN_STD_MASK, rtr ? 1U : 0U);
 
-#ifdef RT_CAN_USING_HDR
-#ifdef PKG_CANOPENNODE_USING_RTT_CAN_FILTER
-    rt_err_t ret;
-    if (!CANmodule->CANnormal) {
-        return CO_ERROR_NO;
-    }
-
-    ret = co_rtt_apply_rx_filters(CANmodule);
-    if (ret == RT_EOK) {
-        return CO_ERROR_NO;
-    }
-
-    CO_RTT_LOG_E("refresh CAN RX filters failed: ret=%ld", (long)ret);
-
-    return (ret == -RT_ENOMEM) ? CO_ERROR_OUT_OF_MEMORY : CO_ERROR_SYSCALL;
-#endif /* PKG_CANOPENNODE_USING_RTT_CAN_FILTER */
-#endif /* RT_CAN_USING_HDR */
     return CO_ERROR_NO;
 }
 
@@ -1166,12 +1044,24 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule)
 {
     struct rt_can_status status;
     rt_err_t status_ret;
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    rt_err_t filter_ret;
+#endif
     uint16_t err = 0U;
     uint16_t tx_event_status;
     uint32_t rx_drop = 0U;
     uint32_t tx_drop = 0U;
     uint32_t raw = 0U;
     bool_t status_changed = false;
+
+#if defined(RT_CAN_USING_HDR) && defined(PKG_CANOPENNODE_USING_RTT_CAN_FILTER)
+    if (CANmodule->CANnormal && (rt_atomic_load(&CANmodule->rxFilterDirty) != 0)) {
+        filter_ret = co_rtt_can_filter_refresh(CANmodule, false);
+        if (filter_ret != RT_EOK) {
+            CO_RTT_LOG_E("deferred CANopen RX ingress refresh failed: ret=%ld", (long)filter_ret);
+        }
+    }
+#endif
 
     CO_LOCK_CAN_SEND(CANmodule);
     tx_event_status = (uint16_t)(CANmodule->CANtxEventStatus & (CO_CAN_ERRTX_PDO_LATE | CO_CAN_ERRTX_OVERFLOW));
