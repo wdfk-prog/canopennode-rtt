@@ -399,6 +399,19 @@ append_canopennode_profile()
             log "CI Kconfig profile demo-default: default demo object set"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
             ;;
+        demo-high-res-time)
+            log "CI Kconfig profile demo-high-res-time: 1 MHz timer backend for High-Res compile coverage"
+            append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            # CI edits rtconfig.h after Kconfig generation, so mirror timer dependencies explicitly.
+            append_config_define "$config_file" "$rtconfig_file" "RT_USING_CLOCK_TIME"
+            # The STM32F4 HAL package selects stm32f4xx_hal_tim*.c from RT_USING_HWTIMER,
+            # while the RT-Thread clock-timer driver itself is selected by BSP_USING_TIM.
+            append_config_define "$config_file" "$rtconfig_file" "RT_USING_HWTIMER"
+            append_config_define "$config_file" "$rtconfig_file" "BSP_USING_TIM"
+            append_config_define "$config_file" "$rtconfig_file" "BSP_USING_TIM2"
+            append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_HIGH_RES_TIME"
+            append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_HIGH_RES_TIMER_NAME" '"timer2"'
+            ;;
         demo-pdo-sync)
             log "CI Kconfig profile demo-pdo-sync: PDO/SYNC/TIME diagnostic with callback and timer flags"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
@@ -533,7 +546,7 @@ append_canopennode_profile()
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
-                "Supported profiles: demo-minimal demo-default demo-pdo-sync demo-emcy-consumer demo-gfc" \
+                "Supported profiles: demo-minimal demo-default demo-high-res-time demo-pdo-sync demo-emcy-consumer demo-gfc" \
                 "  demo-nmt-master-test demo-sdo-client-test demo-sdo-block-test demo-sdo-client-gateway" \
                 "  demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" \
                 "  demo-b-stage-cumulative" >&2
@@ -645,11 +658,32 @@ verify_profile_object()
     log "Profile object: ${object_path#$bsp_dir/}"
 }
 
+verify_stm32_library_object()
+{
+    local object_name="$1"
+    local object_path
+    local shared_libraries="$RTTHREAD_DIR/bsp/stm32/libraries"
+
+    object_path="$(find "$shared_libraries" -type f -name "$object_name" -print -quit)"
+    if [ -z "$object_path" ]; then
+        echo "Expected STM32 library object was not built: $object_name" >&2
+        exit 1
+    fi
+    log "Profile object: ${object_path#"${RTTHREAD_DIR}/"}"
+}
+
 verify_profile_outputs()
 {
     local bsp_dir="$1"
 
     case "$CANOPENNODE_CI_PROFILE" in
+        demo-high-res-time)
+            verify_profile_object "$bsp_dir" "CO_time_RTT.o"
+            verify_profile_object "$bsp_dir" "clock_timer.o"
+            verify_profile_object "$bsp_dir" "drv_tim.o"
+            verify_stm32_library_object "stm32f4xx_hal_tim.o"
+            verify_stm32_library_object "stm32f4xx_hal_tim_ex.o"
+            ;;
         demo-emcy-consumer)
             verify_profile_object "$bsp_dir" "CO_demo.o"
             verify_profile_object "$bsp_dir" "CO_demo_time.o"
@@ -756,7 +790,7 @@ EOF_RTCONFIG
 
     append_canopennode_profile "$config_file" "$rtconfig_file" "$CANOPENNODE_CI_PROFILE"
 
-    grep -E '^(#define[[:space:]]+(RT_USING_CAN|RT_USING_ULOG|RT_USING_DFS|RT_USING_I2C|RT_CAN_USING_HDR|BSP_USING_CAN|PKG_USING_CANOPENNODE|PKG_USING_AT24CXX|PKG_AT24CXX_|AT24CXX_|PKG_CANOPENNODE_))' "$rtconfig_file" \
+    grep -E '^(#define[[:space:]]+(RT_USING_CAN|RT_USING_ULOG|RT_USING_DFS|RT_USING_I2C|RT_USING_CLOCK_TIME|RT_USING_HWTIMER|RT_CAN_USING_HDR|BSP_USING_CAN|BSP_USING_TIM|PKG_USING_CANOPENNODE|PKG_USING_AT24CXX|PKG_AT24CXX_|AT24CXX_|PKG_CANOPENNODE_))' "$rtconfig_file" \
         2>&1 | tee -a "$LOG_FILE"
 }
 

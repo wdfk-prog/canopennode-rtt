@@ -24,6 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 #include "CO_app_RTT.h"
+#include "CO_time_RTT.h"
 #include "co_rtt_log.h"
 #include "OD.h"
 
@@ -795,6 +796,8 @@ static void co_app_rtt_main_thread_entry(void *parameter)
     CANopenNodeRTT *app = (CANopenNodeRTT *)parameter;
     CO_t *co = app->canOpenStack;
     uint32_t time_current_ms;
+    uint32_t time_current_us;
+    uint32_t time_old_us = CO_RTT_timeNowUs();
 
     if (co == NULL) {
         CO_RTT_LOG_E("mainline thread started without CANopen stack: dev=%s", app->canName);
@@ -809,7 +812,9 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         rt_thread_mdelay(1);
 
         time_current_ms = rt_tick_get_millisecond();
-        time_difference_us = (time_current_ms - app->timeOldMs) * 1000U;
+        time_current_us = CO_RTT_timeNowUs();
+        time_difference_us = CO_RTT_timeElapsedUs(time_current_us, time_old_us);
+        time_old_us = time_current_us;
         if (time_difference_us == 0U) {
             continue;
         }
@@ -881,10 +886,15 @@ static void co_app_rtt_main_thread_entry(void *parameter)
             }
 
             co = app->canOpenStack;
-            app->timeOldMs = rt_tick_get_millisecond();
-            app->lastRtTickMs = app->timeOldMs;
+            time_old_us = CO_RTT_timeNowUs();
 
             if (app->rtTimer != RT_NULL) {
+                /*
+                 * The timer is stopped and queued wakeups were drained before stack recreation.
+                 * Refresh the baseline immediately before restart so the first token charges only
+                 * time elapsed after realtime scheduling resumes.
+                 */
+                app->lastRtUs = CO_RTT_timeNowUs();
                 ret = rt_timer_start(app->rtTimer);
                 if (ret != RT_EOK) {
                     if ((app->canOpenStack != NULL) && (app->canOpenStack->CANmodule != NULL)) {
@@ -919,24 +929,12 @@ static void co_app_rtt_realtime_thread_entry(void *parameter)
     while (1) {
         CO_t *co;
         bool_t sync_was = false;
-        uint32_t now_ms;
+        uint32_t now_us;
         uint32_t time_difference_us;
 
         if (rt_sem_take(&app->rtSem, RT_WAITING_FOREVER) != RT_EOK) {
             continue;
         }
-
-        /*
-         * CO_process_SYNC/SRDO/RPDO/TPDO receive the actual elapsed time between
-         * realtime wakeups. PKG_CANOPENNODE_TIMER_PERIOD_US is only the requested
-         * period before RT-Thread tick rounding.
-         */
-        now_ms = rt_tick_get_millisecond();
-        time_difference_us = (now_ms - app->lastRtTickMs) * 1000U;
-        if (time_difference_us == 0U) {
-            time_difference_us = app->actualPeriodUs;
-        }
-        app->lastRtTickMs = now_ms;
 
         /*
          * The lifecycle mutex protects only the CO_t pointer lifetime across
@@ -952,6 +950,16 @@ static void co_app_rtt_realtime_thread_entry(void *parameter)
             (void)rt_mutex_release(&app->lifecycleMutex);
             continue;
         }
+
+        /*
+         * rtSem is counting, so queued wakeups can be drained back-to-back with
+         * zero measured elapsed time. Keep that zero value instead of substituting
+         * actualPeriodUs; otherwise protocol timers would advance without real time.
+         */
+        now_us = CO_RTT_timeNowUs();
+        time_difference_us = CO_RTT_timeElapsedUs(now_us, app->lastRtUs);
+        app->lastRtUs = now_us;
+        app->lastRtTickMs = rt_tick_get_millisecond();
 
         if (!co->nodeIdUnconfigured && co->CANmodule->CANnormal) {
             CO_LOCK_OD(co->CANmodule);
@@ -999,10 +1007,16 @@ static void co_app_rtt_timer_cb(void *parameter)
 /**
  * @brief Initialize and start a CANopenNode RT-Thread application instance.
  *
- * This function stores the mandatory CAN interface parameters into @p app, creates
- * the CANopenNode object, initializes CANopen communication, and starts the
- * internal mainline and realtime worker threads. The instance must be
- * zero-initialized before first use.
+ * This function stores the mandatory CAN interface parameters into @p app, acquires
+ * the wrapper microsecond time source, creates the CANopenNode object, initializes CANopen
+ * communication, and starts the internal mainline and realtime worker threads.
+ * High-resolution time uses one package-wide dedicated timer and therefore
+ * supports only one CANopenNodeRTT instance; the BSP/user is responsible for
+ * selecting a physically 32-bit timer because generic RT-Thread timer metadata
+ * cannot reliably report counter width on all supported BSPs. High-resolution
+ * instance initialization and teardown are lifecycle operations and must be
+ * serialized by the caller; concurrent init/deinit is not supported. The
+ * instance must be zero-initialized before first use.
  *
  * @param app CANopenNode RT-Thread application instance.
  * @param canName RT-Thread CAN device name. The pointer is stored, not copied, and must remain valid for the
@@ -1017,6 +1031,7 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
     rt_bool_t sem_inited = RT_FALSE;
     rt_bool_t mutex_inited = RT_FALSE;
     rt_bool_t lifecycle_locked = RT_FALSE;
+    rt_bool_t time_inited = RT_FALSE;
     rt_tick_t rt_period_ticks;
     rt_err_t ret = RT_EOK;
 
@@ -1047,6 +1062,13 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
         return -RT_EINVAL;
     }
 
+    ret = CO_RTT_timeInit();
+    if (ret != RT_EOK) {
+        CO_RTT_LOG_E("initialize CANopen time source failed: ret=%d", ret);
+        return ret;
+    }
+    time_inited = RT_TRUE;
+
     app->canName = canName;
     app->desiredNodeID = nodeID;
     app->activeNodeID = 0U;
@@ -1067,6 +1089,7 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
     app->timeOldMs = 0U;
     app->lastRtTickMs = 0U;
     app->actualPeriodUs = 0U;
+    app->lastRtUs = 0U;
     ret = rt_sem_init(&app->rtSem, "co_sem", 0U, RT_IPC_FLAG_FIFO);
     if (ret != RT_EOK) {
         goto cleanup;
@@ -1123,6 +1146,12 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
     if (ret != RT_EOK) {
         goto cleanup;
     }
+    /*
+     * The realtime thread is waiting on an empty semaphore and the timer is not running yet.
+     * Establish the baseline immediately before the first wakeup can be queued so initialization
+     * latency is not charged to protocol processing.
+     */
+    app->lastRtUs = CO_RTT_timeNowUs();
     ret = rt_timer_start(app->rtTimer);
     if (ret != RT_EOK) {
         goto cleanup;
@@ -1188,6 +1217,9 @@ cleanup:
     }
     if (sem_inited == RT_TRUE) {
         (void)rt_sem_detach(&app->rtSem);
+    }
+    if (time_inited == RT_TRUE) {
+        CO_RTT_timeDeinit();
     }
 
     return ret;

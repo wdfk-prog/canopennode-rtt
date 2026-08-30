@@ -154,6 +154,8 @@ typedef struct {
 #ifdef CO_MULTIPLE_OD
     CO_config_t coConfig;            /**< Persistent CANopenNode configuration for CO_MULTIPLE_OD builds. */
 #endif /* CO_MULTIPLE_OD */
+
+    uint32_t lastRtUs;               /**< Realtime elapsed-time baseline in wrapping microseconds. */
 } CANopenNodeRTT;
 
 /* Exported variables ---------------------------------------------------------*/
@@ -163,10 +165,17 @@ typedef struct {
 /**
  * @brief Initialize and start a CANopenNode RT-Thread application instance.
  *
- * This function stores the mandatory CAN interface parameters into @p app, creates
- * the CANopenNode object, initializes CANopen communication, and starts the
- * internal mainline and realtime worker threads. The instance must be
- * zero-initialized before first use.
+ * This function stores the mandatory CAN interface parameters into @p app, acquires
+ * the wrapper microsecond time source, creates the CANopenNode object, initializes
+ * CANopen communication, and starts the internal mainline and realtime worker
+ * threads. When high-resolution time is enabled, the configured RT-Thread timer
+ * is opened and started as a dedicated 1 MHz, 32-bit, up-counting clock timer,
+ * and only one CANopenNodeRTT instance is supported. The wrapper cannot reliably
+ * detect timer counter width through the generic RT-Thread API, so the BSP/user
+ * must ensure that the configured timer is physically 32-bit. High-resolution
+ * instance initialization and teardown are lifecycle operations and must be
+ * serialized by the caller; concurrent init/deinit is not supported. The
+ * instance must be zero-initialized before first use.
  *
  * @param app CANopenNode RT-Thread application instance.
  * @param canName RT-Thread CAN device name. The pointer is stored, not copied, and must remain valid for the
@@ -174,7 +183,8 @@ typedef struct {
  * @param nodeID CANopen node ID in range 1..127, or 0xFF when LSS slave is enabled to start
  * unconfigured.
  * @param bitrate CAN bitrate in kbit/s.
- * @return RT_EOK on success, otherwise a negative RT-Thread error code.
+ * @return RT_EOK on success, otherwise a negative RT-Thread error code from
+ *         time-source, CANopen, IPC, timer, or thread initialization.
  */
 rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t nodeID, uint16_t bitrate);
 
