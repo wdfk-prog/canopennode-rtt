@@ -93,21 +93,23 @@ config PKG_CANOPENNODE_RX_HDR_BANK_COUNT
 
 menu "RT-Thread runtime options"
 
+menu "CAN RX helper thread"
+
 config PKG_CANOPENNODE_RX_THREAD_STACK_SIZE
-    int "CAN RX thread stack size"
+    int "Stack size"
     default 2048
     help
         Stack size in bytes for the CAN RX helper thread.
 
 config PKG_CANOPENNODE_RX_THREAD_PRIORITY
-    int "CAN RX thread priority"
+    int "Priority"
     default 2
     help
         RT-Thread priority for the CAN RX helper thread. Lower numeric values are
         higher priority in RT-Thread.
 
 config PKG_CANOPENNODE_RX_THREAD_TICK
-    int "CAN RX thread time slice"
+    int "Time slice"
     default 10
     help
         Time slice passed when creating the CAN RX helper thread.
@@ -122,8 +124,13 @@ config PKG_CANOPENNODE_RX_BATCH_SIZE
         increase stack usage because the batch buffer is allocated on the RX
         thread stack.
 
+endmenu
+
+
+menu "CANopen mainline thread"
+
 config PKG_CANOPENNODE_MAIN_THREAD_STACK_SIZE
-    int "Mainline thread stack size"
+    int "Stack size"
     default 2048
     help
         Stack size in bytes for the CANopenNode mainline thread. This thread
@@ -134,7 +141,7 @@ config PKG_CANOPENNODE_MAIN_THREAD_STACK_SIZE
         is too large only wastes RAM.
 
 config PKG_CANOPENNODE_MAIN_THREAD_PRIORITY
-    int "Mainline thread priority"
+    int "Priority"
     default 10
     help
         RT-Thread priority for the CANopenNode mainline thread. Lower numeric
@@ -142,11 +149,10 @@ config PKG_CANOPENNODE_MAIN_THREAD_PRIORITY
         the realtime thread so SDO/NMT/heartbeat work cannot delay SYNC, SRDO,
         RPDO and TPDO processing when those objects are enabled. Setting it too
         high can disturb time-critical tasks; setting it too low can make SDO
-        transfers and heartbeat handling sluggish
-        when the system is busy.
+        transfers and heartbeat handling sluggish when the system is busy.
 
 config PKG_CANOPENNODE_MAIN_THREAD_TICK
-    int "Mainline thread time slice"
+    int "Time slice"
     default 10
     help
         Time slice passed when creating the CANopenNode mainline thread. Larger
@@ -154,8 +160,13 @@ config PKG_CANOPENNODE_MAIN_THREAD_TICK
         same priority. Smaller values improve fairness with peer threads but may
         increase scheduling overhead.
 
+endmenu
+
+
+menu "CANopen realtime thread"
+
 config PKG_CANOPENNODE_RT_THREAD_STACK_SIZE
-    int "Realtime thread stack size"
+    int "Stack size"
     default 2048
     help
         Stack size in bytes for the CANopenNode realtime thread. This thread runs
@@ -166,7 +177,7 @@ config PKG_CANOPENNODE_RT_THREAD_STACK_SIZE
         CANopenNodeRTT instance.
 
 config PKG_CANOPENNODE_RT_THREAD_PRIORITY
-    int "Realtime thread priority"
+    int "Priority"
     default 3
     help
         RT-Thread priority for the CANopenNode realtime thread. Lower numeric
@@ -177,7 +188,7 @@ config PKG_CANOPENNODE_RT_THREAD_PRIORITY
         time-critical device or control threads.
 
 config PKG_CANOPENNODE_RT_THREAD_TICK
-    int "Realtime thread time slice"
+    int "Time slice"
     default 10
     help
         Time slice passed when creating the CANopenNode realtime thread. The
@@ -186,7 +197,7 @@ config PKG_CANOPENNODE_RT_THREAD_TICK
         values reduce round-robin switching; smaller values improve fairness.
 
 config PKG_CANOPENNODE_TIMER_PERIOD_US
-    int "CANopen realtime processing period in us"
+    int "Processing period in us"
     range 1 1000000
     default 1000
     help
@@ -196,8 +207,13 @@ config PKG_CANOPENNODE_TIMER_PERIOD_US
         otherwise the wrapper rounds up to at least one system tick. Larger values
         reduce CPU load but increase PDO latency and timing jitter.
 
+endmenu
+
+
+menu "CANopen application runtime"
+
 config PKG_CANOPENNODE_APP_FIRST_HB_TIME_MS
-    int "CANopen first heartbeat time in ms"
+    int "First heartbeat time in ms"
     range 0 65535
     default 500
     help
@@ -209,7 +225,7 @@ config PKG_CANOPENNODE_APP_FIRST_HB_TIME_MS
         network supervision.
 
 config PKG_CANOPENNODE_APP_SDO_SRV_TIMEOUT_MS
-    int "CANopen SDO server timeout in ms"
+    int "SDO server timeout in ms"
     range 1 65535
     default 1000
     help
@@ -220,7 +236,7 @@ config PKG_CANOPENNODE_APP_SDO_SRV_TIMEOUT_MS
         transfers and their resources open longer.
 
 config PKG_CANOPENNODE_APP_SDO_CLI_TIMEOUT_MS
-    int "CANopen SDO client timeout in ms"
+    int "SDO client timeout in ms"
     range 1 65535
     default 500
     help
@@ -238,45 +254,33 @@ config PKG_CANOPENNODE_APP_SDO_CLI_BLOCK
     help
         Default SDO client block-transfer flag passed to CO_CANopenInit(). Block
         transfer can improve throughput for large SDO client uploads/downloads
-        when both peers support it. This option is available only when the SDO
-        client and its block-transfer support are compiled in. Keep it disabled
-        for maximum compatibility with simple devices or when memory and bus
-        burst behavior are concerns. Enable it when large parameter or
-        firmware-like transfers are common and have been tested with the target
-        peer devices.
+        when both peers support it.
 
-config PKG_CANOPENNODE_APP_AUTO_INIT
-    bool "Automatically initialize default CANopenNode RT-Thread application"
+endmenu
+
+
+menuconfig PKG_CANOPENNODE_APP_AUTO_INIT
+    bool "Default CANopenNode application"
     default y
     help
         Automatically create one default CANopenNode RT-Thread application
-        instance during RT-Thread application initialization. This is convenient
-        for a single-node demo or product. Disable it when the product creates
-        one or more CANopenNodeRTT instances explicitly and calls
-        canopen_app_rtt_init() from board or application code.
+        instance during RT-Thread application initialization. Disable this when
+        the product creates CANopenNodeRTT instances explicitly.
+
+if PKG_CANOPENNODE_APP_AUTO_INIT
 
 config PKG_CANOPENNODE_AUTO_INIT_NODE_ID
-    int "Auto init CANopen Node-ID"
+    int "Node-ID"
     range 1 127
     default 1
-    depends on PKG_CANOPENNODE_APP_AUTO_INIT
     help
-        CANopen Node-ID used by the default auto-initialized instance. Valid
-        values are 1..127. The value must be unique on the CANopen network.
-        Duplicate Node-IDs cause COB-ID conflicts and undefined communication
-        behavior. Changing this value changes the CANopen COB-IDs derived from
-        the Node-ID.
+        CANopen Node-ID used by the default auto-initialized instance.
 
 choice
-    prompt "Auto init CAN bitrate in kbit/s"
+    prompt "CAN bitrate in kbit/s"
     default PKG_CANOPENNODE_AUTO_INIT_BITRATE_1000
-    depends on PKG_CANOPENNODE_APP_AUTO_INIT
     help
-        CAN bitrate in kbit/s used by the default auto-initialized instance. It
-        must match every node on the CAN bus and be supported by the BSP CAN
-        driver. A smaller bitrate improves bus length and noise margin but lowers
-        bandwidth. A larger bitrate improves bandwidth but reduces timing margin
-        and may fail on long or poorly terminated buses.
+        CAN bitrate used by the default auto-initialized CANopenNode instance.
 
 config PKG_CANOPENNODE_AUTO_INIT_BITRATE_10
     bool "10"
@@ -315,12 +319,10 @@ config PKG_CANOPENNODE_AUTO_INIT_BITRATE
     default 800 if PKG_CANOPENNODE_AUTO_INIT_BITRATE_800
     default 1000 if PKG_CANOPENNODE_AUTO_INIT_BITRATE_1000
     default 1000
-    depends on PKG_CANOPENNODE_APP_AUTO_INIT
 
 config PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE
     bool "RT-Thread MSH console bridge"
     default n
-    depends on PKG_CANOPENNODE_APP_AUTO_INIT
     depends on PKG_CANOPENNODE_USING_GATEWAY_ASCII
     depends on RT_USING_FINSH && FINSH_USING_MSH
     depends on !PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST
@@ -335,16 +337,10 @@ config PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE
     select PKG_CANOPENNODE_GATEWAY_ASCII_PRINT_HELP
     help
         Register the canopen_gw MSH command for the default auto-initialized
-        CANopenNode instance. The command reuses the existing RT-Thread console;
-        it does not open or read the UART device directly. The frontend prepends
-        the CiA 309-3 sequence and appends CR/LF before writing the command into
-        CO_GTWA_write(). Gateway responses are printed with rt_kprintf().
+        CANopenNode instance.
 
-        This first-stage bridge selects segmented/local SDO client support, NMT
-        master commands, error descriptions and Gateway help. LSS, Gateway log
-        and LED printing remain optional. Keep the demo SDO client and automatic
-        NMT master tests disabled because they can compete with Gateway-owned
-        transactions.
+endif
+
 
 menuconfig PKG_CANOPENNODE_USING_HIGH_RES_TIME
     bool "Use high resolution hardware timer"
