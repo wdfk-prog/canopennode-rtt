@@ -343,21 +343,23 @@ endif
 
 
 menuconfig PKG_CANOPENNODE_USING_HIGH_RES_TIME
-    bool "Use high resolution hardware timer"
+    bool "High-resolution time source"
     default n
+    depends on RT_USING_CLOCK_TIME
     help
-        Enable a board-specific high resolution time source. When disabled, the
-        wrapper can fall back to RT-Thread tick based timing in later runtime code.
+        Enable the dedicated hardware-timer microsecond time source. When this
+        option is disabled, the wrapper uses RT-Thread tick based timing.
 
 if PKG_CANOPENNODE_USING_HIGH_RES_TIME
 
 config PKG_CANOPENNODE_HIGH_RES_TIMER_NAME
-    string "High resolution timer device name"
+    string "Hardware timer device name"
     default "timer0"
     help
-        RT-Thread timer or counter device name used by the high resolution time
-        source. The actual driver binding can be provided by application or
-        board runtime code.
+        Dedicated RT-Thread clock-timer device used by the high-resolution time
+        source. The BSP/user must verify that this device maps to a physical
+        32-bit, 1 MHz-capable, up-counting timer and is not used by another
+        component.
 
 endif
 

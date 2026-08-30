@@ -14,6 +14,7 @@ This site combines the package documentation with API reference generated from t
 - [Quick Start](en/quick-start.md)
 - [RT-Thread Integration](en/rt-thread-integration.md)
 - [Configuration](en/configuration.md)
+- [High-Resolution Time](en/high-resolution-time.md)
 - [Object Dictionary](en/object-dictionary.md)
 - [Troubleshooting](en/troubleshooting.md)
 
@@ -23,6 +24,7 @@ This site combines the package documentation with API reference generated from t
 - [快速开始](zh/quick-start.md)
 - [RT-Thread 集成](zh/rt-thread-integration.md)
 - [配置说明](zh/configuration.md)
+- [High-Resolution Time 集成说明](zh/high-resolution-time.md)
 - [对象字典](zh/object-dictionary.md)
 - [故障排查](zh/troubleshooting.md)
 
