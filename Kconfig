@@ -1397,19 +1397,25 @@ endmenu
 
 endmenu
 
+menu "Object Dictionary"
+
 config PKG_CANOPENNODE_USING_DEMO_OD
-    bool "Compile generated demo Object Dictionary"
+    bool "Use package default Object Dictionary"
     default y
     help
-        Compile the generated demo OD.c/OD.h from examples/demo_device and add
-        its directory to the include path. SConscript requires this package-local
-        demo Object Dictionary and does not fall back to CANopenNode/example from
-        the CANopenNode submodule.
+        Compile the package-provided generated OD.c/OD.h from examples/demo_device
+        and add its directory to the include path.
+
+        This Object Dictionary can be used independently of all optional demo/test
+        modules. Enabling this option does not require any PKG_CANOPENNODE_DEMO_*
+        option to be enabled.
 
         Disable this option when the BSP or application supplies a custom OD.c
         and OD.h through its own SConscript/include path.
 
 if PKG_CANOPENNODE_USING_DEMO_OD
+
+menu "Optional demo/test modules"
 
 config PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC
     bool "Enable demo TIME consumer diagnostic object updates"
@@ -1578,6 +1584,10 @@ config PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS
         discovery waits without timeout. Reset commands must first expose a
         boot-up/non-active transition and then return to PRE-OP.
 
+endmenu
+
 endif
+
+endmenu
 
 endif
