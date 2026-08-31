@@ -304,6 +304,7 @@ append_canopennode_b_stage_cumulative()
     # with the final cumulative profile.
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE"
+    append_config_define "$config_file" "$rtconfig_file" "RT_USING_EVENT"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_TIMERNEXT"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_CALLBACK_CHANGE"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TIME_PRODUCER"
@@ -417,6 +418,7 @@ append_canopennode_profile()
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE"
+            append_config_define "$config_file" "$rtconfig_file" "RT_USING_EVENT"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_TIMERNEXT"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_CALLBACK_CHANGE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TIME_PRODUCER"
@@ -428,6 +430,7 @@ append_canopennode_profile()
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE"
+            append_config_define "$config_file" "$rtconfig_file" "RT_USING_EVENT"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_GLOBAL_TIMERNEXT"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_CALLBACK_CHANGE"
             append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TIME_PRODUCER"

@@ -68,7 +68,7 @@ RX helper priority <= realtime priority < mainline priority
 |---|---:|---|
 | `PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE` | `n` | 启用支持对象的 mainline callback-pre hooks。 |
 | `PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE` | `n` | 启用支持对象的 realtime callback-pre hooks。 |
-| `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` | `n` | 支持对象计算 `timerNext_us`。 |
+| `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` | `n` | 使用 `timerNext_us` 启用事件驱动 mainline 调度；自动选择 `PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE` 和 `RT_USING_EVENT`。 |
 | `PKG_CANOPENNODE_GLOBAL_OD_DYNAMIC` | `y` | 支持对象在 OD 写入后重新读取通信参数。 |
 
 除非产品明确禁止运行时修改通信参数，否则建议保持 dynamic OD 启用。

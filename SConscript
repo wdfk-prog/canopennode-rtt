@@ -60,6 +60,9 @@ if GetDepend('PKG_USING_CANOPENNODE'):
                       'RT-Thread coarse CAN ingress filter',
                       [os.path.join('port', 'rtthread', 'CO_can_filter_RTT.c')])
     _add_required(os.path.join('port', 'rtthread', 'CO_time_RTT.c'))
+    _add_required_any(GetDepend('PKG_CANOPENNODE_GLOBAL_TIMERNEXT'),
+                      'event-driven mainline scheduler',
+                      [os.path.join('port', 'rtthread', 'CO_mainline_RTT.c')])
     _add_required(os.path.join('port', 'rtthread', 'CO_app_RTT.c'))
     _add_required_any(GetDepend('PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE'),
                       'ASCII gateway RT-Thread console bridge',

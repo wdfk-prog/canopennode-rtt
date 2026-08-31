@@ -582,6 +582,9 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
 {
     CO_t *co = app->canOpenStack;
     CO_ReturnError_t err;
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    rt_err_t ret;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     uint32_t err_info = 0U;
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
     bool_t storageDataCorrupt = false;
@@ -722,6 +725,14 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
     }
 #endif /* CO_DEMO_ENABLED */
 
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    ret = CO_RTT_mainlineBindCallbacks(app, co);
+    if (ret != RT_EOK) {
+        CO_RTT_LOG_E("bind mainline wake callbacks failed: dev=%s ret=%d", app->canName, ret);
+        return ret;
+    }
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
+
     CO_CANsetNormalMode(co->CANmodule);
     if (!co->CANmodule->CANnormal) {
         CO_RTT_LOG_E("CAN normal mode failed: dev=%s", app->canName);
@@ -753,6 +764,9 @@ static rt_err_t co_app_rtt_recreate_stack(CANopenNodeRTT *app)
     if (app->canOpenStack != NULL) {
         CO_CANsetConfigurationMode((void *)app->canName);
         CO_CANmodule_disable(app->canOpenStack->CANmodule);
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+        CO_RTT_mainlineResetWakeups(app);
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
         CO_delete(app->canOpenStack);
         app->canOpenStack = NULL;
     }
@@ -798,6 +812,10 @@ static void co_app_rtt_main_thread_entry(void *parameter)
     uint32_t time_current_ms;
     uint32_t time_current_us;
     uint32_t time_old_us = CO_RTT_timeNowUs();
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    uint32_t deadline_base_us = time_old_us;
+    uint32_t timer_next_us = 0U;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 
     if (co == NULL) {
         CO_RTT_LOG_E("mainline thread started without CANopen stack: dev=%s", app->canName);
@@ -809,25 +827,50 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         uint32_t time_difference_us;
         rt_err_t ret;
 
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+        CO_RTT_mainlineWait(app, deadline_base_us, timer_next_us);
+#else
         rt_thread_mdelay(1);
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 
         time_current_ms = rt_tick_get_millisecond();
         time_current_us = CO_RTT_timeNowUs();
         time_difference_us = CO_RTT_timeElapsedUs(time_current_us, time_old_us);
         time_old_us = time_current_us;
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+        deadline_base_us = time_current_us;
+#else
         if (time_difference_us == 0U) {
             continue;
         }
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
         app->timeOldMs = time_current_ms;
 
-        reset_status = CO_process(co, ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0, time_difference_us, NULL);
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+        timer_next_us = UINT32_MAX;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
+        reset_status = CO_process(co, ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0,
+                                  time_difference_us,
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+                                  &timer_next_us
+#else
+                                  NULL
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
+        );
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) && defined(PKG_CANOPENNODE_LSS_PERSIST)
         if (reset_status == CO_RESET_NOT) {
             co_app_rtt_lss_bitrate_process(app, time_current_ms);
         }
 #endif /* LSS runtime bitrate */
 #if CO_DEMO_ENABLED
-        CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms, time_difference_us, reset_status);
+        CO_demo_process(&app->demo, co, app->activeNodeID, time_current_ms,
+                        time_difference_us, reset_status,
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+                        &timer_next_us
+#else
+                        NULL
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
+        );
 #endif /* CO_DEMO_ENABLED */
 #if ((CO_CONFIG_TRACE) & CO_CONFIG_TRACE_ENABLE) != 0
         /*
@@ -845,6 +888,10 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         (void)co_storage_rtt_auto_process(&app->storage, co,
                                           (reset_status == CO_RESET_COMM) || (reset_status == CO_RESET_APP));
 #endif /* ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0 */
+
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+        CO_RTT_mainlineUpdateDeadline(app, co, time_current_ms, reset_status, &timer_next_us);
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 
 #if defined(CO_CONFIG_LEDS_ENABLE) && (((CO_CONFIG_LEDS) & CO_CONFIG_LEDS_ENABLE) != 0)
         app->outStatusLEDRed = CO_LED_RED(co->LEDs, CO_LED_CANopen);
@@ -867,10 +914,10 @@ static void co_app_rtt_main_thread_entry(void *parameter)
             }
 
             /*
-             * Stop the timer and reset queued wakeups first, then take the
-             * lifecycle mutex before deleting the old CO_t. CANnormal alone is
-             * only a state gate; it does not protect a pointer already loaded by
-             * the realtime thread.
+             * Stop the realtime timer first, then take the lifecycle mutex before
+             * deleting the old CO_t. The recreate path disables old CAN RX before
+             * deletion; event-driven builds also clear stale wake state before
+             * binding callbacks on the new stack.
              */
             ret = rt_mutex_take(&app->lifecycleMutex, RT_WAITING_FOREVER);
             if (ret != RT_EOK) {
@@ -887,6 +934,10 @@ static void co_app_rtt_main_thread_entry(void *parameter)
 
             co = app->canOpenStack;
             time_old_us = CO_RTT_timeNowUs();
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+            deadline_base_us = time_old_us;
+            timer_next_us = 0U;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 
             if (app->rtTimer != RT_NULL) {
                 /*
@@ -1010,7 +1061,10 @@ static void co_app_rtt_timer_cb(void *parameter)
  * This function stores the mandatory CAN interface parameters into @p app, acquires
  * the wrapper microsecond time source, creates the CANopenNode object, initializes CANopen
  * communication, and starts the internal mainline and realtime worker threads.
- * High-resolution time uses one package-wide dedicated timer and therefore
+ * The optional timerNext scheduler uses a coalescing per-instance event for
+ * asynchronous mainline wakeups; the existing periodic rtTimer/rtSem realtime
+ * worker remains unchanged. High-resolution time uses one package-wide dedicated
+ * timer and therefore
  * supports only one CANopenNodeRTT instance; the BSP/user is responsible for
  * selecting a physically 32-bit timer because generic RT-Thread timer metadata
  * cannot reliably report counter width on all supported BSPs. High-resolution
@@ -1029,6 +1083,9 @@ static void co_app_rtt_timer_cb(void *parameter)
 rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t nodeID, uint16_t bitrate)
 {
     rt_bool_t sem_inited = RT_FALSE;
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    rt_bool_t mainline_inited = RT_FALSE;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     rt_bool_t mutex_inited = RT_FALSE;
     rt_bool_t lifecycle_locked = RT_FALSE;
     rt_bool_t time_inited = RT_FALSE;
@@ -1095,6 +1152,14 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
         goto cleanup;
     }
     sem_inited = RT_TRUE;
+
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    ret = CO_RTT_mainlineInit(app);
+    if (ret != RT_EOK) {
+        goto cleanup;
+    }
+    mainline_inited = RT_TRUE;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 
     /*
      * This mutex is intentionally narrow: it does not serialize mainline
@@ -1209,6 +1274,11 @@ cleanup:
     /* CAN RX is quiesced before releasing demo callback ownership. */
     CO_demo_deinit(&app->demo);
 #endif /* CO_DEMO_ENABLED */
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    if (mainline_inited == RT_TRUE) {
+        CO_RTT_mainlineDeinit(app);
+    }
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     if (lifecycle_locked == RT_TRUE) {
         (void)rt_mutex_release(&app->lifecycleMutex);
     }

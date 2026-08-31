@@ -133,9 +133,10 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co);
  * @param nowMs Current monotonic RT-Thread time in milliseconds.
  * @param timeDifferenceUs Elapsed mainline time passed to CANopenNode in microseconds.
  * @param resetStatus Reset request returned by the preceding CO_process() call.
+ * @param timerNextUs Optional mainline deadline accumulator; NULL keeps legacy polling semantics.
  */
 void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t nowMs,
-                     uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus);
+                     uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs);
 
 /**
  * @brief Reset enabled demo/test module state before local communication reset.

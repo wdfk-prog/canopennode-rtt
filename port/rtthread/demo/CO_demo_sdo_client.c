@@ -229,13 +229,13 @@ static void CO_demo_sdo_client_drain_upload(CO_demo_sdo_client_t *demo, CO_SDOcl
 
 /** Process one upload iteration and consume bytes before the SDO FIFO can fill. */
 static void CO_demo_sdo_client_process_upload(CO_demo_sdo_client_t *demo, CO_SDOclient_t *client,
-                                              uint32_t timeDifferenceUs)
+                                              uint32_t timeDifferenceUs, uint32_t *timerNextUs)
 {
     CO_SDO_abortCode_t abortCode = CO_SDO_AB_NONE;
     size_t sizeIndicated = 0U;
     size_t sizeTransferred = 0U;
     CO_SDO_return_t sdoRet = CO_SDOclientUpload(client, timeDifferenceUs, false, &abortCode,
-                                                &sizeIndicated, &sizeTransferred, NULL);
+                                                &sizeIndicated, &sizeTransferred, timerNextUs);
 
     if (sdoRet != CO_SDO_RT_blockUploadInProgress) {
         CO_demo_sdo_client_drain_upload(demo, client);
@@ -292,7 +292,7 @@ static void CO_demo_sdo_client_fill_download(CO_demo_sdo_client_t *demo, CO_SDOc
 
 /** Process one download iteration, refilling the FIFO as segments are transmitted. */
 static void CO_demo_sdo_client_process_download(CO_demo_sdo_client_t *demo, CO_SDOclient_t *client,
-                                                uint32_t timeDifferenceUs)
+                                                uint32_t timeDifferenceUs, uint32_t *timerNextUs)
 {
     CO_SDO_abortCode_t abortCode = CO_SDO_AB_NONE;
     size_t sizeTransferred = 0U;
@@ -300,7 +300,7 @@ static void CO_demo_sdo_client_process_download(CO_demo_sdo_client_t *demo, CO_S
 
     CO_demo_sdo_client_fill_download(demo, client);
     sdoRet = CO_SDOclientDownload(client, timeDifferenceUs, false, demo->byteOffset < demo->payloadSize,
-                                  &abortCode, &sizeTransferred, NULL);
+                                  &abortCode, &sizeTransferred, timerNextUs);
     demo->transferredSize = (uint32_t)sizeTransferred;
 
     if (sdoRet < CO_SDO_RT_ok_communicationEnd) {
@@ -351,7 +351,8 @@ bool_t CO_demo_sdo_client_bind(CO_demo_sdo_client_t *demo, CO_t *co)
 }
 
 void CO_demo_sdo_client_process(CO_demo_sdo_client_t *demo, CO_t *co, uint8_t localNodeId,
-                                uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus)
+                                uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus,
+                                uint32_t *timerNextUs)
 {
     CO_SDOclient_t *client;
     uint32_t requestSeq;
@@ -385,9 +386,9 @@ void CO_demo_sdo_client_process(CO_demo_sdo_client_t *demo, CO_t *co, uint8_t lo
     }
 
     if (demo->phase == (uint8_t)CO_DEMO_SDO_CLIENT_PHASE_UPLOAD) {
-        CO_demo_sdo_client_process_upload(demo, client, timeDifferenceUs);
+        CO_demo_sdo_client_process_upload(demo, client, timeDifferenceUs, timerNextUs);
     } else if (demo->phase == (uint8_t)CO_DEMO_SDO_CLIENT_PHASE_DOWNLOAD) {
-        CO_demo_sdo_client_process_download(demo, client, timeDifferenceUs);
+        CO_demo_sdo_client_process_download(demo, client, timeDifferenceUs, timerNextUs);
     }
 
     CO_demo_sdo_client_publish(demo);

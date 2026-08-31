@@ -65,6 +65,21 @@ void CO_demo_nmt_master_bind(CO_demo_nmt_master_t *demo, CO_t *co);
 void CO_demo_nmt_master_process(CO_demo_nmt_master_t *demo, CO_t *co, uint8_t localNodeId,
                                 uint32_t nowMs, CO_NMT_reset_cmd_t resetStatus);
 
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+/**
+ * @brief Merge immediate NMT test work or the active state timeout into mainline timerNext.
+ *
+ * SEND_COMMAND contributes a zero deadline so a state transition that schedules
+ * the next NMT command does not depend on an unrelated heartbeat/event wakeup.
+ *
+ * @param demo NMT master validation state.
+ * @param nowMs Current monotonic RT-Thread time in milliseconds.
+ * @param timerNextUs Optional mainline deadline accumulator.
+ */
+void CO_demo_nmt_master_update_timer_next(const CO_demo_nmt_master_t *demo, uint32_t nowMs,
+                                          uint32_t *timerNextUs);
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
+
 /**
  * @brief Reset the NMT master validation sequence before local stack recreation.
  *

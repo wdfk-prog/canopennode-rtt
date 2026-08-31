@@ -68,7 +68,7 @@ Disable `PKG_CANOPENNODE_APP_AUTO_INIT` when the product creates `CANopenNodeRTT
 |---|---:|---|
 | `PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE` | `n` | Enables supported mainline callback-pre hooks. |
 | `PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE` | `n` | Enables supported realtime callback-pre hooks. |
-| `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` | `n` | Enables `timerNext_us` calculation where supported. |
+| `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` | `n` | Enables event-driven mainline scheduling from `timerNext_us`; selects `PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE` and `RT_USING_EVENT`. |
 | `PKG_CANOPENNODE_GLOBAL_OD_DYNAMIC` | `y` | Lets supported objects re-read OD communication parameters after OD writes. |
 
 Keep dynamic OD enabled for configurable devices unless the product intentionally forbids runtime communication-parameter changes.

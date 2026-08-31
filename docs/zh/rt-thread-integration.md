@@ -44,6 +44,7 @@ flowchart TD
 | `rtThread` | realtime CANopen worker thread。 |
 | `rtTimer` | 周期性唤醒 realtime 处理的 RT-Thread timer。 |
 | `rtSem` | realtime 唤醒信号量。 |
+| `mainline` | 开启 `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` 时使用的事件驱动 mainline 调度状态。 |
 | `lifecycleMutex` | communication reset 期间保护 stack 删除和重建。 |
 
 手动初始化接口为：
@@ -68,7 +69,7 @@ sequenceDiagram
     participant CAN as RT-Thread CAN device
 
     App->>Wrapper: canopen_app_rtt_init(app, canName, nodeID, bitrate)
-    Wrapper->>Wrapper: 初始化 semaphore 和 lifecycle mutex
+    Wrapper->>Wrapper: 初始化 rtSem、可选 mainline event 和 lifecycle mutex
     Wrapper->>Core: 创建 CO_t 对象
     Wrapper->>Driver: 初始化 CAN module 并绑定设备
     Driver->>CAN: find/open/configure CAN device
@@ -93,8 +94,11 @@ mainline 线程最后启动，因为它可能处理 `CO_RESET_COMM` 并重建 CA
 | Mainline thread | `co_main` | 执行 `CO_process()`，处理 NMT、SDO、heartbeat、storage auto processing、LED 状态和 reset 命令。 |
 | Realtime thread | `co_rt` | 在对应对象启用时处理 SYNC、SRDO、RPDO 和 TPDO 实时路径。 |
 | Realtime timer | `co_tmr` | 周期性释放 `rtSem`，唤醒 `co_rt`。 |
+| Mainline event | `co_evt` | 开启 `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` 后，合并 callback-pre 与 runtime 的 mainline 唤醒通知。 |
 
 realtime 请求周期由 `PKG_CANOPENNODE_TIMER_PERIOD_US` 配置。封装层会将周期换算为 RT-Thread tick，因此过小的值会受到 BSP tick rate 限制。
+
+`PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n` 时，`co_main` 保留原有 1 ms polling，SCons 也不会编译 `CO_mainline_RTT.c`。开启后由 `CO_mainline_RTT.c` 负责 Event 生命周期、callback-pre 唤醒、等待策略和 wrapper deadline 聚合，`CO_app_RTT.c` 只在明确的功能宏调用点接入调度器。`CO_process()` 与 wrapper 自有逻辑共同给出最近 deadline，callback-pre 和 Gateway 输入则通过 mainline event 提前唤醒线程。Event bit 只表达“有工作需要重新处理”，协议状态和接收数据仍由 CANopenNode 自身维护。Realtime 路径继续保持 `co_tmr -> rtSem -> co_rt`，本功能不改变该周期处理链路。
 
 ## 5. CAN 接收路径
 
