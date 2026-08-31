@@ -158,6 +158,9 @@ static int canopen_gw(int argc, char **argv)
     size_t written;
     CO_t *co;
     rt_err_t ret;
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    rt_bool_t wakeMainline = RT_FALSE;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 
     if (argc < 2) {
         rt_kprintf("usage: canopen_gw <CiA 309-3 command>\n");
@@ -202,10 +205,19 @@ static int canopen_gw(int argc, char **argv)
     }
 
     co_gateway_rtt_advance_sequence();
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    wakeMainline = RT_TRUE;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     ret = RT_EOK;
 
 out:
     (void)rt_mutex_release(&app->lifecycleMutex);
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    /* The wake is only a scheduling hint; publish it after releasing the stack lifetime lock. */
+    if (wakeMainline == RT_TRUE) {
+        CO_RTT_mainlineWakeup(app);
+    }
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     return ret;
 }
 MSH_CMD_EXPORT(canopen_gw, send a CiA 309-3 command through CANopenNode Gateway ASCII);

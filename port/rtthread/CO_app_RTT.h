@@ -28,6 +28,11 @@
 
 #include "CANopen.h"
 #include "CO_demo.h"
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+#include "CO_mainline_RTT.h"
+#else
+typedef struct CANopenNodeRTT CANopenNodeRTT;
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
 #include "CO_storage_RTT.h"
@@ -110,7 +115,7 @@ typedef enum {
 /**
  * @brief CANopenNode RT-Thread application instance.
  */
-typedef struct {
+struct CANopenNodeRTT {
     const char *canName;             /**< RT-Thread CAN device name pointer stored by reference for the instance lifetime. */
     uint8_t desiredNodeID;           /**< Requested CANopen node ID. */
     uint8_t activeNodeID;            /**< Active CANopen node ID after communication initialization. */
@@ -145,6 +150,9 @@ typedef struct {
     rt_thread_t rtThread;            /**< Realtime CANopen worker thread. */
     rt_timer_t rtTimer;              /**< Periodic timer for realtime processing. */
     struct rt_semaphore rtSem;       /**< Realtime thread wake-up semaphore. */
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    CO_RTT_mainline_t mainline;      /**< Event-driven mainline scheduling state. */
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     struct rt_mutex lifecycleMutex;  /**< Protects canOpenStack deletion/recreation against realtime use. */
 
     uint32_t timeOldMs;              /**< Previous mainline process timestamp in milliseconds. */
@@ -156,7 +164,7 @@ typedef struct {
 #endif /* CO_MULTIPLE_OD */
 
     uint32_t lastRtUs;               /**< Realtime elapsed-time baseline in wrapping microseconds. */
-} CANopenNodeRTT;
+};
 
 /* Exported variables ---------------------------------------------------------*/
 
@@ -168,7 +176,10 @@ typedef struct {
  * This function stores the mandatory CAN interface parameters into @p app, acquires
  * the wrapper microsecond time source, creates the CANopenNode object, initializes
  * CANopen communication, and starts the internal mainline and realtime worker
- * threads. When high-resolution time is enabled, the configured RT-Thread timer
+ * threads. When PKG_CANOPENNODE_GLOBAL_TIMERNEXT is enabled, mainline scheduling
+ * uses one per-instance RT-Thread event plus CANopenNode timerNext deadlines
+ * instead of fixed 1 ms polling; callback-pre hooks only signal scheduling work.
+ * When high-resolution time is enabled, the configured RT-Thread timer
  * is opened and started as a dedicated 1 MHz, 32-bit, up-counting clock timer,
  * and only one CANopenNodeRTT instance is supported. The wrapper cannot reliably
  * detect timer counter width through the generic RT-Thread API, so the BSP/user

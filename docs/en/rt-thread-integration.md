@@ -44,6 +44,7 @@ Key fields are:
 | `rtThread` | Realtime CANopen worker thread. |
 | `rtTimer` | Periodic RT-Thread timer that wakes realtime processing. |
 | `rtSem` | Realtime wake semaphore. |
+| `mainline` | Event-driven mainline scheduler state when `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` is enabled. |
 | `lifecycleMutex` | Protects stack deletion/recreation during communication reset. |
 
 Manual initialization uses:
@@ -68,7 +69,7 @@ sequenceDiagram
     participant CAN as RT-Thread CAN device
 
     App->>Wrapper: canopen_app_rtt_init(app, canName, nodeID, bitrate)
-    Wrapper->>Wrapper: initialize semaphore and lifecycle mutex
+    Wrapper->>Wrapper: initialize rtSem, optional mainline event, lifecycle mutex
     Wrapper->>Core: create CO_t object
     Wrapper->>Driver: initialize CAN module and bind device
     Driver->>CAN: find/open/configure CAN device
@@ -93,8 +94,11 @@ The mainline thread is started last because it can process `CO_RESET_COMM` and r
 | Mainline thread | `co_main` | Run `CO_process()`, handle NMT, SDO, heartbeat, storage auto processing, LED state, and reset commands. |
 | Realtime thread | `co_rt` | Run time-sensitive SYNC, SRDO, RPDO, and TPDO paths when enabled. |
 | Realtime timer | `co_tmr` | Periodically release `rtSem` to wake `co_rt`. |
+| Mainline event | `co_evt` | Coalesce callback-pre and runtime wake notifications when `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` is enabled. |
 
 The requested realtime period is configured by `PKG_CANOPENNODE_TIMER_PERIOD_US`. The wrapper rounds the period to RT-Thread ticks, so very small values are limited by the BSP tick rate.
+
+With `PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n`, `co_main` keeps the legacy 1 ms polling loop and `CO_mainline_RTT.c` is not selected by SCons. With it enabled, `CO_mainline_RTT.c` owns the event lifecycle, callback-pre wake hooks, wait policy, and wrapper-owned deadline aggregation; `CO_app_RTT.c` only calls the scheduler at explicit feature-guarded integration points. `CO_process()` and wrapper-owned work contribute the next deadline, while callback-pre hooks and Gateway input set the mainline event to wake the thread early. Event bits are only scheduling hints; CANopenNode remains the owner of protocol state and receive buffers. The realtime path remains `co_tmr -> rtSem -> co_rt`.
 
 ## 5. CAN receive path
 

@@ -105,7 +105,7 @@ bool_t CO_demo_bind(CO_demo_t *demo, CO_t *co)
 }
 
 void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t nowMs,
-                     uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus)
+                     uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs)
 {
     if ((demo == NULL) || (co == NULL)) {
         return;
@@ -121,7 +121,7 @@ void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t no
     CO_demo_gfc_process(&demo->gfc, co);
 #endif /* defined(PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST)
-    CO_demo_sdo_client_process(&demo->sdoClient, co, localNodeId, timeDifferenceUs, resetStatus);
+    CO_demo_sdo_client_process(&demo->sdoClient, co, localNodeId, timeDifferenceUs, resetStatus, timerNextUs);
 #else
     (void)timeDifferenceUs;
 #endif /* defined(PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST) */
@@ -130,6 +130,9 @@ void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t no
 #endif /* defined(PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC) */
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
     CO_demo_nmt_master_process(&demo->nmtMaster, co, localNodeId, nowMs, resetStatus);
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+    CO_demo_nmt_master_update_timer_next(&demo->nmtMaster, nowMs, timerNextUs);
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
 #else
     (void)localNodeId;
     (void)nowMs;
@@ -138,6 +141,7 @@ void CO_demo_process(CO_demo_t *demo, CO_t *co, uint8_t localNodeId, uint32_t no
 #if defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC)
     CO_demo_srdo_process(co);
 #endif /* defined(PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC) */
+    (void)timerNextUs;
 }
 
 void CO_demo_reset(CO_demo_t *demo)

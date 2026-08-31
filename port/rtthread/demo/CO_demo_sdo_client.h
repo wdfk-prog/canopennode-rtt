@@ -86,9 +86,11 @@ bool_t CO_demo_sdo_client_bind(CO_demo_sdo_client_t *demo, CO_t *co);
  * @param localNodeId Active local CANopen Node-ID included in diagnostic logs.
  * @param timeDifferenceUs Elapsed mainline time passed to CANopenNode in microseconds.
  * @param resetStatus Reset request returned by the preceding CO_process() call.
+ * @param timerNextUs Optional timerNext accumulator passed to the active SDO client transfer.
  */
 void CO_demo_sdo_client_process(CO_demo_sdo_client_t *demo, CO_t *co, uint8_t localNodeId,
-                                uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus);
+                                uint32_t timeDifferenceUs, CO_NMT_reset_cmd_t resetStatus,
+                                uint32_t *timerNextUs);
 
 /**
  * @brief Consume pending SDO client requests before local stack recreation.

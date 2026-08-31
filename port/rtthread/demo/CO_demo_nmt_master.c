@@ -498,6 +498,51 @@ cleanup:
 #endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
 }
 
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+void CO_demo_nmt_master_update_timer_next(const CO_demo_nmt_master_t *demo, uint32_t nowMs,
+                                          uint32_t *timerNextUs)
+{
+#if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)
+    uint32_t elapsedMs;
+    uint32_t remainingMs;
+    uint64_t remainingUs;
+
+    if ((demo == NULL) || (timerNextUs == NULL) || demo->finished || demo->failed) {
+        return;
+    }
+
+    if (demo->phase == (uint8_t)CO_DEMO_NMT_MASTER_SEND_COMMAND) {
+        *timerNextUs = 0U;
+        return;
+    }
+
+    if ((demo->phase != (uint8_t)CO_DEMO_NMT_MASTER_WAIT_REMOTE_PREOP)
+        && (demo->phase != (uint8_t)CO_DEMO_NMT_MASTER_WAIT_REMOTE_STATE)) {
+        return;
+    }
+
+    elapsedMs = (uint32_t)(nowMs - demo->referenceTimeMs);
+    if (elapsedMs >= (uint32_t)PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS) {
+        *timerNextUs = 0U;
+        return;
+    }
+
+    remainingMs = (uint32_t)PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS - elapsedMs;
+    remainingUs = (uint64_t)remainingMs * 1000ULL;
+    if (remainingUs > UINT32_MAX) {
+        remainingUs = UINT32_MAX;
+    }
+    if ((uint32_t)remainingUs < *timerNextUs) {
+        *timerNextUs = (uint32_t)remainingUs;
+    }
+#else
+    (void)demo;
+    (void)nowMs;
+    (void)timerNextUs;
+#endif /* defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST) */
+}
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
+
 void CO_demo_nmt_master_reset(CO_demo_nmt_master_t *demo)
 {
 #if defined(PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST)

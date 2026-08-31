@@ -398,14 +398,22 @@ config PKG_CANOPENNODE_GLOBAL_RT_CALLBACK_PRE
 config PKG_CANOPENNODE_GLOBAL_TIMERNEXT
     bool "Global timerNext_us calculation flag"
     default n
+    select PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE
+    select RT_USING_EVENT
     help
-        Set CO_CONFIG_GLOBAL_FLAG_TIMERNEXT. Supported process functions will
-        calculate the next recommended processing deadline in timerNext_us.
+        Enable the RT-Thread event-driven CANopen mainline scheduler and set
+        CO_CONFIG_GLOBAL_FLAG_TIMERNEXT. Supported process functions calculate
+        the next recommended processing deadline in timerNext_us, while
+        callback-pre hooks wake the mainline thread early when asynchronous CAN
+        or runtime work arrives.
 
-        This is useful on RT-Thread when the CANopen mainline thread should
-        sleep until the next CANopen deadline instead of polling at a fixed rate.
-        It can also be used by later low-power integration to program a wakeup
-        timer before entering idle or sleep.
+        The scheduler uses one per-instance RT-Thread event. Repeated wakeups
+        coalesce into a single work-available indication; CANopenNode remains the
+        owner of protocol state and receive buffers.
+
+        RT_USING_EVENT and PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE are selected
+        automatically because timerNext-based sleeping is unsafe without an
+        asynchronous wake path.
 
 config PKG_CANOPENNODE_GLOBAL_OD_DYNAMIC
     bool "Global dynamic Object Dictionary flag"

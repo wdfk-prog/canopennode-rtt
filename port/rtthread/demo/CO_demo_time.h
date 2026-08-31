@@ -20,7 +20,7 @@ extern "C" {
 
 /** Runtime state for the optional TIME consumer diagnostic demo. */
 typedef struct {
-    rt_atomic_t rxCount; /**< Valid DLC=6 TIME receptions observed by callback-pre. */
+    rt_atomic_t rxCount; /**< Valid DLC=6 TIME receptions observed by the diagnostic receive hook. */
 } CO_demo_time_t;
 
 /**
@@ -31,7 +31,21 @@ typedef struct {
 void CO_demo_time_init(CO_demo_time_t *demo);
 
 /**
- * @brief Bind TIME diagnostic callbacks to a newly initialized CANopenNode stack.
+ * @brief Record one syntactically valid TIME reception.
+ *
+ * In timerNext mode the mainline scheduler owns the CANopenNode TIME callback-pre
+ * slot and calls this hook directly. Legacy polling mode reaches the same hook
+ * through the demo-owned callback-pre registration.
+ *
+ * @param demo TIME diagnostic state.
+ */
+void CO_demo_time_on_receive(CO_demo_time_t *demo);
+
+/**
+ * @brief Bind legacy TIME diagnostics or publish initial state for timerNext mode.
+ *
+ * When PKG_CANOPENNODE_GLOBAL_TIMERNEXT is enabled, callback-pre ownership belongs
+ * to the mainline scheduler and this function does not register another callback.
  *
  * @param demo TIME diagnostic state.
  * @param co Current CANopenNode object.
