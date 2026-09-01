@@ -132,7 +132,7 @@ Most behavior is controlled through `Kconfig`. Important options include:
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | Publish demo/test TIME consumer diagnostics through OD `0x2300`. |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | Publish atomic remote EMCY consumer diagnostics through OD `0x2301`. |
 | `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | Enable GFC consumer/producer and publish protocol-test receive evidence plus producer sequence/result through OD `0x2302`. |
-| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | Enable the J04/B03 non-blocking MCU SDO Client control/status record at OD `0x2303`; selects segmented and local client support. |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | Enable the non-blocking MCU SDO Client control/status record at OD `0x2303`; selects segmented and local client support. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | Under the demo OD domain, waits for the remote node through Heartbeat Consumer and confirms each NMT state before advancing the automatic NMT Master validation, default Node-ID 2. |
 | `PKG_CANOPENNODE_USING_STORAGE` | Enable CANopenNode storage support. |
 | `PKG_CANOPENNODE_USING_DEBUG` | Enable RT-Thread ulog diagnostics for this port. |
@@ -167,9 +167,15 @@ For EMCY consumer validation, read-only record `0x2301` publishes a coherent ato
 
 For automated GFC protocol validation, the demo OD provides standard valid parameter `0x1300:00` and test-only record `0x2302`. The GFC receive callback only updates atomic count/state, while producer requests call `CO_GFCsend()` from the mainline. This capability does not drive real actuators and does not establish functional-safety certification.
 
-For J04/B03 MCU SDO Client validation, test-only record `0x2303` publishes a request/active/completion sequence and native SDO result evidence. `request_seq` is the commit field: the Host writes it after all other request fields, and the CANopen mainline then drives the existing `CO_SDOclient` non-blocking. The J04 profile keeps block transfer disabled and the client FIFO at 32 bytes while segmented/local support is enabled.
+For MCU SDO Client validation, test-only record `0x2303` publishes a request/active/completion sequence and native SDO result evidence. `request_seq` is the commit field: the Host writes it after all other request fields, and the CANopen mainline then drives the existing `CO_SDOclient` non-blocking. The segmented/local validation profile keeps block transfer disabled and the client FIFO at 32 bytes; block transfer is enabled separately when required.
 
 See [Object Dictionary guide](docs/en/object-dictionary.md).
+
+## Companion host tester
+
+This repository owns the MCU/RT-Thread CANopenNode integration, test fixtures, and observability objects. The corresponding Linux Host/master-side automated protocol tests live in [canopen-slave-tester](https://github.com/wdfk-prog/canopen-slave-tester). That project is based on Lely CANopen and normally acts as the test master; when validating this repository's NMT Master capability, it can also act as the remote Lely `BasicSlave` test node.
+
+The two repositories interoperate through standard CANopen objects and this package's demo/test Object Dictionary; they do not share a source build. The currently enabled Host-side automatic flows are defined by the `canopen-slave-tester` configuration. See [Testing and validation](docs/en/testing.md) for scope, fixtures, and the recommended integration flow.
 
 ## Documentation
 
@@ -177,6 +183,7 @@ See [Object Dictionary guide](docs/en/object-dictionary.md).
 - [Quick start](docs/en/quick-start.md)
 - [RT-Thread integration](docs/en/rt-thread-integration.md)
 - [Configuration guide](docs/en/configuration.md)
+- [Testing and validation](docs/en/testing.md)
 - [NMT Master automatic test](docs/en/nmt-master-test.md)
 - [Object Dictionary guide](docs/en/object-dictionary.md)
 - [Submodule update guide](docs/en/submodule-update.md)

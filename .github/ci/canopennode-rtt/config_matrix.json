@@ -20,7 +20,7 @@
         "demo-storage-dfs",
         "demo-storage-eeprom-at24c",
         "demo-safety-debug",
-        "demo-b-stage-cumulative"
+        "demo-full-feature"
       ]
     }
   ],

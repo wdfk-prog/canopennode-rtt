@@ -97,7 +97,7 @@ The bitrate check and activate callbacks are bound directly at the same initiali
 
 ## Runtime bitrate activation
 
-Configure Bit Timing accepts the standard CANopen LSS rates 10/20/50/125/250/500/800/1000 kbit/s. On the current STM32F407 J08 target, all of them also exist in the RT-Thread bxCAN baud table; the actual switch still treats `RT_CAN_CMD_SET_BAUD` as the final hardware result.
+Configure Bit Timing accepts the standard CANopen LSS rates 10/20/50/125/250/500/800/1000 kbit/s. On the current STM32F407 target, all of them also exist in the RT-Thread bxCAN baud table; the actual switch still treats `RT_CAN_CMD_SET_BAUD` as the final hardware result.
 
 The Activate Bit Timing callback is non-blocking: it does not sleep and does not reconfigure hardware directly. It records the previous/target bitrate and delay, atomically closes the `CO_CANsend()` software TX gate, and enters PRE_DELAY immediately. Mainline processing then advances:
 
@@ -118,9 +118,9 @@ Behavior:
 5. When POST_DELAY expires, `CO_RTT_CANsetTxEnabled(..., true)` restores normal CANopen transmission.
 6. On success `app->baudrate` becomes the active bitrate while `lssPendingBitrate` remains the LSS-configured value for a later Store command.
 
-If the target bitrate switch fails, the wrapper attempts to restore the previous bitrate. A successful rollback resumes communication and restores the in-RAM pending bitrate. If rollback also fails, `txEnabled` stays false and `CANnormal` stays false so new CANopen transmission cannot continue from an unknown controller/bitrate state; Reset Node, power cycle, or the J08 rescue procedure is then required.
+If the target bitrate switch fails, the wrapper attempts to restore the previous bitrate. A successful rollback resumes communication and restores the in-RAM pending bitrate. If rollback also fails, `txEnabled` stays false and `CANnormal` stays false so new CANopen transmission cannot continue from an unknown controller/bitrate state; Reset Node, power cycle, or a bitrate rescue procedure is then required.
 
-The current silence boundary is deliberately at the CANopen software layer. Clearing `txEnabled` prevents new `CO_CANsend()` calls that have not yet entered the RT-Thread/HAL TX path. A frame that already entered `rt_device_write()` or a hardware mailbox before the gate was closed is not aborted by this stage. A future target-driver API based on `HAL_CAN_AbortTxRequest()` can clear pending hardware TX before PRE_DELAY without changing the main LSS state-machine design. Applications must also avoid bypassing CANopenNode and writing directly to the same CAN device during an LSS activation window.
+The current silence boundary is deliberately at the CANopen software layer. Clearing `txEnabled` prevents new `CO_CANsend()` calls that have not yet entered the RT-Thread/HAL TX path. A frame that already entered `rt_device_write()` or a hardware mailbox before the gate was closed is not aborted by the current implementation. A future target-driver API based on `HAL_CAN_AbortTxRequest()` can clear pending hardware TX before PRE_DELAY without changing the main LSS state-machine design. Applications must also avoid bypassing CANopenNode and writing directly to the same CAN device during an LSS activation window.
 
 ## Write and interruption behavior
 
@@ -152,7 +152,7 @@ This follows the CANopenNode LSS pending-value lifecycle: persistent values are 
 
 ## Raw CAN verification for Node-ID configure/store
 
-For J08-style tests that only verify Node-ID configuration and persistence, the MCU does not need a second LSS Master implementation. A Linux host can send the CiA 305 LSS frames directly with SocketCAN/can-utils.
+For tests that only verify Node-ID configuration and persistence, the MCU does not need a second LSS Master implementation. A Linux host can send the CiA 305 LSS frames directly with SocketCAN/can-utils.
 
 CAN identifiers:
 
@@ -205,7 +205,7 @@ For Node-ID `0x22`, the new boot-up frame should be:
 
 For persistence acceptance, continue with an NMT Reset Node (`0x81`) to the current Node-ID, verify that the saved Node-ID returns, perform a real power cycle and verify it again, then configure + Store the original Node-ID and repeat reset/power-cycle cleanup.
 
-## J08-4/J08-5 bitrate verification
+## Bitrate verification
 
 A practical target flow is:
 
@@ -213,12 +213,12 @@ A practical target flow is:
 2. Configure Bit Timing to 500 kbit/s and expect a successful response.
 3. Send an invalid or unsupported timing-table combination and verify an error/no-ack without changing the pending bitrate.
 4. Send Activate Bit Timing and switch the Host SocketCAN interface with the same delay.
-5. Verify that the CANopen layer does not generate new traffic during PRE_DELAY/POST_DELAY and that normal heartbeat/SDO transmission does not resume before the window ends. Aborting a historical TX that already entered a HAL mailbox before the gate closed is not an acceptance requirement for this stage.
+5. Verify that the CANopen layer does not generate new traffic during PRE_DELAY/POST_DELAY and that normal heartbeat/SDO transmission does not resume before the window ends. Aborting a historical TX that already entered a HAL mailbox before the gate closed is not an acceptance requirement for this validation.
 6. After the delay, verify LSS/SDO/heartbeat communication at 500 kbit/s.
 7. Store configuration, perform Reset Node and a real power cycle, and rediscover the DUT at 500 kbit/s.
 8. Restore 1000 kbit/s, Store, Reset Node, power-cycle, and verify cleanup.
 
-J08-5 code completion is not the same as B07-B acceptance. Target validation must still cover synchronized Host switching, real bxCAN reconfiguration, the CANopen software TX gate, Store/Reset/power-cycle persistence, and rescue. Strict hardware-mailbox abort can be added when the RT-Thread target driver exposes the required API.
+Completing the implementation is not the same as passing target-board acceptance. Target validation must still cover synchronized Host switching, real bxCAN reconfiguration, the CANopen software TX gate, Store/Reset/power-cycle persistence, and rescue. Strict hardware-mailbox abort can be added when the RT-Thread target driver exposes the required API.
 
 ## Recovery behavior
 

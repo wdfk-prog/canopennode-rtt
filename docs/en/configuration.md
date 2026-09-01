@@ -179,7 +179,7 @@ Exactly one storage backend must be selected when storage is enabled.
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Updates demo OD `0x2300:01..03` from the TIME receive callback and applied `CO_TIME_t` state. |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | Single-instance demo diagnostic; updates `0x2301:01..07` from the CANopenNode EMCY Consumer callback using RT-Thread atomics. |
 | `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | Demo/test GFC protocol diagnostic; selects GFC consumer/producer and uses `0x2302` for receive evidence and a mainline producer request/result sequence. |
-| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | J04/B03 MCU SDO Client test; publishes `0x2303`, selects SDO Client segmented/local support, and leaves block transfer disabled unless separately enabled. |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | MCU SDO Client automated validation; publishes `0x2303`, selects SDO Client segmented/local support, and leaves block transfer disabled unless separately enabled. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | Available only under the demo OD domain; depends on auto init and selects NMT Master, Heartbeat Consumer, query functions, and GLOBAL_OD_DYNAMIC. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | Controlled remote node, range 1..127; runtime rejects the active local Node-ID. |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | Target-node Heartbeat Consumer timeout temporarily written to demo OD `0x1016`; the previous value is restored on completion, failure, or before local reset. |

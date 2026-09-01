@@ -29,7 +29,7 @@ extern "C" {
  * Maximum raw bytes covered by the first PERSIST_COMM storage entry.
  *
  * CO_storageEeprom places the complete fixed signature table before the first
- * payload. B01 only targets OD 0x1010/0x1011 sub-index 2, which is required to
+ * payload. The diagnostic targets OD 0x1010/0x1011 sub-index 2, which is required to
  * be the first configured entry when this diagnostic is enabled.
  */
 #define CO_DEMO_STORAGE_BACKUP_CAPACITY \
@@ -55,7 +55,7 @@ typedef enum {
     CO_DEMO_STORAGE_RESULT_INVALID_ARGUMENT = 2, /**< One or more request fields are invalid. */
     CO_DEMO_STORAGE_RESULT_NOT_READY = 3, /**< Storage or the AT24CXX module is not ready. */
     CO_DEMO_STORAGE_RESULT_ENTRY_NOT_FOUND = 4, /**< Requested storage sub-index is not configured. */
-    CO_DEMO_STORAGE_RESULT_UNSUPPORTED_LAYOUT = 5, /**< The raw layout is not safe for this B01 diagnostic. */
+    CO_DEMO_STORAGE_RESULT_UNSUPPORTED_LAYOUT = 5, /**< The raw layout is not safe for this storage diagnostic. */
     CO_DEMO_STORAGE_RESULT_RANGE_ERROR = 6, /**< Requested raw range lies outside the selected entry region. */
     CO_DEMO_STORAGE_RESULT_IO_ERROR = 7, /**< EEPROM read or write failed. */
     CO_DEMO_STORAGE_RESULT_VERIFY_ERROR = 8, /**< EEPROM read-back did not match the requested write. */
@@ -144,7 +144,7 @@ void CO_demo_storage_process(CO_demo_storage_t *demo);
  * @brief Consume pending diagnostic requests before local communication reset.
  *
  * The target-RAM backup is intentionally preserved across communication reset,
- * but a real MCU reset or power cycle clears it. Host-side B01 cleanup therefore
+ * but a real MCU reset or power cycle clears it. Host-side cleanup therefore
  * keeps its own complete raw baseline for reset and power-loss modes.
  *
  * @param demo Storage diagnostic state.

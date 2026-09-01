@@ -1,6 +1,6 @@
 /**
  * @file CO_demo_srdo.h
- * @brief Test-only single-instance J09/B09S SRDO diagnostic bridge.
+ * @brief Test-only single-instance SRDO diagnostic bridge.
  *
  * The fixture writes the generated global OD_RAM.x2306_srdo_diagnostic record
  * and therefore requires PKG_CANOPENNODE_CAN_BINDING_COUNT=1.

@@ -11,7 +11,7 @@
 
 #include <string.h>
 
-/** OD 0x1010/0x1011 sub-index selected by J07/B01. */
+/** OD 0x1010/0x1011 sub-index used by the EEPROM storage diagnostic. */
 #define CO_DEMO_STORAGE_COMM_SUB_INDEX 2U
 
 /** CRC bit flipped by the signature-corruption command without changing the stored length. */
@@ -101,7 +101,7 @@ static CO_demo_storage_result_t CO_demo_storage_refresh_layout(CO_demo_storage_t
         return CO_DEMO_STORAGE_RESULT_ENTRY_NOT_FOUND;
     }
 
-    /* The B01 raw baseline is intentionally defined only for sub-index 2 as
+    /* The raw storage baseline is intentionally defined only for sub-index 2 as
      * the first entry. Then its signature starts at the storage base and the
      * contiguous region through its payload includes the complete signature table. */
     if ((selectedSubIndex != CO_DEMO_STORAGE_COMM_SUB_INDEX) || (entry != &demo->entries[0])) {

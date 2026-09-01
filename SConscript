@@ -71,7 +71,7 @@ if GetDepend('PKG_USING_CANOPENNODE'):
             and not GetDepend('PKG_CANOPENNODE_USING_DEMO_OD')):
         raise RuntimeError(
             'PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC requires the generated demo OD; '
-            'enable PKG_CANOPENNODE_USING_DEMO_OD or disable the J09/B09S fixture.')
+            'enable PKG_CANOPENNODE_USING_DEMO_OD or disable the SRDO fixture.')
 
     if GetDepend('PKG_CANOPENNODE_USING_DEMO_OD'):
         demo_enabled = (GetDepend('PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC')

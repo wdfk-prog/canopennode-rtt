@@ -14,6 +14,7 @@ This site combines the package documentation with API reference generated from t
 - [Quick Start](en/quick-start.md)
 - [RT-Thread Integration](en/rt-thread-integration.md)
 - [Configuration](en/configuration.md)
+- [Testing and Validation](en/testing.md)
 - [High-Resolution Time](en/high-resolution-time.md)
 - [Object Dictionary](en/object-dictionary.md)
 - [Troubleshooting](en/troubleshooting.md)
@@ -24,6 +25,7 @@ This site combines the package documentation with API reference generated from t
 - [快速开始](zh/quick-start.md)
 - [RT-Thread 集成](zh/rt-thread-integration.md)
 - [配置说明](zh/configuration.md)
+- [测试与验证](zh/testing.md)
 - [High-Resolution Time 集成说明](zh/high-resolution-time.md)
 - [对象字典](zh/object-dictionary.md)
 - [故障排查](zh/troubleshooting.md)
@@ -39,3 +41,4 @@ This site combines the package documentation with API reference generated from t
 - RT-Thread integration code lives under `port/rtthread`.
 - The demo Object Dictionary lives under `examples/demo_device`.
 - CANopenNode stack sources are included from the `CANopenNode` submodule.
+- Linux Host/master-side automated protocol tests are maintained in [canopen-slave-tester](https://github.com/wdfk-prog/canopen-slave-tester).
