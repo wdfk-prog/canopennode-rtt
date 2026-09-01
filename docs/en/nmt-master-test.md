@@ -105,6 +105,8 @@ Local communication reset clears the demo state. After the new `CO_t` is initial
 
 ## 6. Host peer requirement
 
+The corresponding Linux Host/master test code lives in [canopen-slave-tester](https://github.com/wdfk-prog/canopen-slave-tester). When validating the MCU NMT Master, that project switches to a Lely `BasicSlave` Node 2 and acts as the remote peer for this test.
+
 The Linux `BasicSlave` Node 2 must produce periodic heartbeat messages. The Host tester first completes `BasicSlave::Reset()` and registers the `OnCommand()` observer, then sets local object `0x1017` to 500 ms; Heartbeat ACTIVE therefore also acts as the Host validation-ready gate. Because NMT RESET_COMM restores communication parameters, the Host rewrites `0x1017=500 ms` only after the reset-completion `ENTER_PREOP` callback, when Lely has finished restoring communication defaults. After the formal final START callback, the Host confirms Producer Heartbeat remains enabled and keeps Node 2 alive for two full heartbeat periods before reporting Host-side success.
 
 This allows the MCU to discover Node 2 even when the MCU starts after Linux; the test no longer depends on seeing the one-time Boot-up emitted at initial Host startup.

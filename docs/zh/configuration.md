@@ -179,7 +179,7 @@ Storage backend 选择：
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 根据 TIME receive callback 和实际 `CO_TIME_t` 状态更新 demo OD `0x2300:01..03`。 |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | 单实例 demo 诊断；使用 RT-Thread atomic 根据 CANopenNode EMCY Consumer callback 更新 `0x2301:01..07`。 |
 | `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | demo/test GFC 协议诊断；自动选择 GFC consumer/producer，并通过 `0x2302` 提供接收证据及 mainline producer request/result sequence。 |
-| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | J04/B03 MCU SDO Client 测试；发布 `0x2303`，自动选择 SDO Client segmented/local 支持；除非另行启用，否则 block transfer 保持关闭。 |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | MCU SDO Client 自动验证；发布 `0x2303`，自动选择 SDO Client segmented/local 支持；除非另行启用，否则 block transfer 保持关闭。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | 仅在 demo OD 配置域内可见；依赖 auto init，并自动选择 NMT Master、Heartbeat Consumer、query functions 与 GLOBAL_OD_DYNAMIC。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | 被控制的远端节点，范围 1..127；运行时拒绝与本机 Node-ID 相同。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | 写入 demo OD `0x1016` 的目标节点 Heartbeat consumer timeout。 |

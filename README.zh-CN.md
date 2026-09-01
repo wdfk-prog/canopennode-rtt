@@ -132,7 +132,7 @@ flowchart TD
 | `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | 通过 OD `0x2300` 发布 demo/test TIME consumer 诊断。 |
 | `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | 通过 OD `0x2301` 发布基于 atomic 的远端 EMCY consumer 诊断。 |
 | `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | 启用 GFC consumer/producer，并通过 OD `0x2302` 发布协议测试接收证据和 producer sequence/result。 |
-| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | 启用 J04/B03 MCU SDO Client 非阻塞测试控制/状态记录 `0x2303`，并自动选择 segmented/local client 支持。 |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | 启用 MCU SDO Client 非阻塞测试控制/状态记录 `0x2303`，并自动选择 segmented/local client 支持。 |
 | `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | 位于 demo OD 配置域内，通过 Heartbeat Consumer 等待远端节点上线并逐步确认 NMT 状态后执行自动 NMT Master 验证，默认目标 Node-ID 2。 |
 | `PKG_CANOPENNODE_USING_STORAGE` | 启用 CANopenNode storage 支持。 |
 | `PKG_CANOPENNODE_USING_DEBUG` | 启用本移植层的 RT-Thread ulog 诊断日志。 |
@@ -167,9 +167,15 @@ INIT_APP_EXPORT(app_canopen_init);
 
 为支持 GFC 协议自动验证，demo OD 提供标准 `0x1300:00` valid 参数和 test-only `0x2302` 记录。GFC receive callback 只更新 atomic 计数/标志，producer 只在 mainline 根据 sequence request 调用 `CO_GFCsend()`；该能力不驱动真实执行器，也不代表功能安全认证。
 
-为支持 J04/B03 MCU SDO Client 自动验证，test-only 记录 `0x2303` 发布 request/active/completion sequence 和原生 SDO 结果证据。Host 必须最后写 `request_seq` 作为提交点，CANopen mainline 观察到新 sequence 后才以非阻塞方式驱动现有 `CO_SDOclient`。J04 profile 保持 block transfer 关闭、client FIFO 为 32 bytes，同时启用 segmented/local 支持。
+为支持 MCU SDO Client 自动验证，test-only 记录 `0x2303` 发布 request/active/completion sequence 和原生 SDO 结果证据。Host 必须最后写 `request_seq` 作为提交点，CANopen mainline 观察到新 sequence 后才以非阻塞方式驱动现有 `CO_SDOclient`。segmented/local 验证配置保持 block transfer 关闭、client FIFO 为 32 bytes；需要 block transfer 时再单独启用对应能力。
 
 详见：[Object Dictionary 指南](docs/zh/object-dictionary.md)。
+
+## 配套主站测试
+
+本仓库负责 MCU/RT-Thread 侧的 CANopenNode 集成、测试夹具和可观察性对象。对应的 Linux Host/主站自动协议测试代码位于 [canopen-slave-tester](https://github.com/wdfk-prog/canopen-slave-tester)。该工程基于 Lely CANopen，默认承担主站测试角色；验证本仓库的 NMT Master 能力时，也可作为远端 Lely `BasicSlave` 测试节点。
+
+两仓库通过标准 CANopen 对象和本仓库的 demo/test Object Dictionary 协同，不共享源码构建。Host 侧具体启用哪些自动流程以 `canopen-slave-tester` 当前配置为准。完整边界、测试对象与推荐联调流程见：[测试与验证](docs/zh/testing.md)。
 
 ## 文档
 
@@ -177,6 +183,7 @@ INIT_APP_EXPORT(app_canopen_init);
 - [快速接入](docs/zh/quick-start.md)
 - [RT-Thread 集成说明](docs/zh/rt-thread-integration.md)
 - [配置指南](docs/zh/configuration.md)
+- [测试与验证](docs/zh/testing.md)
 - [NMT Master 自动测试](docs/zh/nmt-master-test.md)
 - [Object Dictionary 指南](docs/zh/object-dictionary.md)
 - [子模块更新说明](docs/zh/submodule-update.md)
