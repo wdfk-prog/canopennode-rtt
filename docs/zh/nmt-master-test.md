@@ -105,6 +105,8 @@ SConscript 仅在 `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` 开启时加入 `CO_dem
 
 ## 6. Host peer 要求
 
+对应的 Linux Host/主站测试代码位于 [canopen-slave-tester](https://github.com/wdfk-prog/canopen-slave-tester)。验证 MCU NMT Master 时，该工程切换为 Lely `BasicSlave` Node 2，作为本测试的远端 peer。
+
 Linux `BasicSlave` Node 2 必须持续产生 Heartbeat。Host 测试程序先完成 `BasicSlave::Reset()` 并注册 `OnCommand()` observer，再把本地 `0x1017` 配成 500 ms；Heartbeat ACTIVE 因此也作为 Host validation-ready 门控。由于 NMT RESET_COMM 会恢复通信参数，Host 只在 reset completion 的 `ENTER_PREOP` callback 到达、Lely 已完成通信参数恢复后重新写入 `0x1017=500 ms`。formal final START callback 后 Host 确认该 Producer Heartbeat 仍启用，并保持两个完整 heartbeat 周期后才报告 Host 侧 PASS。
 
 这样 MCU 即使晚于 Linux 启动，也能通过后续周期 Heartbeat 判断 Node 2 已上线，不依赖捕获最开始的一次 Boot-up。

@@ -1473,7 +1473,7 @@ config PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC
         functional-safety state machine or control real safety actuators.
 
 config PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC
-    bool "Enable demo J09/B09S SRDO diagnostic fixture"
+    bool "Enable demo SRDO diagnostic fixture"
     default n
     depends on PKG_CANOPENNODE_USING_SDO_SERVER
     depends on PKG_CANOPENNODE_CAN_BINDING_COUNT = 1
@@ -1481,7 +1481,7 @@ config PKG_CANOPENNODE_DEMO_SRDO_DIAGNOSTIC
     select PKG_CANOPENNODE_USING_SRDO
     select PKG_CANOPENNODE_SRDO_CHECK_TX
     help
-        Enable the test-only J09/B09S SRDO fixture in the generated demo Object
+        Enable the test-only SRDO fixture in the generated demo Object
         Dictionary. The fixture exposes two deterministic SRDO channels and OD
         0x2306 state/TX-request observability for Host protocol validation.
 
@@ -1500,8 +1500,8 @@ config PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST
     depends on PKG_CANOPENNODE_USING_SDO_SERVER
     depends on PKG_CANOPENNODE_SDO_SRV_BLOCK
     help
-        Publish the test-only variable-length DOMAIN at OD 0x2304 for J06/B02
-        SDO Server Block Transfer validation. The bounded backend accepts up to
+        Publish the test-only variable-length DOMAIN at OD 0x2304 for SDO Server
+        Block Transfer validation. The bounded backend accepts up to
         2048 bytes, uses no dynamic memory or persistence and relies on
         CANopenNode for the SDO block state machine and CRC handling.
 
@@ -1519,9 +1519,9 @@ config PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST
     help
         Publish test-only MCU SDO client control/status through OD 0x2303.
         The Host commits request_seq after all request fields are written, then
-        the CANopenNode mainline drives CO_SDOclient non-blockingly. The J04
-        profile keeps flags=0 for local/segmented transfers. J06/B02-12 may set
-        flags bit 0 when PKG_CANOPENNODE_SDO_CLI_BLOCK is enabled separately.
+        the CANopenNode mainline drives CO_SDOclient non-blockingly. The
+        segmented/local validation profile keeps flags=0. Block-transfer
+        validation may set bit 0 when PKG_CANOPENNODE_SDO_CLI_BLOCK is enabled.
 
         The demo uses the first generated SDO client object and is intended for
         automated validation with the package demo Object Dictionary.
@@ -1534,8 +1534,7 @@ config PKG_CANOPENNODE_DEMO_STORAGE_DIAGNOSTIC
     depends on PKG_CANOPENNODE_USING_STORAGE_AT24C
     depends on PKG_CANOPENNODE_STORAGE_PERSIST_COMM
     help
-        Publish test-only EEPROM Storage diagnostics through OD 0x2305 for
-        J07/B01. The diagnostic exposes the existing CO_storageEeprom raw layout,
+        Publish test-only EEPROM Storage diagnostics through OD 0x2305. The diagnostic exposes the existing CO_storageEeprom raw layout,
         captures the startup storage result and pre-master 0x1017 value, and
         supports full raw baseline backup/restore plus controlled corruption.
 

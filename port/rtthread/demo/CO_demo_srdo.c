@@ -1,6 +1,6 @@
 /**
  * @file CO_demo_srdo.c
- * @brief Test-only J09/B09S SRDO diagnostic bridge implementation.
+ * @brief Test-only SRDO diagnostic bridge implementation.
  */
 
 #include "CO_demo_srdo.h"
@@ -18,7 +18,7 @@
 #endif
 
 #if (PKG_CANOPENNODE_CAN_BINDING_COUNT != 1)
-#error "J09/B09S SRDO diagnostic requires PKG_CANOPENNODE_CAN_BINDING_COUNT=1"
+#error "SRDO diagnostic requires PKG_CANOPENNODE_CAN_BINDING_COUNT=1"
 #endif
 
 /* CANopenNode's pinned SRDO implementation stores information direction as
@@ -43,7 +43,7 @@ static int8_t CO_demo_srdo_aggregate(int8_t rxState, int8_t txState)
 
 static void CO_demo_srdo_restore_tx_baseline(void)
 {
-    /* The manufacturer object is a stage fixture, not product application data.
+    /* The manufacturer object is a test fixture, not product application data.
      * Resetting its deliberately corrupt F11 values prevents one fault case from
      * contaminating the next freshly re-created SRDO instance. */
     CO_DEMO_SRDO_DIAG.tx_normal = CO_DEMO_SRDO_TX_NORMAL_DEFAULT;

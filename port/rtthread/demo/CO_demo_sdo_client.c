@@ -23,7 +23,7 @@
 #error "PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST requires CO_CONFIG_SDO_CLI_LOCAL"
 #endif /* (((CO_CONFIG_SDO_CLI) & CO_CONFIG_SDO_CLI_LOCAL) == 0) */
 
-/** Maximum deterministic DOWNLOAD payload accepted by the J04/J06 test wrapper. */
+/** Maximum deterministic DOWNLOAD payload accepted by the SDO Client test wrapper. */
 #define CO_DEMO_SDO_CLIENT_MAX_PAYLOAD_SIZE 4096U
 /** Request block transfer through CANopenNode when the client feature is compiled. */
 #define CO_DEMO_SDO_CLIENT_FLAG_BLOCK 0x01U

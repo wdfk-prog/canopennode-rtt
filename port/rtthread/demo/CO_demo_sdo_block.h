@@ -16,7 +16,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/** Maximum payload accepted by the J06/B02 DOMAIN fixture. */
+/** Maximum payload accepted by the SDO Server block-transfer DOMAIN fixture. */
 #define CO_DEMO_SDO_BLOCK_MAX_PAYLOAD_SIZE 2048U
 
 /** Long-lived state for the test-only SDO server block-transfer DOMAIN. */

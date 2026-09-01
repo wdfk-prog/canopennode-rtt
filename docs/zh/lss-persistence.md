@@ -97,7 +97,7 @@ Bitrate check/activate 也直接在同一个初始化函数中绑定，不使用
 
 ## 运行时 bitrate activate
 
-Configure Bit Timing 只接受 CANopen LSS 标准表中的 10/20/50/125/250/500/800/1000 kbit/s。对于当前 J08 STM32F407 目标，这些值也都存在于 RT-Thread bxCAN baud table；实际切换时仍以 `RT_CAN_CMD_SET_BAUD` 返回值作为最终硬件结果。
+Configure Bit Timing 只接受 CANopen LSS 标准表中的 10/20/50/125/250/500/800/1000 kbit/s。对于当前 STM32F407 目标，这些值也都存在于 RT-Thread bxCAN baud table；实际切换时仍以 `RT_CAN_CMD_SET_BAUD` 返回值作为最终硬件结果。
 
 Activate Bit Timing callback 本身不阻塞、不 sleep，也不直接切换 CAN 硬件。callback 只记录旧/新 bitrate 和 delay，原子关闭 `CO_CANsend()` 的软件 TX gate，并立即进入 PRE_DELAY；后续由 mainline 周期推进：
 
@@ -118,9 +118,9 @@ IDLE
 5. POST_DELAY 到期后重新 `CO_RTT_CANsetTxEnabled(..., true)`，恢复 CANopen 发送；
 6. 成功后 `app->baudrate` 更新为新的 active bitrate，`lssPendingBitrate` 保持 LSS 配置值，后续 Store 可保存该值。
 
-如果目标 bitrate 切换失败，代码尝试恢复切换前 bitrate。回退成功时恢复通信并把 RAM pending bitrate 恢复为原值；如果连回退也失败，则保持 `txEnabled=false` 和 `CANnormal=false`，要求 Reset Node、power-cycle 或 J08 rescue 流程恢复。
+如果目标 bitrate 切换失败，代码尝试恢复切换前 bitrate。回退成功时恢复通信并把 RAM pending bitrate 恢复为原值；如果连回退也失败，则保持 `txEnabled=false` 和 `CANnormal=false`，要求 Reset Node、power-cycle 或 bitrate rescue 流程恢复。
 
-当前实现的静默边界明确限定在 CANopen 软件层：`txEnabled=false` 阻止的是尚未进入 RT-Thread/HAL TX 路径的新 `CO_CANsend()`。如果某一帧在 gate 关闭前已经进入 `rt_device_write()` 或硬件 mailbox，本阶段不会中止该帧。后续 RT-Thread CAN driver 若提供基于 `HAL_CAN_AbortTxRequest()` 的 target TX-abort API，可在进入 PRE_DELAY 前补充硬件 pending-TX 清理，而无需改变当前 LSS 状态机主体。应用同样不应在 LSS activate 窗口绕过 CANopenNode，直接对同一 CAN device 调用 `rt_device_write()`。
+当前实现的静默边界明确限定在 CANopen 软件层：`txEnabled=false` 阻止的是尚未进入 RT-Thread/HAL TX 路径的新 `CO_CANsend()`。如果某一帧在 gate 关闭前已经进入 `rt_device_write()` 或硬件 mailbox，当前实现不会中止该帧。后续 RT-Thread CAN driver 若提供基于 `HAL_CAN_AbortTxRequest()` 的 target TX-abort API，可在进入 PRE_DELAY 前补充硬件 pending-TX 清理，而无需改变当前 LSS 状态机主体。应用同样不应在 LSS activate 窗口绕过 CANopenNode，直接对同一 CAN device 调用 `rt_device_write()`。
 
 ## 写入与掉电行为
 
@@ -152,7 +152,7 @@ IDLE
 
 ## 使用原始 CAN 帧验证 Node-ID configure/store
 
-对于仅验证 Node-ID 修改与保存的 J08 类测试，不需要在 MCU 侧再实现 LSS Master。可以在 Linux Host 使用 SocketCAN/can-utils 直接发送 CiA 305 LSS 帧。
+对于仅验证 Node-ID 修改与持久化的测试，不需要在 MCU 侧再实现 LSS Master。可以在 Linux Host 使用 SocketCAN/can-utils 直接发送 CiA 305 LSS 帧。
 
 CAN-ID：
 
@@ -203,7 +203,7 @@ Configure 后、Communication Reset 前，`Inquire Node-ID (0x5E)` 返回的是 
 722#00
 ```
 
-J08-3 还应继续执行：
+Node-ID 持久化验收还应继续执行：
 
 1. 对当前 Node-ID 发送 NMT Reset Node (`0x81`)；
 2. 确认复位后仍以保存的新 Node-ID 上线；
@@ -211,20 +211,20 @@ J08-3 还应继续执行：
 4. 确认仍使用保存的新 Node-ID；
 5. 最后使用 LSS configure + Store 恢复原 Node-ID，再 reset/power-cycle 复核。
 
-## J08-4/J08-5 bitrate 验证要点
+## Bitrate 验证要点
 
 建议先以 1000 kbit/s 启动 DUT，selective 进入 LSS configuration state 后：
 
 1. Configure Bit Timing 到 500 kbit/s，期望收到成功响应；
 2. 发送非法/不支持的 timing table 组合，期望错误响应或 no-ack，且 pending bitrate 不改变；
 3. 发送 Activate Bit Timing，并使用同一个 switch delay 同步切换 Host SocketCAN；
-4. 在 PRE_DELAY/POST_DELAY 期间确认 CANopen 层不再产生新的发送，并验证切速窗口结束前不会恢复 heartbeat/SDO 等正常发送；本阶段不把“gate 关闭前已经进入 HAL mailbox 的历史 TX 被强制 abort”作为验收条件；
+4. 在 PRE_DELAY/POST_DELAY 期间确认 CANopen 层不再产生新的发送，并验证切速窗口结束前不会恢复 heartbeat/SDO 等正常发送；本项验证不把“gate 关闭前已经进入 HAL mailbox 的历史 TX 被强制 abort”作为验收条件；
 5. delay 结束后在 500 kbit/s 验证 LSS/SDO/heartbeat 通信；
 6. Store configuration，执行 Reset Node，再真实 power-cycle；
 7. Host 从 500 kbit/s 重新发现 DUT，确认持久 bitrate 生效；
 8. 最后恢复 1000 kbit/s，Store、Reset Node、power-cycle 再复核。
 
-J08-5 代码完成不等于 B07-B PASS；目标板实测仍需验证 Host 同步切速、实际 bxCAN 重配置、CANopen 软件 TX gate、Store/Reset/power-cycle 和 rescue。严格硬件 mailbox abort 可在 RT-Thread target driver 后续提供对应 API 后补充。
+代码实现完成不等于目标板验收通过；目标板实测仍需验证 Host 同步切速、实际 bxCAN 重配置、CANopen 软件 TX gate、Store/Reset/power-cycle 和 rescue。严格硬件 mailbox abort 可在 RT-Thread target driver 后续提供对应 API 后补充。
 
 ## 错误处理
 
