@@ -17,7 +17,7 @@
 #define CO_RTT_MAINLINE_MAX_WAIT_US                    (UINT32_MAX / 2U)
 
 /** Merge one scheduler-owned relative deadline into the current accumulator. */
-static void co_rtt_mainline_deadline_min(uint32_t *timerNextUs, uint32_t candidateUs)
+void co_rtt_mainline_deadline_min(uint32_t *timerNextUs, uint32_t candidateUs)
 {
     if ((timerNextUs != NULL) && (candidateUs < *timerNextUs)) {
         *timerNextUs = candidateUs;
