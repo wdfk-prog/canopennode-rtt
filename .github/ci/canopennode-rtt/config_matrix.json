@@ -8,6 +8,7 @@
       "values": [
         "demo-minimal",
         "demo-default",
+        "demo-cia402-device-rtt-autostart",
         "demo-high-res-time",
         "demo-pdo-sync",
         "demo-emcy-consumer",

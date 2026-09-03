@@ -51,6 +51,28 @@ def _add_required(path):
 
 
 if GetDepend('PKG_USING_CANOPENNODE'):
+    if GetDepend('PKG_CANOPENNODE_CIA402'):
+        CPPPATH += [
+            os.path.join(cwd, 'profile', 'cia402', 'common'),
+        ]
+        _add_required(os.path.join('profile', 'cia402', 'common', 'CO_402_state.c'))
+
+    if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'cia402', 'device')]
+        _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device.c'))
+        _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_fsa.c'))
+        _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_od.c'))
+
+    if GetDepend('PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS'):
+        _add_required(os.path.join('port', 'rtthread', 'CO_lifecycle_RTT.c'))
+
+    if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'cia402', 'port', 'rtthread')]
+        _add_required(os.path.join('profile', 'cia402', 'port', 'rtthread', 'CO_402_device_RTT.c'))
+
+    if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO'):
+        _add_required(os.path.join('profile', 'cia402', 'demo', 'CO_402_device_RTT_demo.c'))
+
     canopennode_301_dir = os.path.join(cwd, 'CANopenNode', '301')
     if not os.path.isdir(canopennode_301_dir):
         raise RuntimeError('CANopenNode submodule is missing. Run: git submodule update --init --recursive')

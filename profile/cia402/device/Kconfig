@@ -1,0 +1,9 @@
+# Kconfig for the Pure-C local CiA 402 Device core.
+
+config PKG_CANOPENNODE_CIA402_DEVICE
+    bool "Local CiA 402 Device core"
+    default y
+    help
+        Build the Pure-C local Device manager, generated-OD binding and PDS
+        supervisor. This layer has no RT-Thread/BSP dependency and allocates no
+        axis storage dynamically.

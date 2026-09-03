@@ -116,10 +116,10 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .applicationObject8 = 0x00000000
     },
     .x1601_RPDOMappingParameter = {
-        .numberOfMappedApplicationObjectsInPDO = 0x00,
-        .applicationObject1 = 0x00000000,
-        .applicationObject2 = 0x00000000,
-        .applicationObject3 = 0x00000000,
+        .numberOfMappedApplicationObjectsInPDO = 0x03,
+        .applicationObject1 = 0x60400010,
+        .applicationObject2 = 0x60600008,
+        .applicationObject3 = 0x607A0020,
         .applicationObject4 = 0x00000000,
         .applicationObject5 = 0x00000000,
         .applicationObject6 = 0x00000000,
@@ -127,10 +127,10 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .applicationObject8 = 0x00000000
     },
     .x1602_RPDOMappingParameter = {
-        .numberOfMappedApplicationObjectsInPDO = 0x00,
-        .applicationObject1 = 0x00000000,
-        .applicationObject2 = 0x00000000,
-        .applicationObject3 = 0x00000000,
+        .numberOfMappedApplicationObjectsInPDO = 0x03,
+        .applicationObject1 = 0x68400010,
+        .applicationObject2 = 0x68600008,
+        .applicationObject3 = 0x687A0020,
         .applicationObject4 = 0x00000000,
         .applicationObject5 = 0x00000000,
         .applicationObject6 = 0x00000000,
@@ -138,10 +138,10 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .applicationObject8 = 0x00000000
     },
     .x1603_RPDOMappingParameter = {
-        .numberOfMappedApplicationObjectsInPDO = 0x00,
-        .applicationObject1 = 0x00000000,
-        .applicationObject2 = 0x00000000,
-        .applicationObject3 = 0x00000000,
+        .numberOfMappedApplicationObjectsInPDO = 0x03,
+        .applicationObject1 = 0x70400010,
+        .applicationObject2 = 0x70600008,
+        .applicationObject3 = 0x707A0020,
         .applicationObject4 = 0x00000000,
         .applicationObject5 = 0x00000000,
         .applicationObject6 = 0x00000000,
@@ -200,10 +200,10 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .applicationObject8 = 0x00000000
     },
     .x1A01_TPDOMappingParameter = {
-        .numberOfMappedApplicationObjectsInPDO = 0x00,
-        .applicationObject1 = 0x00000000,
-        .applicationObject2 = 0x00000000,
-        .applicationObject3 = 0x00000000,
+        .numberOfMappedApplicationObjectsInPDO = 0x03,
+        .applicationObject1 = 0x60410010,
+        .applicationObject2 = 0x60610008,
+        .applicationObject3 = 0x60640020,
         .applicationObject4 = 0x00000000,
         .applicationObject5 = 0x00000000,
         .applicationObject6 = 0x00000000,
@@ -211,10 +211,10 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .applicationObject8 = 0x00000000
     },
     .x1A02_TPDOMappingParameter = {
-        .numberOfMappedApplicationObjectsInPDO = 0x00,
-        .applicationObject1 = 0x00000000,
-        .applicationObject2 = 0x00000000,
-        .applicationObject3 = 0x00000000,
+        .numberOfMappedApplicationObjectsInPDO = 0x03,
+        .applicationObject1 = 0x68410010,
+        .applicationObject2 = 0x68610008,
+        .applicationObject3 = 0x68640020,
         .applicationObject4 = 0x00000000,
         .applicationObject5 = 0x00000000,
         .applicationObject6 = 0x00000000,
@@ -222,10 +222,10 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
         .applicationObject8 = 0x00000000
     },
     .x1A03_TPDOMappingParameter = {
-        .numberOfMappedApplicationObjectsInPDO = 0x00,
-        .applicationObject1 = 0x00000000,
-        .applicationObject2 = 0x00000000,
-        .applicationObject3 = 0x00000000,
+        .numberOfMappedApplicationObjectsInPDO = 0x03,
+        .applicationObject1 = 0x70410010,
+        .applicationObject2 = 0x70610008,
+        .applicationObject3 = 0x70640020,
         .applicationObject4 = 0x00000000,
         .applicationObject5 = 0x00000000,
         .applicationObject6 = 0x00000000,
@@ -345,7 +345,37 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
         .tx_request_seq = 0x00000000,
         .tx_complete_seq = 0x00000000,
         .tx_request_result = 0
-    }
+    },
+    .x603F_axis0ErrorCode = 0x0000,
+    .x6040_axis0Controlword = 0x0000,
+    .x6041_axis0Statusword = 0x0040,
+    .x6060_axis0ModesOfOperation = 0,
+    .x6061_axis0ModesOfOperationDisplay = 0,
+    .x6064_axis0PositionActualValue = 0,
+    .x606C_axis0VelocityActualValue = 0,
+    .x607A_axis0TargetPosition = 0,
+    .x60FF_axis0TargetVelocity = 0,
+    .x6502_axis0SupportedDriveModes = 0x00000000,
+    .x683F_axis1ErrorCode = 0x0000,
+    .x6840_axis1Controlword = 0x0000,
+    .x6841_axis1Statusword = 0x0040,
+    .x6860_axis1ModesOfOperation = 0,
+    .x6861_axis1ModesOfOperationDisplay = 0,
+    .x6864_axis1PositionActualValue = 0,
+    .x686C_axis1VelocityActualValue = 0,
+    .x687A_axis1TargetPosition = 0,
+    .x68FF_axis1TargetVelocity = 0,
+    .x6D02_axis1SupportedDriveModes = 0x00000000,
+    .x703F_axis2ErrorCode = 0x0000,
+    .x7040_axis2Controlword = 0x0000,
+    .x7041_axis2Statusword = 0x0040,
+    .x7060_axis2ModesOfOperation = 0,
+    .x7061_axis2ModesOfOperationDisplay = 0,
+    .x7064_axis2PositionActualValue = 0,
+    .x706C_axis2VelocityActualValue = 0,
+    .x707A_axis2TargetPosition = 0,
+    .x70FF_axis2TargetVelocity = 0,
+    .x7502_axis2SupportedDriveModes = 0x00000000
 };
 
 
@@ -411,6 +441,36 @@ typedef struct {
     OD_obj_var_t o_2304_sdo_server_block_test;
     OD_obj_record_t o_2305_storage_diagnostic[27];
     OD_obj_record_t o_2306_srdo_diagnostic[12];
+    OD_obj_var_t o_603F_axis0ErrorCode;
+    OD_obj_var_t o_6040_axis0Controlword;
+    OD_obj_var_t o_6041_axis0Statusword;
+    OD_obj_var_t o_6060_axis0ModesOfOperation;
+    OD_obj_var_t o_6061_axis0ModesOfOperationDisplay;
+    OD_obj_var_t o_6064_axis0PositionActualValue;
+    OD_obj_var_t o_606C_axis0VelocityActualValue;
+    OD_obj_var_t o_607A_axis0TargetPosition;
+    OD_obj_var_t o_60FF_axis0TargetVelocity;
+    OD_obj_var_t o_6502_axis0SupportedDriveModes;
+    OD_obj_var_t o_683F_axis1ErrorCode;
+    OD_obj_var_t o_6840_axis1Controlword;
+    OD_obj_var_t o_6841_axis1Statusword;
+    OD_obj_var_t o_6860_axis1ModesOfOperation;
+    OD_obj_var_t o_6861_axis1ModesOfOperationDisplay;
+    OD_obj_var_t o_6864_axis1PositionActualValue;
+    OD_obj_var_t o_686C_axis1VelocityActualValue;
+    OD_obj_var_t o_687A_axis1TargetPosition;
+    OD_obj_var_t o_68FF_axis1TargetVelocity;
+    OD_obj_var_t o_6D02_axis1SupportedDriveModes;
+    OD_obj_var_t o_703F_axis2ErrorCode;
+    OD_obj_var_t o_7040_axis2Controlword;
+    OD_obj_var_t o_7041_axis2Statusword;
+    OD_obj_var_t o_7060_axis2ModesOfOperation;
+    OD_obj_var_t o_7061_axis2ModesOfOperationDisplay;
+    OD_obj_var_t o_7064_axis2PositionActualValue;
+    OD_obj_var_t o_706C_axis2VelocityActualValue;
+    OD_obj_var_t o_707A_axis2TargetPosition;
+    OD_obj_var_t o_70FF_axis2TargetVelocity;
+    OD_obj_var_t o_7502_axis2SupportedDriveModes;
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -2012,6 +2072,156 @@ static CO_PROGMEM ODObjs_t ODObjs = {
             .attribute = ODA_SDO_R | ODA_MB,
             .dataLength = 4
         }
+    },
+    .o_603F_axis0ErrorCode = {
+        .dataOrig = &OD_RAM.x603F_axis0ErrorCode,
+        .attribute = ODA_SDO_R | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6040_axis0Controlword = {
+        .dataOrig = &OD_RAM.x6040_axis0Controlword,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6041_axis0Statusword = {
+        .dataOrig = &OD_RAM.x6041_axis0Statusword,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6060_axis0ModesOfOperation = {
+        .dataOrig = &OD_RAM.x6060_axis0ModesOfOperation,
+        .attribute = ODA_SDO_RW | ODA_RPDO,
+        .dataLength = 1
+    },
+    .o_6061_axis0ModesOfOperationDisplay = {
+        .dataOrig = &OD_RAM.x6061_axis0ModesOfOperationDisplay,
+        .attribute = ODA_SDO_R | ODA_TPDO,
+        .dataLength = 1
+    },
+    .o_6064_axis0PositionActualValue = {
+        .dataOrig = &OD_RAM.x6064_axis0PositionActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_606C_axis0VelocityActualValue = {
+        .dataOrig = &OD_RAM.x606C_axis0VelocityActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_607A_axis0TargetPosition = {
+        .dataOrig = &OD_RAM.x607A_axis0TargetPosition,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_60FF_axis0TargetVelocity = {
+        .dataOrig = &OD_RAM.x60FF_axis0TargetVelocity,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6502_axis0SupportedDriveModes = {
+        .dataOrig = &OD_RAM.x6502_axis0SupportedDriveModes,
+        .attribute = ODA_SDO_R | ODA_MB,
+        .dataLength = 4
+    },
+    .o_683F_axis1ErrorCode = {
+        .dataOrig = &OD_RAM.x683F_axis1ErrorCode,
+        .attribute = ODA_SDO_R | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6840_axis1Controlword = {
+        .dataOrig = &OD_RAM.x6840_axis1Controlword,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6841_axis1Statusword = {
+        .dataOrig = &OD_RAM.x6841_axis1Statusword,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6860_axis1ModesOfOperation = {
+        .dataOrig = &OD_RAM.x6860_axis1ModesOfOperation,
+        .attribute = ODA_SDO_RW | ODA_RPDO,
+        .dataLength = 1
+    },
+    .o_6861_axis1ModesOfOperationDisplay = {
+        .dataOrig = &OD_RAM.x6861_axis1ModesOfOperationDisplay,
+        .attribute = ODA_SDO_R | ODA_TPDO,
+        .dataLength = 1
+    },
+    .o_6864_axis1PositionActualValue = {
+        .dataOrig = &OD_RAM.x6864_axis1PositionActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_686C_axis1VelocityActualValue = {
+        .dataOrig = &OD_RAM.x686C_axis1VelocityActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_687A_axis1TargetPosition = {
+        .dataOrig = &OD_RAM.x687A_axis1TargetPosition,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_68FF_axis1TargetVelocity = {
+        .dataOrig = &OD_RAM.x68FF_axis1TargetVelocity,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6D02_axis1SupportedDriveModes = {
+        .dataOrig = &OD_RAM.x6D02_axis1SupportedDriveModes,
+        .attribute = ODA_SDO_R | ODA_MB,
+        .dataLength = 4
+    },
+    .o_703F_axis2ErrorCode = {
+        .dataOrig = &OD_RAM.x703F_axis2ErrorCode,
+        .attribute = ODA_SDO_R | ODA_MB,
+        .dataLength = 2
+    },
+    .o_7040_axis2Controlword = {
+        .dataOrig = &OD_RAM.x7040_axis2Controlword,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_7041_axis2Statusword = {
+        .dataOrig = &OD_RAM.x7041_axis2Statusword,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_7060_axis2ModesOfOperation = {
+        .dataOrig = &OD_RAM.x7060_axis2ModesOfOperation,
+        .attribute = ODA_SDO_RW | ODA_RPDO,
+        .dataLength = 1
+    },
+    .o_7061_axis2ModesOfOperationDisplay = {
+        .dataOrig = &OD_RAM.x7061_axis2ModesOfOperationDisplay,
+        .attribute = ODA_SDO_R | ODA_TPDO,
+        .dataLength = 1
+    },
+    .o_7064_axis2PositionActualValue = {
+        .dataOrig = &OD_RAM.x7064_axis2PositionActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_706C_axis2VelocityActualValue = {
+        .dataOrig = &OD_RAM.x706C_axis2VelocityActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_707A_axis2TargetPosition = {
+        .dataOrig = &OD_RAM.x707A_axis2TargetPosition,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_70FF_axis2TargetVelocity = {
+        .dataOrig = &OD_RAM.x70FF_axis2TargetVelocity,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_7502_axis2SupportedDriveModes = {
+        .dataOrig = &OD_RAM.x7502_axis2SupportedDriveModes,
+        .attribute = ODA_SDO_R | ODA_MB,
+        .dataLength = 4
     }
 };
 
@@ -2077,6 +2287,36 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x2304, 0x01, ODT_VAR, &ODObjs.o_2304_sdo_server_block_test, NULL},
     {0x2305, 0x1B, ODT_REC, &ODObjs.o_2305_storage_diagnostic, NULL},
     {0x2306, 0x0C, ODT_REC, &ODObjs.o_2306_srdo_diagnostic, NULL},
+    {0x603F, 0x01, ODT_VAR, &ODObjs.o_603F_axis0ErrorCode, NULL},
+    {0x6040, 0x01, ODT_VAR, &ODObjs.o_6040_axis0Controlword, NULL},
+    {0x6041, 0x01, ODT_VAR, &ODObjs.o_6041_axis0Statusword, NULL},
+    {0x6060, 0x01, ODT_VAR, &ODObjs.o_6060_axis0ModesOfOperation, NULL},
+    {0x6061, 0x01, ODT_VAR, &ODObjs.o_6061_axis0ModesOfOperationDisplay, NULL},
+    {0x6064, 0x01, ODT_VAR, &ODObjs.o_6064_axis0PositionActualValue, NULL},
+    {0x606C, 0x01, ODT_VAR, &ODObjs.o_606C_axis0VelocityActualValue, NULL},
+    {0x607A, 0x01, ODT_VAR, &ODObjs.o_607A_axis0TargetPosition, NULL},
+    {0x60FF, 0x01, ODT_VAR, &ODObjs.o_60FF_axis0TargetVelocity, NULL},
+    {0x6502, 0x01, ODT_VAR, &ODObjs.o_6502_axis0SupportedDriveModes, NULL},
+    {0x683F, 0x01, ODT_VAR, &ODObjs.o_683F_axis1ErrorCode, NULL},
+    {0x6840, 0x01, ODT_VAR, &ODObjs.o_6840_axis1Controlword, NULL},
+    {0x6841, 0x01, ODT_VAR, &ODObjs.o_6841_axis1Statusword, NULL},
+    {0x6860, 0x01, ODT_VAR, &ODObjs.o_6860_axis1ModesOfOperation, NULL},
+    {0x6861, 0x01, ODT_VAR, &ODObjs.o_6861_axis1ModesOfOperationDisplay, NULL},
+    {0x6864, 0x01, ODT_VAR, &ODObjs.o_6864_axis1PositionActualValue, NULL},
+    {0x686C, 0x01, ODT_VAR, &ODObjs.o_686C_axis1VelocityActualValue, NULL},
+    {0x687A, 0x01, ODT_VAR, &ODObjs.o_687A_axis1TargetPosition, NULL},
+    {0x68FF, 0x01, ODT_VAR, &ODObjs.o_68FF_axis1TargetVelocity, NULL},
+    {0x6D02, 0x01, ODT_VAR, &ODObjs.o_6D02_axis1SupportedDriveModes, NULL},
+    {0x703F, 0x01, ODT_VAR, &ODObjs.o_703F_axis2ErrorCode, NULL},
+    {0x7040, 0x01, ODT_VAR, &ODObjs.o_7040_axis2Controlword, NULL},
+    {0x7041, 0x01, ODT_VAR, &ODObjs.o_7041_axis2Statusword, NULL},
+    {0x7060, 0x01, ODT_VAR, &ODObjs.o_7060_axis2ModesOfOperation, NULL},
+    {0x7061, 0x01, ODT_VAR, &ODObjs.o_7061_axis2ModesOfOperationDisplay, NULL},
+    {0x7064, 0x01, ODT_VAR, &ODObjs.o_7064_axis2PositionActualValue, NULL},
+    {0x706C, 0x01, ODT_VAR, &ODObjs.o_706C_axis2VelocityActualValue, NULL},
+    {0x707A, 0x01, ODT_VAR, &ODObjs.o_707A_axis2TargetPosition, NULL},
+    {0x70FF, 0x01, ODT_VAR, &ODObjs.o_70FF_axis2TargetVelocity, NULL},
+    {0x7502, 0x01, ODT_VAR, &ODObjs.o_7502_axis2SupportedDriveModes, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 

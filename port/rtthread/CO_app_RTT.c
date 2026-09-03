@@ -582,9 +582,7 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
 {
     CO_t *co = app->canOpenStack;
     CO_ReturnError_t err;
-#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
     rt_err_t ret;
-#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     uint32_t err_info = 0U;
 #if ((CO_CONFIG_STORAGE) & CO_CONFIG_STORAGE_ENABLE) != 0
     bool_t storageDataCorrupt = false;
@@ -607,6 +605,8 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
 #if !defined(PKG_CANOPENNODE_LSS_PERSIST)
     (void)loadPersistentLss;
 #endif /* !defined(PKG_CANOPENNODE_LSS_PERSIST) */
+
+    CO_RTT_lifecycleCommunicationStop(app);
 
     co->CANmodule->CANnormal = false;
     CO_CANsetConfigurationMode((void *)app->canName);
@@ -688,6 +688,11 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
                      (unsigned long)err_info);
         return -RT_ERROR;
     }
+    /* Runtime extensions bind after CANopen core init and before SRDO/PDO cache OD IO. */
+    ret = CO_RTT_lifecycleBindCommunication(app, co, OD);
+    if (ret != RT_EOK) {
+        return ret;
+    }
 #if defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE)
     CO_gateway_RTT_rebind(app);
 #endif /* defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE) */
@@ -738,6 +743,7 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
         CO_RTT_LOG_E("CAN normal mode failed: dev=%s", app->canName);
         return -RT_ERROR;
     }
+    CO_RTT_lifecycleCommunicationReady(app);
 
     app->timeOldMs = rt_tick_get_millisecond();
     app->lastRtTickMs = app->timeOldMs;
@@ -761,9 +767,14 @@ static rt_err_t co_app_rtt_recreate_stack(CANopenNodeRTT *app)
 {
     rt_err_t ret;
 
+    /* Extensions must stop accepting old-generation work before CAN RX is quiesced. */
+    CO_RTT_lifecycleCommunicationStop(app);
+
     if (app->canOpenStack != NULL) {
         CO_CANsetConfigurationMode((void *)app->canName);
         CO_CANmodule_disable(app->canOpenStack->CANmodule);
+        /* CAN RX is drained before any extension releases callback/OD ownership. */
+        CO_RTT_lifecycleCommunicationQuiesced(app);
 #if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
         CO_RTT_mainlineResetWakeups(app);
 #endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
@@ -778,7 +789,9 @@ static rt_err_t co_app_rtt_recreate_stack(CANopenNodeRTT *app)
 
     ret = co_app_rtt_reset_communication(app, false);
     if (ret != RT_EOK) {
+        CO_RTT_lifecycleCommunicationStop(app);
         CO_CANmodule_disable(app->canOpenStack->CANmodule);
+        CO_RTT_lifecycleCommunicationQuiesced(app);
         CO_delete(app->canOpenStack);
         app->canOpenStack = NULL;
     }
@@ -911,6 +924,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
             if (app->rtTimer != RT_NULL) {
                 (void)rt_timer_stop(app->rtTimer);
                 co_app_rtt_reset_realtime_sem(app);
+                CO_RTT_lifecycleResetWakeups(app);
             }
 
             /*
@@ -1052,7 +1066,9 @@ static void co_app_rtt_timer_cb(void *parameter)
 {
     CANopenNodeRTT *app = (CANopenNodeRTT *)parameter;
 
+    /* Wake co_rt first; registered realtime hooks must remain bounded and non-blocking. */
     (void)rt_sem_release(&app->rtSem);
+    CO_RTT_lifecycleRealtimeTick(app);
 }
 
 /**
@@ -1088,6 +1104,7 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
 #endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
     rt_bool_t mutex_inited = RT_FALSE;
     rt_bool_t lifecycle_locked = RT_FALSE;
+    rt_bool_t extensions_can_quiesced = RT_FALSE;
     rt_bool_t time_inited = RT_FALSE;
     rt_tick_t rt_period_ticks;
     rt_err_t ret = RT_EOK;
@@ -1199,6 +1216,11 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
         goto cleanup;
     }
 
+    ret = CO_RTT_lifecycleRuntimeInit(app);
+    if (ret != RT_EOK) {
+        goto cleanup;
+    }
+
     rt_period_ticks = co_app_rtt_timer_period_ticks(&app->actualPeriodUs);
     app->lastRtTickMs = rt_tick_get_millisecond();
     app->rtTimer = rt_timer_create("co_tmr", co_app_rtt_timer_cb, app, rt_period_ticks, RT_TIMER_FLAG_PERIODIC);
@@ -1211,8 +1233,12 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
     if (ret != RT_EOK) {
         goto cleanup;
     }
+    ret = CO_RTT_lifecycleRuntimeStart(app);
+    if (ret != RT_EOK) {
+        goto cleanup;
+    }
     /*
-     * The realtime thread is waiting on an empty semaphore and the timer is not running yet.
+     * All periodic workers created for this instance are waiting and the timer is not running yet.
      * Establish the baseline immediately before the first wakeup can be queued so initialization
      * latency is not charged to protocol processing.
      */
@@ -1233,7 +1259,6 @@ rt_err_t canopen_app_rtt_init(CANopenNodeRTT *app, const char *canName, uint8_t 
 
     CO_RTT_LOG_I("CANopen RTT app initialized: dev=%s node=%u mainPrio=%u rtPrio=%u", app->canName, app->activeNodeID,
                  PKG_CANOPENNODE_MAIN_THREAD_PRIORITY, PKG_CANOPENNODE_RT_THREAD_PRIORITY);
-
     return RT_EOK;
 
 cleanup:
@@ -1243,6 +1268,7 @@ cleanup:
     if (sem_inited == RT_TRUE) {
         co_app_rtt_reset_realtime_sem(app);
     }
+    CO_RTT_lifecycleResetWakeups(app);
     if (mutex_inited == RT_TRUE) {
         /*
          * A late initialization failure can occur after the realtime thread and
@@ -1252,6 +1278,17 @@ cleanup:
         if (rt_mutex_take(&app->lifecycleMutex, RT_WAITING_FOREVER) == RT_EOK) {
             lifecycle_locked = RT_TRUE;
         }
+    }
+    if (CO_RTT_lifecycleHasExtensions(app) == RT_TRUE
+        && ((mutex_inited != RT_TRUE) || (lifecycle_locked == RT_TRUE))) {
+        CO_RTT_lifecycleCommunicationStop(app);
+        if (app->canOpenStack != NULL && app->canOpenStack->CANmodule != NULL) {
+            CO_CANsetConfigurationMode((void *)app->canName);
+            CO_CANmodule_disable(app->canOpenStack->CANmodule);
+            extensions_can_quiesced = RT_TRUE;
+        }
+        CO_RTT_lifecycleCommunicationQuiesced(app);
+        CO_RTT_lifecycleRuntimeDeinit(app);
     }
     if (app->rtTimer != RT_NULL) {
         (void)rt_timer_delete(app->rtTimer);
@@ -1266,7 +1303,9 @@ cleanup:
         app->mainThread = RT_NULL;
     }
     if (app->canOpenStack != NULL) {
-        CO_CANmodule_disable(app->canOpenStack->CANmodule);
+        if (extensions_can_quiesced != RT_TRUE) {
+            CO_CANmodule_disable(app->canOpenStack->CANmodule);
+        }
         CO_delete(app->canOpenStack);
         app->canOpenStack = NULL;
     }
@@ -1305,13 +1344,26 @@ static CANopenNodeRTT co_app_rtt_default;
  */
 static int co_app_rtt_auto_init(void)
 {
-    rt_err_t ret = canopen_app_rtt_init(&co_app_rtt_default, PKG_CANOPENNODE_CAN_DEV_NAME,
-                                        PKG_CANOPENNODE_AUTO_INIT_NODE_ID, PKG_CANOPENNODE_AUTO_INIT_BITRATE);
+    rt_err_t ret;
+
+#if defined(PKG_CANOPENNODE_RTT_LIFECYCLE_AUTOSTART)
+    ret = CO_RTT_lifecycleAutoAttachAll(&co_app_rtt_default);
+    if (ret != RT_EOK) {
+        CO_RTT_LOG_E("lifecycle auto attach failed: ret=%d", ret);
+        return (int)ret;
+    }
+#endif /* defined(PKG_CANOPENNODE_RTT_LIFECYCLE_AUTOSTART) */
+
+    ret = canopen_app_rtt_init(&co_app_rtt_default, PKG_CANOPENNODE_CAN_DEV_NAME,
+                               PKG_CANOPENNODE_AUTO_INIT_NODE_ID, PKG_CANOPENNODE_AUTO_INIT_BITRATE);
+    if (ret != RT_EOK) {
+        /* Also releases auto-owned contexts if init returned before its internal cleanup path. */
+        CO_RTT_lifecycleRuntimeDeinit(&co_app_rtt_default);
+        return (int)ret;
+    }
 
 #if defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE)
-    if (ret == RT_EOK) {
-        ret = CO_gateway_RTT_init(&co_app_rtt_default);
-    }
+    ret = CO_gateway_RTT_init(&co_app_rtt_default);
 #endif /* defined(PKG_CANOPENNODE_GATEWAY_RTT_CONSOLE) */
 
     return (int)ret;

@@ -1,0 +1,7 @@
+# Kconfig entry for CANopen device profiles.
+
+menu "CANopen profiles"
+
+rsource "cia402/Kconfig"
+
+endmenu

@@ -28,6 +28,7 @@
 
 #include "CANopen.h"
 #include "CO_demo.h"
+#include "CO_lifecycle_RTT.h"
 #if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
 #include "CO_mainline_RTT.h"
 #else
@@ -164,6 +165,10 @@ struct CANopenNodeRTT {
 #endif /* CO_MULTIPLE_OD */
 
     uint32_t lastRtUs;               /**< Realtime elapsed-time baseline in wrapping microseconds. */
+
+#if defined(PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS)
+    CO_RTT_lifecycle_t lifecycle;    /**< Optional fixed-capacity runtime extension registry. */
+#endif /* defined(PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS) */
 };
 
 /* Exported variables ---------------------------------------------------------*/
