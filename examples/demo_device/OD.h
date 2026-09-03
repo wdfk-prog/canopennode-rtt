@@ -14,9 +14,9 @@
         Project File: project.xdd
         File Version: 1.0.0
 
-        Created:      07/06/2026 06:52:30
+        Created:      2026/7/6 14:52:30
         Created By:   wdfk-prog
-        Modified:     08/21/2026 08:26:04
+        Modified:     2026/8/21 16:26:04
         Modified By:  wdfk-prog
 
     Device Info:
@@ -389,6 +389,36 @@ typedef struct {
         uint32_t tx_complete_seq;
         int32_t tx_request_result;
     } x2306_srdo_diagnostic;
+    uint16_t x603F_axis0ErrorCode;
+    uint16_t x6040_axis0Controlword;
+    uint16_t x6041_axis0Statusword;
+    int8_t x6060_axis0ModesOfOperation;
+    int8_t x6061_axis0ModesOfOperationDisplay;
+    int32_t x6064_axis0PositionActualValue;
+    int32_t x606C_axis0VelocityActualValue;
+    int32_t x607A_axis0TargetPosition;
+    int32_t x60FF_axis0TargetVelocity;
+    uint32_t x6502_axis0SupportedDriveModes;
+    uint16_t x683F_axis1ErrorCode;
+    uint16_t x6840_axis1Controlword;
+    uint16_t x6841_axis1Statusword;
+    int8_t x6860_axis1ModesOfOperation;
+    int8_t x6861_axis1ModesOfOperationDisplay;
+    int32_t x6864_axis1PositionActualValue;
+    int32_t x686C_axis1VelocityActualValue;
+    int32_t x687A_axis1TargetPosition;
+    int32_t x68FF_axis1TargetVelocity;
+    uint32_t x6D02_axis1SupportedDriveModes;
+    uint16_t x703F_axis2ErrorCode;
+    uint16_t x7040_axis2Controlword;
+    uint16_t x7041_axis2Statusword;
+    int8_t x7060_axis2ModesOfOperation;
+    int8_t x7061_axis2ModesOfOperationDisplay;
+    int32_t x7064_axis2PositionActualValue;
+    int32_t x706C_axis2VelocityActualValue;
+    int32_t x707A_axis2TargetPosition;
+    int32_t x70FF_axis2TargetVelocity;
+    uint32_t x7502_axis2SupportedDriveModes;
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -467,6 +497,36 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2304 &OD->list[54]
 #define OD_ENTRY_H2305 &OD->list[55]
 #define OD_ENTRY_H2306 &OD->list[56]
+#define OD_ENTRY_H603F &OD->list[57]
+#define OD_ENTRY_H6040 &OD->list[58]
+#define OD_ENTRY_H6041 &OD->list[59]
+#define OD_ENTRY_H6060 &OD->list[60]
+#define OD_ENTRY_H6061 &OD->list[61]
+#define OD_ENTRY_H6064 &OD->list[62]
+#define OD_ENTRY_H606C &OD->list[63]
+#define OD_ENTRY_H607A &OD->list[64]
+#define OD_ENTRY_H60FF &OD->list[65]
+#define OD_ENTRY_H6502 &OD->list[66]
+#define OD_ENTRY_H683F &OD->list[67]
+#define OD_ENTRY_H6840 &OD->list[68]
+#define OD_ENTRY_H6841 &OD->list[69]
+#define OD_ENTRY_H6860 &OD->list[70]
+#define OD_ENTRY_H6861 &OD->list[71]
+#define OD_ENTRY_H6864 &OD->list[72]
+#define OD_ENTRY_H686C &OD->list[73]
+#define OD_ENTRY_H687A &OD->list[74]
+#define OD_ENTRY_H68FF &OD->list[75]
+#define OD_ENTRY_H6D02 &OD->list[76]
+#define OD_ENTRY_H703F &OD->list[77]
+#define OD_ENTRY_H7040 &OD->list[78]
+#define OD_ENTRY_H7041 &OD->list[79]
+#define OD_ENTRY_H7060 &OD->list[80]
+#define OD_ENTRY_H7061 &OD->list[81]
+#define OD_ENTRY_H7064 &OD->list[82]
+#define OD_ENTRY_H706C &OD->list[83]
+#define OD_ENTRY_H707A &OD->list[84]
+#define OD_ENTRY_H70FF &OD->list[85]
+#define OD_ENTRY_H7502 &OD->list[86]
 
 
 /*******************************************************************************
@@ -529,6 +589,36 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H2304_sdo_server_block_test &OD->list[54]
 #define OD_ENTRY_H2305_storage_diagnostic &OD->list[55]
 #define OD_ENTRY_H2306_srdo_diagnostic &OD->list[56]
+#define OD_ENTRY_H603F_axis0ErrorCode &OD->list[57]
+#define OD_ENTRY_H6040_axis0Controlword &OD->list[58]
+#define OD_ENTRY_H6041_axis0Statusword &OD->list[59]
+#define OD_ENTRY_H6060_axis0ModesOfOperation &OD->list[60]
+#define OD_ENTRY_H6061_axis0ModesOfOperationDisplay &OD->list[61]
+#define OD_ENTRY_H6064_axis0PositionActualValue &OD->list[62]
+#define OD_ENTRY_H606C_axis0VelocityActualValue &OD->list[63]
+#define OD_ENTRY_H607A_axis0TargetPosition &OD->list[64]
+#define OD_ENTRY_H60FF_axis0TargetVelocity &OD->list[65]
+#define OD_ENTRY_H6502_axis0SupportedDriveModes &OD->list[66]
+#define OD_ENTRY_H683F_axis1ErrorCode &OD->list[67]
+#define OD_ENTRY_H6840_axis1Controlword &OD->list[68]
+#define OD_ENTRY_H6841_axis1Statusword &OD->list[69]
+#define OD_ENTRY_H6860_axis1ModesOfOperation &OD->list[70]
+#define OD_ENTRY_H6861_axis1ModesOfOperationDisplay &OD->list[71]
+#define OD_ENTRY_H6864_axis1PositionActualValue &OD->list[72]
+#define OD_ENTRY_H686C_axis1VelocityActualValue &OD->list[73]
+#define OD_ENTRY_H687A_axis1TargetPosition &OD->list[74]
+#define OD_ENTRY_H68FF_axis1TargetVelocity &OD->list[75]
+#define OD_ENTRY_H6D02_axis1SupportedDriveModes &OD->list[76]
+#define OD_ENTRY_H703F_axis2ErrorCode &OD->list[77]
+#define OD_ENTRY_H7040_axis2Controlword &OD->list[78]
+#define OD_ENTRY_H7041_axis2Statusword &OD->list[79]
+#define OD_ENTRY_H7060_axis2ModesOfOperation &OD->list[80]
+#define OD_ENTRY_H7061_axis2ModesOfOperationDisplay &OD->list[81]
+#define OD_ENTRY_H7064_axis2PositionActualValue &OD->list[82]
+#define OD_ENTRY_H706C_axis2VelocityActualValue &OD->list[83]
+#define OD_ENTRY_H707A_axis2TargetPosition &OD->list[84]
+#define OD_ENTRY_H70FF_axis2TargetVelocity &OD->list[85]
+#define OD_ENTRY_H7502_axis2SupportedDriveModes &OD->list[86]
 
 
 /*******************************************************************************

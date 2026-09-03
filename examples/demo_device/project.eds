@@ -5,11 +5,11 @@ FileRevision=1
 LastEDS=
 EDSVersion=4.0
 Description=CANopenNode demo device for RT-Thread
-CreationTime=6:52AM
+CreationTime=2:52PM
 CreationDate=07-06-2026
 CreatedBy=wdfk-prog
-ModificationTime=8:26AM
-ModificationDate=08-21-2026
+ModificationTime=9:12PM
+ModificationDate=09-01-2026
 ModifiedBy=wdfk-prog
 
 [DeviceInfo]
@@ -125,7 +125,7 @@ DefaultValue=0x00000001
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=44
+SupportedObjects=74
 1=0x1002
 2=0x1003
 3=0x1005
@@ -170,6 +170,36 @@ SupportedObjects=44
 42=0x1A02
 43=0x1A03
 44=0x1A04
+45=0x603F
+46=0x6040
+47=0x6041
+48=0x6060
+49=0x6061
+50=0x6064
+51=0x606C
+52=0x607A
+53=0x60FF
+54=0x6502
+55=0x683F
+56=0x6840
+57=0x6841
+58=0x6860
+59=0x6861
+60=0x6864
+61=0x686C
+62=0x687A
+63=0x68FF
+64=0x6D02
+65=0x703F
+66=0x7040
+67=0x7041
+68=0x7060
+69=0x7061
+70=0x7064
+71=0x706C
+72=0x707A
+73=0x70FF
+74=0x7502
 
 [1002]
 ParameterName=Manufacturer status register
@@ -1233,7 +1263,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1601sub1]
@@ -1242,7 +1272,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x60400010
 PDOMapping=0
 
 [1601sub2]
@@ -1251,7 +1281,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x60600008
 PDOMapping=0
 
 [1601sub3]
@@ -1260,7 +1290,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x607A0020
 PDOMapping=0
 
 [1601sub4]
@@ -1320,7 +1350,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1602sub1]
@@ -1329,7 +1359,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x68400010
 PDOMapping=0
 
 [1602sub2]
@@ -1338,7 +1368,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x68600008
 PDOMapping=0
 
 [1602sub3]
@@ -1347,7 +1377,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x687A0020
 PDOMapping=0
 
 [1602sub4]
@@ -1407,7 +1437,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1603sub1]
@@ -1416,7 +1446,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x70400010
 PDOMapping=0
 
 [1603sub2]
@@ -1425,7 +1455,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x70600008
 PDOMapping=0
 
 [1603sub3]
@@ -1434,7 +1464,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x707A0020
 PDOMapping=0
 
 [1603sub4]
@@ -1881,7 +1911,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1A01sub1]
@@ -1890,7 +1920,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x60410010
 PDOMapping=0
 
 [1A01sub2]
@@ -1899,7 +1929,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x60610008
 PDOMapping=0
 
 [1A01sub3]
@@ -1908,7 +1938,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x60640020
 PDOMapping=0
 
 [1A01sub4]
@@ -1968,7 +1998,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1A02sub1]
@@ -1977,7 +2007,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x68410010
 PDOMapping=0
 
 [1A02sub2]
@@ -1986,7 +2016,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x68610008
 PDOMapping=0
 
 [1A02sub3]
@@ -1995,7 +2025,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x68640020
 PDOMapping=0
 
 [1A02sub4]
@@ -2055,7 +2085,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=3
 PDOMapping=0
 
 [1A03sub1]
@@ -2064,7 +2094,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x70410010
 PDOMapping=0
 
 [1A03sub2]
@@ -2073,7 +2103,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x70610008
 PDOMapping=0
 
 [1A03sub3]
@@ -2082,7 +2112,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x70640020
 PDOMapping=0
 
 [1A03sub4]
@@ -2214,6 +2244,276 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[603F]
+ParameterName=Axis0 Error code
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0000
+PDOMapping=0
+
+[6040]
+ParameterName=Axis0 Controlword
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rww
+DefaultValue=0x0000
+PDOMapping=1
+
+[6041]
+ParameterName=Axis0 Statusword
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0040
+PDOMapping=1
+
+[6060]
+ParameterName=Axis0 Modes of operation
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[6061]
+ParameterName=Axis0 Modes of operation display
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[6064]
+ParameterName=Axis0 Position actual value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[606C]
+ParameterName=Axis0 Velocity actual value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[607A]
+ParameterName=Axis0 Target position
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[60FF]
+ParameterName=Axis0 Target velocity
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[6502]
+ParameterName=Axis0 Supported drive modes
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[683F]
+ParameterName=Axis1 Error code
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0000
+PDOMapping=0
+
+[6840]
+ParameterName=Axis1 Controlword
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rww
+DefaultValue=0x0000
+PDOMapping=1
+
+[6841]
+ParameterName=Axis1 Statusword
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0040
+PDOMapping=1
+
+[6860]
+ParameterName=Axis1 Modes of operation
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[6861]
+ParameterName=Axis1 Modes of operation display
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[6864]
+ParameterName=Axis1 Position actual value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[686C]
+ParameterName=Axis1 Velocity actual value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[687A]
+ParameterName=Axis1 Target position
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[68FF]
+ParameterName=Axis1 Target velocity
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[6D02]
+ParameterName=Axis1 Supported drive modes
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[703F]
+ParameterName=Axis2 Error code
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0000
+PDOMapping=0
+
+[7040]
+ParameterName=Axis2 Controlword
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rww
+DefaultValue=0x0000
+PDOMapping=1
+
+[7041]
+ParameterName=Axis2 Statusword
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0040
+PDOMapping=1
+
+[7060]
+ParameterName=Axis2 Modes of operation
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[7061]
+ParameterName=Axis2 Modes of operation display
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[7064]
+ParameterName=Axis2 Position actual value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[706C]
+ParameterName=Axis2 Velocity actual value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[707A]
+ParameterName=Axis2 Target position
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[70FF]
+ParameterName=Axis2 Target velocity
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[7502]
+ParameterName=Axis2 Supported drive modes
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
 DefaultValue=0x00000000
 PDOMapping=0
 

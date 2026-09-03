@@ -19,6 +19,7 @@ INPUT                  = README.md \
                          README.zh-CN.md \
                          docs \
                          port \
+                         profile \
                          examples/demo_device \
                          CANopenNode/CANopen.h \
                          CANopenNode/301 \

@@ -4,7 +4,7 @@
 
 本软件包主要通过 `Kconfig` 配置。生成的配置会控制 RT-Thread 运行参数、参与编译的 CANopenNode 源文件，以及 CANopenNode `CO_CONFIG_*` 功能标志。
 
-本文总结集成时最常用的选项。默认值和依赖关系以 `Kconfig` 文件为准。
+本文总结集成时最常用的选项。根 `Kconfig` 只作为 package 入口：通用协议配置位于 `core/Kconfig`，RT-Thread 集成位于 `port/rtthread/Kconfig`，profile 位于 `profile/`，package demo 位于 `demo/Kconfig`；这些被引用的 Kconfig 文件共同作为默认值和依赖关系的权威来源。
 
 ## 1. 核心使能选项
 
@@ -47,6 +47,19 @@ RX helper priority <= realtime priority < mainline priority
 ```
 
 由于 RT-Thread 数值越小优先级越高，默认 RX helper 优先级 `2`、realtime 优先级 `3`、mainline 优先级 `10` 符合该模型。
+
+启用 A4 Device thread 后还增加：
+
+| 选项 | 默认值 | 用途 |
+|---|---:|---|
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y`（Device 开启时） | 编译 RT adapter；未 attach 的实例不创建新 RT 资源。 |
+| `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` thread 栈。 |
+| `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` priority，数值必须大于 `PKG_CANOPENNODE_RT_THREAD_PRIORITY`。 |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART` | `n` | 依赖默认 app auto init、RT-Thread component init 与 heap；由已注册 factory 自动构造 runtime/axis storage。 |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | 自动选择 autostart 与生成的 demo OD，注册软件 DriveIF factory，并可配置 1..3 个 demo axis。 |
+| `PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT` | `3` | Package demo logical device 数量；生成 OD 提供 device 0..2，因此有效范围固定为 1..3。 |
+
+`co_402` 复用 realtime timer，但不改变 `timerNext_us` mainline 配置。自动构造默认关闭。Package demo 内部已经实例化 `CO_402_DEVICE_RTT_AUTOSTART_DEFINE(...)`；真实产品关闭 demo，并由持久 axis/DriveIF 配置提供自己的 macro 实例。manual path 仍保持 CiA402 零 heap。详细生命周期见 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
 
 ## 4. 应用自动初始化
 

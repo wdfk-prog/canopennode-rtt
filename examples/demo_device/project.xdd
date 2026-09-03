@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-21" fileModificationTime="16:26:04.5969246+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-09-01" fileModificationTime="21:12:33.3937335+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>canopennode-rtt</q1:vendorName>
         <q1:vendorID>0x00000000</q1:vendorID>
@@ -82,6 +82,10 @@
           <q1:array name="Error behavior object" uniqueID="UID_ARR_1029">
             <q1:subrange lowerLimit="0" upperLimit="2" />
             <USINT />
+          </q1:array>
+          <q1:array name="SRDO checksum" uniqueID="UID_ARR_13FF">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <UINT />
           </q1:array>
           <q1:struct name="Identity" uniqueID="UID_REC_1018">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_101800">
@@ -168,37 +172,73 @@
             </q1:varDeclaration>
           </q1:struct>
           <q1:struct name="SRDO communication parameter" uniqueID="UID_REC_1301">
-            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_130100"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Information direction" uniqueID="UID_RECSUB_130101"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Safety cycle time" uniqueID="UID_RECSUB_130102"><UINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Safety related validation time" uniqueID="UID_RECSUB_130103"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_130104"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="COB-ID 1 normal" uniqueID="UID_RECSUB_130105"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="COB-ID 2 inverted" uniqueID="UID_RECSUB_130106"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_130100">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Information direction" uniqueID="UID_RECSUB_130101">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Safety cycle time" uniqueID="UID_RECSUB_130102">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Safety related validation time" uniqueID="UID_RECSUB_130103">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_130104">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 1 normal" uniqueID="UID_RECSUB_130105">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 2 inverted" uniqueID="UID_RECSUB_130106">
+              <UDINT />
+            </q1:varDeclaration>
           </q1:struct>
           <q1:struct name="SRDO communication parameter" uniqueID="UID_REC_1302">
-            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_130200"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Information direction" uniqueID="UID_RECSUB_130201"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Safety cycle time" uniqueID="UID_RECSUB_130202"><UINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Safety related validation time" uniqueID="UID_RECSUB_130203"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_130204"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="COB-ID 1 normal" uniqueID="UID_RECSUB_130205"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="COB-ID 2 inverted" uniqueID="UID_RECSUB_130206"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_130200">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Information direction" uniqueID="UID_RECSUB_130201">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Safety cycle time" uniqueID="UID_RECSUB_130202">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Safety related validation time" uniqueID="UID_RECSUB_130203">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_130204">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 1 normal" uniqueID="UID_RECSUB_130205">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID 2 inverted" uniqueID="UID_RECSUB_130206">
+              <UDINT />
+            </q1:varDeclaration>
           </q1:struct>
           <q1:struct name="SRDO mapping parameter" uniqueID="UID_REC_1381">
-            <q1:varDeclaration name="Number of mapped application objects in SRDO" uniqueID="UID_RECSUB_138100"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_138101"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_138102"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Number of mapped application objects in SRDO" uniqueID="UID_RECSUB_138100">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_138101">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_138102">
+              <UDINT />
+            </q1:varDeclaration>
           </q1:struct>
           <q1:struct name="SRDO mapping parameter" uniqueID="UID_REC_1382">
-            <q1:varDeclaration name="Number of mapped application objects in SRDO" uniqueID="UID_RECSUB_138200"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_138201"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_138202"><UDINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Number of mapped application objects in SRDO" uniqueID="UID_RECSUB_138200">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_138201">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_138202">
+              <UDINT />
+            </q1:varDeclaration>
           </q1:struct>
-          <q1:array name="SRDO checksum" uniqueID="UID_ARR_13FF">
-            <q1:subrange lowerLimit="0" upperLimit="2" />
-            <UINT />
-          </q1:array>
           <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_1400">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_140000">
               <USINT />
@@ -810,18 +850,42 @@
             </q1:varDeclaration>
           </q1:struct>
           <q1:struct name="srdo_diagnostic" uniqueID="UID_REC_2306">
-            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230600"><USINT /></q1:varDeclaration>
-            <q1:varDeclaration name="rx_normal" uniqueID="UID_RECSUB_230601"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="rx_inverted" uniqueID="UID_RECSUB_230602"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="tx_normal" uniqueID="UID_RECSUB_230603"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="tx_inverted" uniqueID="UID_RECSUB_230604"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="aggregate_state" uniqueID="UID_RECSUB_230605"><SINT /></q1:varDeclaration>
-            <q1:varDeclaration name="rx_state" uniqueID="UID_RECSUB_230606"><SINT /></q1:varDeclaration>
-            <q1:varDeclaration name="tx_state" uniqueID="UID_RECSUB_230607"><SINT /></q1:varDeclaration>
-            <q1:varDeclaration name="state_seq" uniqueID="UID_RECSUB_230608"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="tx_request_seq" uniqueID="UID_RECSUB_230609"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="tx_complete_seq" uniqueID="UID_RECSUB_23060A"><UDINT /></q1:varDeclaration>
-            <q1:varDeclaration name="tx_request_result" uniqueID="UID_RECSUB_23060B"><DINT /></q1:varDeclaration>
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_230600">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="rx_normal" uniqueID="UID_RECSUB_230601">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="rx_inverted" uniqueID="UID_RECSUB_230602">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="tx_normal" uniqueID="UID_RECSUB_230603">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="tx_inverted" uniqueID="UID_RECSUB_230604">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="aggregate_state" uniqueID="UID_RECSUB_230605">
+              <SINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="rx_state" uniqueID="UID_RECSUB_230606">
+              <SINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="tx_state" uniqueID="UID_RECSUB_230607">
+              <SINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="state_seq" uniqueID="UID_RECSUB_230608">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="tx_request_seq" uniqueID="UID_RECSUB_230609">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="tx_complete_seq" uniqueID="UID_RECSUB_23060A">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="tx_request_result" uniqueID="UID_RECSUB_23060B">
+              <DINT />
+            </q1:varDeclaration>
           </q1:struct>
         </q1:dataTypeList>
         <q1:parameterList>
@@ -1846,22 +1910,22 @@ The life time factor multiplied with the guard time gives the life time for the 
           <q1:parameter uniqueID="UID_SUB_160100" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="3" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160101" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x60400010" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160102" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x60600008" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160103" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x607A0020" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160104" access="readWrite">
             <label lang="en">Application object 4</label>
@@ -1903,22 +1967,22 @@ The life time factor multiplied with the guard time gives the life time for the 
           <q1:parameter uniqueID="UID_SUB_160200" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="3" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160201" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x68400010" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160202" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x68600008" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160203" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x687A0020" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160204" access="readWrite">
             <label lang="en">Application object 4</label>
@@ -1960,22 +2024,22 @@ The life time factor multiplied with the guard time gives the life time for the 
           <q1:parameter uniqueID="UID_SUB_160300" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="3" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160301" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x70400010" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160302" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x70600008" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160303" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x707A0020" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160304" access="readWrite">
             <label lang="en">Application object 4</label>
@@ -2314,22 +2378,22 @@ The life time factor multiplied with the guard time gives the life time for the 
           <q1:parameter uniqueID="UID_SUB_1A0100" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="3" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0101" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x60410010" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0102" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x60610008" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0103" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x60640020" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0104" access="readWrite">
             <label lang="en">Application object 4</label>
@@ -2371,22 +2435,22 @@ The life time factor multiplied with the guard time gives the life time for the 
           <q1:parameter uniqueID="UID_SUB_1A0200" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="3" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0201" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x68410010" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0202" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x68610008" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0203" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x68640020" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0204" access="readWrite">
             <label lang="en">Application object 4</label>
@@ -2428,22 +2492,22 @@ The life time factor multiplied with the guard time gives the life time for the 
           <q1:parameter uniqueID="UID_SUB_1A0300" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="3" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0301" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x70410010" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0302" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x70610008" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0303" access="readWrite">
             <label lang="en">Application object 3</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x70640020" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0304" access="readWrite">
             <label lang="en">Application object 4</label>
@@ -2873,13 +2937,13 @@ The life time factor multiplied with the guard time gives the life time for the 
             <USINT />
             <q1:defaultValue value="0x0B" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_230601" access="read">
+          <q1:parameter uniqueID="UID_SUB_230601">
             <label lang="en">rx_normal</label>
             <UDINT />
             <q1:defaultValue value="0x00000000" />
             <q1:property name="CO_accessSRDO" value="rx" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_230602" access="read">
+          <q1:parameter uniqueID="UID_SUB_230602">
             <label lang="en">rx_inverted</label>
             <UDINT />
             <q1:defaultValue value="0xFFFFFFFF" />
@@ -2897,22 +2961,22 @@ The life time factor multiplied with the guard time gives the life time for the 
             <q1:defaultValue value="0xEDCBA987" />
             <q1:property name="CO_accessSRDO" value="tx" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_230605" access="read">
+          <q1:parameter uniqueID="UID_SUB_230605">
             <label lang="en">aggregate_state</label>
             <SINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_230606" access="read">
+          <q1:parameter uniqueID="UID_SUB_230606">
             <label lang="en">rx_state</label>
             <SINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_230607" access="read">
+          <q1:parameter uniqueID="UID_SUB_230607">
             <label lang="en">tx_state</label>
             <SINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_230608" access="read">
+          <q1:parameter uniqueID="UID_SUB_230608">
             <label lang="en">state_seq</label>
             <UDINT />
             <q1:defaultValue value="0x00000000" />
@@ -2922,15 +2986,165 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_23060A" access="read">
+          <q1:parameter uniqueID="UID_SUB_23060A">
             <label lang="en">tx_complete_seq</label>
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_23060B" access="read">
+          <q1:parameter uniqueID="UID_SUB_23060B">
             <label lang="en">tx_request_result</label>
             <DINT />
             <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_603F">
+            <label lang="en">Axis0 Error code</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6040" access="readWriteOutput">
+            <label lang="en">Axis0 Controlword</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6041">
+            <label lang="en">Axis0 Statusword</label>
+            <UINT />
+            <q1:defaultValue value="0x0040" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6060" access="readWriteOutput">
+            <label lang="en">Axis0 Modes of operation</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6061">
+            <label lang="en">Axis0 Modes of operation display</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6064">
+            <label lang="en">Axis0 Position actual value</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_606C">
+            <label lang="en">Axis0 Velocity actual value</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_607A" access="readWriteOutput">
+            <label lang="en">Axis0 Target position</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_60FF" access="readWriteOutput">
+            <label lang="en">Axis0 Target velocity</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6502">
+            <label lang="en">Axis0 Supported drive modes</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_683F">
+            <label lang="en">Axis1 Error code</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6840" access="readWriteOutput">
+            <label lang="en">Axis1 Controlword</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6841">
+            <label lang="en">Axis1 Statusword</label>
+            <UINT />
+            <q1:defaultValue value="0x0040" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6860" access="readWriteOutput">
+            <label lang="en">Axis1 Modes of operation</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6861">
+            <label lang="en">Axis1 Modes of operation display</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6864">
+            <label lang="en">Axis1 Position actual value</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_686C">
+            <label lang="en">Axis1 Velocity actual value</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_687A" access="readWriteOutput">
+            <label lang="en">Axis1 Target position</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_68FF" access="readWriteOutput">
+            <label lang="en">Axis1 Target velocity</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6D02">
+            <label lang="en">Axis1 Supported drive modes</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_703F">
+            <label lang="en">Axis2 Error code</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7040" access="readWriteOutput">
+            <label lang="en">Axis2 Controlword</label>
+            <UINT />
+            <q1:defaultValue value="0x0000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7041">
+            <label lang="en">Axis2 Statusword</label>
+            <UINT />
+            <q1:defaultValue value="0x0040" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7060" access="readWriteOutput">
+            <label lang="en">Axis2 Modes of operation</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7061">
+            <label lang="en">Axis2 Modes of operation display</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7064">
+            <label lang="en">Axis2 Position actual value</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_706C">
+            <label lang="en">Axis2 Velocity actual value</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_707A" access="readWriteOutput">
+            <label lang="en">Axis2 Target position</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_70FF" access="readWriteOutput">
+            <label lang="en">Axis2 Target velocity</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7502">
+            <label lang="en">Axis2 Supported drive modes</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
           </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
@@ -2949,7 +3163,7 @@ The life time factor multiplied with the guard time gives the life time for the 
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-21" fileModificationTime="16:26:04.5969246+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="project.xdd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-09-01" fileModificationTime="21:12:33.3937335+08:00" fileVersion="1.0.0" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -3370,6 +3584,36 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="0A" name="tx_complete_seq" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23060A" />
             <CANopenSubObject subIndex="0B" name="tx_request_result" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_23060B" />
           </CANopenObject>
+          <CANopenObject index="603F" name="Axis0 Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_603F" />
+          <CANopenObject index="6040" name="Axis0 Controlword" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6040" />
+          <CANopenObject index="6041" name="Axis0 Statusword" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6041" />
+          <CANopenObject index="6060" name="Axis0 Modes of operation" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6060" />
+          <CANopenObject index="6061" name="Axis0 Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6061" />
+          <CANopenObject index="6064" name="Axis0 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6064" />
+          <CANopenObject index="606C" name="Axis0 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_606C" />
+          <CANopenObject index="607A" name="Axis0 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_607A" />
+          <CANopenObject index="60FF" name="Axis0 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_60FF" />
+          <CANopenObject index="6502" name="Axis0 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6502" />
+          <CANopenObject index="683F" name="Axis1 Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_683F" />
+          <CANopenObject index="6840" name="Axis1 Controlword" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6840" />
+          <CANopenObject index="6841" name="Axis1 Statusword" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6841" />
+          <CANopenObject index="6860" name="Axis1 Modes of operation" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6860" />
+          <CANopenObject index="6861" name="Axis1 Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6861" />
+          <CANopenObject index="6864" name="Axis1 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6864" />
+          <CANopenObject index="686C" name="Axis1 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_686C" />
+          <CANopenObject index="687A" name="Axis1 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_687A" />
+          <CANopenObject index="68FF" name="Axis1 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_68FF" />
+          <CANopenObject index="6D02" name="Axis1 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6D02" />
+          <CANopenObject index="703F" name="Axis2 Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_703F" />
+          <CANopenObject index="7040" name="Axis2 Controlword" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_7040" />
+          <CANopenObject index="7041" name="Axis2 Statusword" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7041" />
+          <CANopenObject index="7060" name="Axis2 Modes of operation" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_7060" />
+          <CANopenObject index="7061" name="Axis2 Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7061" />
+          <CANopenObject index="7064" name="Axis2 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7064" />
+          <CANopenObject index="706C" name="Axis2 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_706C" />
+          <CANopenObject index="707A" name="Axis2 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_707A" />
+          <CANopenObject index="70FF" name="Axis2 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_70FF" />
+          <CANopenObject index="7502" name="Axis2 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7502" />
         </q2:CANopenObjectList>
         <dummyUsage>
           <dummy entry="Dummy0001=0" />

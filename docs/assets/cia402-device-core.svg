@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">CiA 402 Pure-C Device core architecture</title>
+  <desc id="desc">Caller-owned manager and axes bind generated Object Dictionary entries, run one PDS supervisor per axis, and call product DriveIF callbacks without RT-Thread or BSP dependencies.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+  <rect x="35" y="80" width="230" height="110" rx="12" fill="#fff" stroke="#333" stroke-width="2"/>
+  <text x="150" y="118" text-anchor="middle" font-family="sans-serif" font-size="22">Application storage</text>
+  <text x="150" y="148" text-anchor="middle" font-family="sans-serif" font-size="17">manager / axes / configs</text>
+  <text x="150" y="174" text-anchor="middle" font-family="sans-serif" font-size="17">no heap ownership</text>
+
+  <rect x="335" y="45" width="250" height="180" rx="12" fill="#fff" stroke="#333" stroke-width="2"/>
+  <text x="460" y="83" text-anchor="middle" font-family="sans-serif" font-size="22">Device manager</text>
+  <text x="460" y="116" text-anchor="middle" font-family="sans-serif" font-size="17">duplicate-axis validation</text>
+  <text x="460" y="143" text-anchor="middle" font-family="sans-serif" font-size="17">logical-device → OD base</text>
+  <text x="460" y="170" text-anchor="middle" font-family="sans-serif" font-size="17">all-or-nothing OD binding</text>
+  <text x="460" y="197" text-anchor="middle" font-family="sans-serif" font-size="17">axis iteration</text>
+
+  <rect x="655" y="45" width="250" height="180" rx="12" fill="#fff" stroke="#333" stroke-width="2"/>
+  <text x="780" y="83" text-anchor="middle" font-family="sans-serif" font-size="22">Generated OD</text>
+  <text x="780" y="116" text-anchor="middle" font-family="sans-serif" font-size="17">XDD is source of truth</text>
+  <text x="780" y="143" text-anchor="middle" font-family="sans-serif" font-size="17">type / length / access</text>
+  <text x="780" y="170" text-anchor="middle" font-family="sans-serif" font-size="17">PDO mapping validation</text>
+  <text x="780" y="197" text-anchor="middle" font-family="sans-serif" font-size="17">cached OD entries</text>
+
+  <rect x="335" y="330" width="250" height="150" rx="12" fill="#fff" stroke="#333" stroke-width="2"/>
+  <text x="460" y="370" text-anchor="middle" font-family="sans-serif" font-size="22">Per-axis PDS FSA</text>
+  <text x="460" y="403" text-anchor="middle" font-family="sans-serif" font-size="17">Controlword decode</text>
+  <text x="460" y="430" text-anchor="middle" font-family="sans-serif" font-size="17">BUSY / DONE / ERROR</text>
+  <text x="460" y="457" text-anchor="middle" font-family="sans-serif" font-size="17">Statusword encode</text>
+
+  <rect x="655" y="330" width="250" height="150" rx="12" fill="#fff" stroke="#333" stroke-width="2"/>
+  <text x="780" y="370" text-anchor="middle" font-family="sans-serif" font-size="22">Product DriveIF</text>
+  <text x="780" y="403" text-anchor="middle" font-family="sans-serif" font-size="17">non-blocking callbacks</text>
+  <text x="780" y="430" text-anchor="middle" font-family="sans-serif" font-size="17">motor / power-stage policy</text>
+  <text x="780" y="457" text-anchor="middle" font-family="sans-serif" font-size="17">platform owned</text>
+
+  <rect x="970" y="170" width="195" height="185" rx="12" fill="#fff" stroke="#333" stroke-width="2"/>
+  <text x="1067" y="210" text-anchor="middle" font-family="sans-serif" font-size="22">Outside A3</text>
+  <text x="1067" y="245" text-anchor="middle" font-family="sans-serif" font-size="17">RT-Thread task</text>
+  <text x="1067" y="272" text-anchor="middle" font-family="sans-serif" font-size="17">STM32 / BSP</text>
+  <text x="1067" y="299" text-anchor="middle" font-family="sans-serif" font-size="17">mode runtimes</text>
+  <text x="1067" y="326" text-anchor="middle" font-family="sans-serif" font-size="17">CANopenNode core edits</text>
+
+  <line x1="265" y1="135" x2="335" y2="135" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="585" y1="135" x2="655" y2="135" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="460" y1="225" x2="460" y2="330" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="585" y1="405" x2="655" y2="405" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="780" y1="225" x2="780" y2="330" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="655" y1="365" x2="585" y2="365" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>

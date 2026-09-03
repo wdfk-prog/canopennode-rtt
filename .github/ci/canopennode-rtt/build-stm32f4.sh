@@ -292,6 +292,29 @@ append_canopennode_manual_multiple_od()
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_MULTIPLE_OD"
 }
 
+append_canopennode_cia402_device_rtt_autostart()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_canopennode_default_objects "$config_file" "$rtconfig_file"
+
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE" "2048"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_THREAD_PRIORITY" "5"
+
+    # CI patches rtconfig.h after Kconfig generation, so mirror Kconfig-selected lifecycle/demo symbols explicitly.
+    append_config_define "$config_file" "$rtconfig_file" "RT_USING_COMPONENTS_INIT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY" "4"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_AUTOSTART"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT" "3"
+}
+
 append_canopennode_full_feature_profile()
 {
     local config_file="$1"
@@ -399,6 +422,10 @@ append_canopennode_profile()
         demo-default)
             log "CI Kconfig profile demo-default: default demo object set"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
+            ;;
+        demo-cia402-device-rtt-autostart)
+            log "CI Kconfig profile demo-cia402-device-rtt-autostart: CiA 402 RT demo factory and lifecycle autostart"
+            append_canopennode_cia402_device_rtt_autostart "$config_file" "$rtconfig_file"
             ;;
         demo-high-res-time)
             log "CI Kconfig profile demo-high-res-time: 1 MHz timer backend for High-Res compile coverage"
@@ -549,8 +576,9 @@ append_canopennode_profile()
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
-                "Supported profiles: demo-minimal demo-default demo-high-res-time demo-pdo-sync demo-emcy-consumer demo-gfc" \
-                "  demo-nmt-master-test demo-sdo-client-test demo-sdo-block-test demo-sdo-client-gateway" \
+                "Supported profiles: demo-minimal demo-default demo-cia402-device-rtt-autostart demo-high-res-time" \
+                "  demo-pdo-sync demo-emcy-consumer demo-gfc demo-nmt-master-test demo-sdo-client-test" \
+                "  demo-sdo-block-test demo-sdo-client-gateway" \
                 "  demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" \
                 "  demo-full-feature" >&2
             exit 1
@@ -718,6 +746,15 @@ verify_profile_outputs()
         demo-manual-multiple-od)
             verify_profile_object "$bsp_dir" "CO_app_RTT.o"
             verify_profile_object "$bsp_dir" "OD.o"
+            ;;
+        demo-cia402-device-rtt-autostart)
+            verify_profile_object "$bsp_dir" "CO_402_state.o"
+            verify_profile_object "$bsp_dir" "CO_402_device.o"
+            verify_profile_object "$bsp_dir" "CO_402_device_fsa.o"
+            verify_profile_object "$bsp_dir" "CO_402_device_od.o"
+            verify_profile_object "$bsp_dir" "CO_lifecycle_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_402_device_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_402_device_RTT_demo.o"
             ;;
         demo-storage-dfs)
             verify_profile_object "$bsp_dir" "CO_lss_persist_RTT.o"

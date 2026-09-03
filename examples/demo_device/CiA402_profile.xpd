@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--A2 bootstrap insertion profile derived from repository CANopenEditor v4.2.3 artifacts; validate the profile import with v4.2.3 before reuse.-->
+<!--File includes additional custom properties for CANopenNode, CANopen protocol stack, URL: https://github.com/CANopenNode/CANopenNode-->
+<ISO15745ProfileContainer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.canopen.org/xml/1.1">
+  <ISO15745Profile>
+    <ProfileHeader xmlns="">
+      <ProfileIdentification>CANopen device profile</ProfileIdentification>
+      <ProfileRevision>1.1</ProfileRevision>
+      <ProfileName>CiA 402 single-axis insertion profile</ProfileName>
+      <ProfileSource/>
+      <ProfileClassID>Device</ProfileClassID>
+      <ISO15745Reference>
+        <ISO15745Part>1</ISO15745Part>
+        <ISO15745Edition>1</ISO15745Edition>
+        <ProfileTechnology>CANopen</ProfileTechnology>
+      </ISO15745Reference>
+    </ProfileHeader>
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xmlns="" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="CiA402_profile.xpd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModifiedBy="wdfk-prog" fileModificationDate="2026-08-21" fileModificationTime="16:26:04.5969246+08:00" fileVersion="1.0.0" supportedLanguages="en">
+      <q1:DeviceIdentity>
+        <q1:vendorName>canopennode-rtt</q1:vendorName>
+        <q1:vendorID>0x00000000</q1:vendorID>
+        <q1:productName>CiA 402 single-axis insertion profile</q1:productName>
+        <q1:productID>0x00000402</q1:productID>
+        <q1:productText>
+          <description lang="en">Reusable CiA 402 A2 single-axis application-object insertion profile</description>
+        </q1:productText>
+        <q1:version versionType="SW">0</q1:version>
+        <q1:version versionType="FW">0</q1:version>
+        <q1:version versionType="HW">0</q1:version>
+      </q1:DeviceIdentity>
+      <q1:DeviceFunction>
+        <q1:capabilities>
+          <q1:characteristicsList>
+            <q1:characteristic>
+              <q1:characteristicName>
+                <label lang="en">SW library</label>
+              </q1:characteristicName>
+              <q1:characteristicContent>
+                <label lang="en">libedssharp</label>
+              </q1:characteristicContent>
+              <q1:characteristicContent>
+                <label lang="en">CANopenNode</label>
+              </q1:characteristicContent>
+            </q1:characteristic>
+          </q1:characteristicsList>
+        </q1:capabilities>
+      </q1:DeviceFunction>
+      <q1:ApplicationProcess>
+        <q1:dataTypeList>
+          </q1:dataTypeList>
+        <q1:parameterList>
+          <q1:parameter uniqueID="UID_OBJ_603F" access="read">
+            <label lang="en">Error code</label>
+            <UINT/>
+            <q1:defaultValue value="0x0000"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6040" access="readWriteOutput">
+            <label lang="en">Controlword</label>
+            <UINT/>
+            <q1:defaultValue value="0x0000"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6041" access="read">
+            <label lang="en">Statusword</label>
+            <UINT/>
+            <q1:defaultValue value="0x0040"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6060" access="readWriteOutput">
+            <label lang="en">Modes of operation</label>
+            <SINT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6061" access="read">
+            <label lang="en">Modes of operation display</label>
+            <SINT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6064" access="read">
+            <label lang="en">Position actual value</label>
+            <DINT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_606C" access="read">
+            <label lang="en">Velocity actual value</label>
+            <DINT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_607A" access="readWriteOutput">
+            <label lang="en">Target position</label>
+            <DINT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_60FF" access="readWriteOutput">
+            <label lang="en">Target velocity</label>
+            <DINT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6502" access="read">
+            <label lang="en">Supported drive modes</label>
+            <UDINT/>
+            <q1:defaultValue value="0x00000000"/>
+          </q1:parameter>
+          </q1:parameterList>
+      </q1:ApplicationProcess>
+    </ProfileBody>
+  </ISO15745Profile>
+  <ISO15745Profile>
+    <ProfileHeader xmlns="">
+      <ProfileIdentification>CANopen communication network profile</ProfileIdentification>
+      <ProfileRevision>1.1</ProfileRevision>
+      <ProfileName>CiA 402 single-axis insertion profile</ProfileName>
+      <ProfileSource/>
+      <ProfileClassID>CommunicationNetwork</ProfileClassID>
+      <ISO15745Reference>
+        <ISO15745Part>1</ISO15745Part>
+        <ISO15745Edition>1</ISO15745Edition>
+        <ProfileTechnology>CANopen</ProfileTechnology>
+      </ISO15745Reference>
+    </ProfileHeader>
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xmlns="" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="CiA402_profile.xpd" fileCreator="wdfk-prog" fileCreationDate="2026-07-06" fileCreationTime="14:52:30.0000000+08:00" fileModificationDate="2026-08-21" fileModificationTime="16:26:04.5969246+08:00" fileVersion="1.0.0" supportedLanguages="en">
+      <ApplicationLayers>
+        <q2:CANopenObjectList>
+          <CANopenObject index="603F" name="Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_603F"/>
+          <CANopenObject index="6040" name="Controlword" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6040"/>
+          <CANopenObject index="6041" name="Statusword" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6041"/>
+          <CANopenObject index="6060" name="Modes of operation" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6060"/>
+          <CANopenObject index="6061" name="Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6061"/>
+          <CANopenObject index="6064" name="Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6064"/>
+          <CANopenObject index="606C" name="Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_606C"/>
+          <CANopenObject index="607A" name="Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_607A"/>
+          <CANopenObject index="60FF" name="Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_60FF"/>
+          <CANopenObject index="6502" name="Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6502"/>
+          </q2:CANopenObjectList>
+        <dummyUsage>
+          <dummy entry="Dummy0001=0"/>
+          <dummy entry="Dummy0002=0"/>
+          <dummy entry="Dummy0003=0"/>
+          <dummy entry="Dummy0004=0"/>
+          <dummy entry="Dummy0005=0"/>
+          <dummy entry="Dummy0006=0"/>
+          <dummy entry="Dummy0007=0"/>
+        </dummyUsage>
+      </ApplicationLayers>
+      <TransportLayers>
+        <PhysicalLayer>
+          <baudRate>
+            <supportedBaudRate value="10 Kbps"/>
+            <supportedBaudRate value="20 Kbps"/>
+            <supportedBaudRate value="50 Kbps"/>
+            <supportedBaudRate value="125 Kbps"/>
+            <supportedBaudRate value="250 Kbps"/>
+            <supportedBaudRate value="500 Kbps"/>
+            <supportedBaudRate value="800 Kbps"/>
+            <supportedBaudRate value="1000 Kbps"/>
+            <supportedBaudRate value="auto-baudRate"/>
+          </baudRate>
+        </PhysicalLayer>
+      </TransportLayers>
+      <NetworkManagement>
+        <CANopenGeneralFeatures granularity="8" nrOfRxPDO="4" nrOfTxPDO="5" layerSettingServiceSlave="true"/>
+        <CANopenMasterFeatures/>
+      </NetworkManagement>
+    </ProfileBody>
+  </ISO15745Profile>
+</ISO15745ProfileContainer>

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="620" viewBox="0 0 1120 620" role="img"
+     aria-labelledby="title desc">
+  <title id="title">CiA 402 RT-Thread Device thread and Communication Reset</title>
+  <desc id="desc">The existing realtime timer wakes co_rt first and the generic lifecycle realtime hook, which wakes the optional co_402 thread. Both use
+  lifecycleMutex before the OD lock. Communication Reset stops the timer, drains realtime and extension wake state, recreates the CANopen
+  stack, rebinds CiA 402 OD extensions before PDO initialization, and then restarts the timer.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+    </marker>
+    <style>
+      .box { fill: #fff; stroke: #333; stroke-width: 1.5; rx: 8; }
+      .gate { fill: #f8f8f8; stroke: #555; stroke-width: 1.5; rx: 8; }
+      .text { font: 15px sans-serif; fill: #111; text-anchor: middle; dominant-baseline: middle; }
+      .small { font: 13px sans-serif; fill: #222; text-anchor: middle; dominant-baseline: middle; }
+      .label { font: 16px sans-serif; font-weight: 600; fill: #111; }
+      .line { stroke: #333; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+      .reset { stroke-dasharray: 6 4; }
+    </style>
+  </defs>
+
+  <text class="label" x="35" y="38">Periodic runtime</text>
+  <rect class="box" x="60" y="75" width="140" height="56"/>
+  <text class="text" x="130" y="103">co_tmr / rtTimer</text>
+
+  <rect class="box" x="290" y="58" width="135" height="56"/>
+  <text class="text" x="357" y="86">rtSem</text>
+  <rect class="box" x="290" y="140" width="135" height="56"/>
+  <text class="text" x="357" y="168">cia402Sem</text>
+
+  <rect class="box" x="505" y="58" width="135" height="56"/>
+  <text class="text" x="572" y="86">co_rt (prio 3)</text>
+  <rect class="box" x="505" y="140" width="135" height="56"/>
+  <text class="text" x="572" y="168">co_402 (prio 5)</text>
+
+  <rect class="gate" x="720" y="82" width="155" height="90"/>
+  <text class="small" x="797" y="111">lifecycleMutex</text>
+  <text class="small" x="797" y="142">then OD lock</text>
+
+  <rect class="box" x="950" y="55" width="130" height="62"/>
+  <text class="small" x="1015" y="79">SYNC / RPDO</text>
+  <text class="small" x="1015" y="99">TPDO / SRDO</text>
+  <rect class="box" x="950" y="137" width="130" height="62"/>
+  <text class="small" x="1015" y="161">Pure-C PDS</text>
+  <text class="small" x="1015" y="181">supervisor</text>
+
+  <path class="line" d="M200 103 H275"/>
+  <path class="line" d="M200 103 C245 103 245 168 275 168"/>
+  <path class="line" d="M425 86 H490"/>
+  <path class="line" d="M425 168 H490"/>
+  <path class="line" d="M640 86 H705"/>
+  <path class="line" d="M640 168 H705"/>
+  <path class="line" d="M875 111 H935"/>
+  <path class="line" d="M875 143 H935"/>
+
+  <text class="small" x="242" y="72">wake first</text>
+  <text class="small" x="238" y="193">lifecycle hook</text>
+
+  <line x1="35" y1="245" x2="1085" y2="245" stroke="#aaa" stroke-width="1"/>
+  <text class="label" x="35" y="282">Communication Reset</text>
+
+  <rect class="box" x="45" y="320" width="130" height="58"/>
+  <text class="small" x="110" y="342">stop rtTimer</text>
+  <text class="small" x="110" y="362">drain semaphores</text>
+  <rect class="box" x="195" y="320" width="130" height="58"/>
+  <text class="small" x="260" y="342">take lifecycle</text>
+  <text class="small" x="260" y="362">stop hooks</text>
+  <rect class="box" x="345" y="320" width="130" height="58"/>
+  <text class="small" x="410" y="342">disable old CAN</text>
+  <text class="small" x="410" y="362">drain RX worker</text>
+  <rect class="box" x="495" y="320" width="130" height="58"/>
+  <text class="small" x="560" y="342">quiesced hooks</text>
+  <text class="small" x="560" y="362">release bindings</text>
+  <rect class="box" x="645" y="320" width="130" height="58"/>
+  <text class="small" x="710" y="342">delete old CO_t</text>
+  <text class="small" x="710" y="362">create new CO_t</text>
+  <rect class="box" x="795" y="320" width="130" height="58"/>
+  <text class="small" x="860" y="342">CO_CANopenInit</text>
+  <text class="small" x="860" y="362">then bind hooks</text>
+  <rect class="box" x="945" y="320" width="130" height="58"/>
+  <text class="small" x="1010" y="342">SRDO / PDO init</text>
+  <text class="small" x="1010" y="362">CAN normal mode</text>
+
+  <path class="line reset" d="M175 349 H180"/>
+  <path class="line reset" d="M325 349 H330"/>
+  <path class="line reset" d="M475 349 H480"/>
+  <path class="line reset" d="M625 349 H630"/>
+  <path class="line reset" d="M775 349 H780"/>
+  <path class="line reset" d="M925 349 H930"/>
+
+  <rect class="gate" x="335" y="445" width="450" height="92"/>
+  <text class="text" x="560" y="468">release lifecycleMutex -> refresh timing baseline -> restart rtTimer</text>
+  <text class="small" x="560" y="500">Workers resolve app-&gt;canOpenStack only after taking lifecycleMutex;</text>
+  <text class="small" x="560" y="523">no old CO_t/CANmodule/odMutex pointer is retained across reset.</text>
+  <path class="line reset" d="M1010 378 C1010 420 805 491 800 491"/>
+
+  <text class="small" x="560" y="580">With CiA 402 RT thread disabled, the lifecycle registry, 402 semaphore/thread and hook path are not selected.</text>
+</svg>
