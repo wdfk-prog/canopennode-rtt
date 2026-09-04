@@ -36,6 +36,40 @@
 #define CO_MULTIPLE_OD
 #endif /* defined(PKG_CANOPENNODE_USING_MULTIPLE_OD) && !defined(CO_MULTIPLE_OD) */
 
+/*
+ * Keep package Kconfig names at the RT-Thread boundary and expose role-neutral
+ * CiA 402 feature macros to the Pure-C profile. Non-RT-Thread builds may define
+ * CO_402_CONFIG_MODE_* themselves; CO_402_mode.h otherwise defaults them to 0.
+ */
+#ifndef CO_402_CONFIG_MODE_PP
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_PP)
+#define CO_402_CONFIG_MODE_PP 1
+#else
+#define CO_402_CONFIG_MODE_PP 0
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_PP) */
+#endif /* !defined(CO_402_CONFIG_MODE_PP) */
+
+#ifndef CO_402_CONFIG_MODE_PV
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_PV)
+#define CO_402_CONFIG_MODE_PV 1
+#else
+#define CO_402_CONFIG_MODE_PV 0
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_PV) */
+#endif /* !defined(CO_402_CONFIG_MODE_PV) */
+
+#ifndef CO_402_CONFIG_MODE_HM
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_HM)
+#define CO_402_CONFIG_MODE_HM 1
+#else
+#define CO_402_CONFIG_MODE_HM 0
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_HM) */
+#endif /* !defined(CO_402_CONFIG_MODE_HM) */
+
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD) && !defined(CO_402_LOG_CUSTOM_HEADER)
+/** Route optional Pure-C CiA 402 state/fault logs through the RT-Thread ulog adapter. */
+#define CO_402_LOG_CUSTOM_HEADER "CO_402_log_RTT.h"
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD) && !defined(CO_402_LOG_CUSTOM_HEADER) */
+
 #if defined(PKG_CANOPENNODE_GLOBAL_CALLBACK_PRE)
 #define CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE CO_CONFIG_FLAG_CALLBACK_PRE
 #else

@@ -91,6 +91,31 @@ rt_err_t CO_402_device_RTT_attach(CANopenNodeRTT *app, CO_402_device_RTT_t *runt
  */
 rt_err_t CO_402_device_RTT_autoAttach(CANopenNodeRTT *app, const CO_402_device_RTT_autostart_config_t *config);
 
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH)
+/**
+ * @brief Bind the optional MSH frontend after the local Device worker has started.
+ *
+ * The frontend stores the pointers only; every command later acquires the
+ * application lifecycle mutex and OD lock before touching the manager.
+ *
+ * @param app Running default CANopenNode RT-Thread application instance.
+ * @param runtime Started local Device runtime owned by @p app.
+ */
+void CO_402_device_RTT_mshBind(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime);
+
+/**
+ * @brief Remove the optional MSH binding before Device runtime teardown.
+ *
+ * Lifecycle teardown calls this while the application lifecycle mutex excludes
+ * command execution, so clearing the binding happens before runtime storage or
+ * its semaphore can be released.
+ *
+ * @param app Application instance previously supplied to the MSH frontend.
+ * @param runtime Device runtime previously supplied to the MSH frontend.
+ */
+void CO_402_device_RTT_mshUnbind(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime);
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH) */
+
 /**
  * @brief Define and component-register the automatic CiA 402 factory for the default app.
  *

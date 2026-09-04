@@ -39,4 +39,17 @@ config PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART
         CiA 402 RT-Thread demo to register a bounded software-only factory.
         Manual attach remains the default path and allocates no CiA 402 heap objects.
 
+config PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH
+    bool "Enable CiA 402 MSH debug control"
+    default n
+    depends on PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART
+    depends on RT_USING_FINSH && FINSH_USING_MSH
+    help
+        Register the cia402 MSH command for the default auto-attached local
+        Device runtime. Commands update the same Object Dictionary consumed by
+        SDO/RPDO and wake the existing co_402 supervisor; they never call the
+        DriveIF directly. This is intended for bench/debug use and may be
+        disabled without affecting the Pure-C Device or CAN behavior.
+
+
 endif

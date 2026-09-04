@@ -5,7 +5,7 @@
 
 #include "CO_402_state.h"
 
-/* Statusword masks used by the A3 symbolic state decoder. */
+/* Masks isolate only the PDS state bits; mode-specific status bits are ignored by this decoder. */
 #define CO_402_STATUS_MASK_SHORT 0x004FU
 #define CO_402_STATUS_MASK_LONG  0x006FU
 
@@ -58,10 +58,10 @@ CO_402_state_t CO_402_decodeStatusword(uint16_t statusword)
 }
 
 /*
- * Encode the base Statusword state pattern used by the A3 Device core.
+ * Encode only the PDS-owned Statusword state pattern; active modes add their own bits separately.
  *
  * Mode-specific and manufacturer-specific Statusword bits are outside this
- * helper and remain owned by later profile stages.
+ * helper and remain owned by their respective mode or product runtime.
  */
 uint16_t CO_402_statuswordForState(CO_402_state_t state)
 {

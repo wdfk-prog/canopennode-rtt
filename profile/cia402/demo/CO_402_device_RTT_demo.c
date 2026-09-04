@@ -3,60 +3,374 @@
  * @brief Software-only CiA 402 Device factory for RT-Thread protocol validation.
  */
 
+#define LOG_TAG "canopen.402.demo"
+#define LOG_LVL LOG_LVL_DBG
+
 #include "CO_402_device_RTT.h"
+#include "co_rtt_log.h"
+
+#include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #if (PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT < 1) || (PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT > 3)
 #error "PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT must be in the generated demo OD range 1..3"
 #endif /* (PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT < 1) || (PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT > 3) */
 
-/** Complete one demo PDS transition without touching physical hardware. */
-static CO_402_drive_result_t CO_402_demoTransitionDone(void *object)
+/* Software-only state that substitutes for one physical motor/drive in the package demo. */
+typedef struct {
+    uint8_t axis;
+    CO_402_mode_t mode;
+    int32_t position;
+    int32_t velocity;
+    int16_t torque;
+    int32_t ppTarget;
+    bool ppActive;
+    bool ppHalted;
+    bool hmActive;
+    bool hmHalted;
+    bool pvCommandValid;
+    CO_402_profile_velocity_command_t lastPvCommand;
+} CO_402_demo_axis_t;
+
+/* Product-owned software feedback intentionally survives CANopen Communication Reset like a physical drive. */
+static CO_402_demo_axis_t CO_402_demoAxes[] = {
+    {.axis = 0U},
+    {.axis = 1U},
+    {.axis = 2U},
+};
+
+static const char *CO_402_demoModeName(CO_402_mode_t mode)
 {
-    (void)object;
+    switch (mode) {
+        case CO_402_MODE_PROFILE_POSITION:
+            return "PP";
+        case CO_402_MODE_PROFILE_VELOCITY:
+            return "PV";
+        case CO_402_MODE_HOMING:
+            return "HM";
+        case CO_402_MODE_NONE:
+            return "NONE";
+        default:
+            return "OTHER";
+    }
+}
+
+static void CO_402_demoStopMotion(CO_402_demo_axis_t *axis)
+{
+    axis->velocity = 0;
+    axis->ppActive = false;
+    axis->ppHalted = false;
+    axis->hmActive = false;
+    axis->hmHalted = false;
+}
+
+static CO_402_drive_result_t CO_402_demoPdsDone(void *object, const char *action, bool stopMotion)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL) {
+        return CO_402_DRIVE_ERROR;
+    }
+    if (stopMotion) {
+        CO_402_demoStopMotion(axis);
+    }
+
+    CO_RTT_LOG_I("axis=%u PDS %s", (unsigned int)axis->axis, action);
     return CO_402_DRIVE_DONE;
 }
 
-/** Return deterministic zero position feedback for the software-only demo. */
+static CO_402_drive_result_t CO_402_demoShutdown(void *object)
+{
+    return CO_402_demoPdsDone(object, "shutdown", true);
+}
+
+static CO_402_drive_result_t CO_402_demoSwitchOn(void *object)
+{
+    return CO_402_demoPdsDone(object, "switch-on", false);
+}
+
+static CO_402_drive_result_t CO_402_demoEnableOperation(void *object)
+{
+    return CO_402_demoPdsDone(object, "enable-operation", false);
+}
+
+static CO_402_drive_result_t CO_402_demoDisableOperation(void *object)
+{
+    return CO_402_demoPdsDone(object, "disable-operation", true);
+}
+
+static CO_402_drive_result_t CO_402_demoQuickStop(void *object)
+{
+    return CO_402_demoPdsDone(object, "quick-stop", true);
+}
+
+static CO_402_drive_result_t CO_402_demoFaultReaction(void *object)
+{
+    return CO_402_demoPdsDone(object, "fault-reaction", true);
+}
+
+static CO_402_drive_result_t CO_402_demoFaultReset(void *object)
+{
+    return CO_402_demoPdsDone(object, "fault-reset", true);
+}
+
+static CO_402_drive_result_t CO_402_demoDisableVoltage(void *object)
+{
+    return CO_402_demoPdsDone(object, "disable-voltage", true);
+}
+
 static int32_t CO_402_demoGetPosition(void *object)
 {
-    (void)object;
-    return 0;
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+    return axis != NULL ? axis->position : 0;
 }
 
-/** Return deterministic zero velocity feedback for the software-only demo. */
 static int32_t CO_402_demoGetVelocity(void *object)
 {
-    (void)object;
-    return 0;
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+    return axis != NULL ? axis->velocity : 0;
 }
 
-/** Return deterministic zero torque feedback for the software-only demo. */
 static int16_t CO_402_demoGetTorque(void *object)
 {
-    (void)object;
-    return 0;
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+    return axis != NULL ? axis->torque : 0;
 }
 
-/** Immediate-DONE DriveIF used only to exercise CiA 402 protocol/FSA/lifecycle behavior. */
+static CO_402_drive_result_t CO_402_demoModeEnter(void *object, CO_402_mode_t mode)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL) {
+        return CO_402_DRIVE_ERROR;
+    }
+
+    axis->mode = mode;
+    axis->pvCommandValid = false;
+    CO_RTT_LOG_I("axis=%u mode-enter %s(%d)", (unsigned int)axis->axis,
+                 CO_402_demoModeName(mode), (int)mode);
+    return CO_402_DRIVE_DONE;
+}
+
+static CO_402_drive_result_t CO_402_demoModeExit(void *object, CO_402_mode_t mode)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL) {
+        return CO_402_DRIVE_ERROR;
+    }
+
+    CO_402_demoStopMotion(axis);
+    axis->mode = CO_402_MODE_NONE;
+    axis->pvCommandValid = false;
+    CO_RTT_LOG_I("axis=%u mode-exit %s(%d)", (unsigned int)axis->axis,
+                 CO_402_demoModeName(mode), (int)mode);
+    return CO_402_DRIVE_DONE;
+}
+
+static bool CO_402_demoResolvePositionTarget(CO_402_demo_axis_t *axis,
+                                             const CO_402_profile_position_command_t *command,
+                                             int32_t *resolvedTarget)
+{
+    int64_t target;
+
+    if (axis == NULL || command == NULL || resolvedTarget == NULL) {
+        return false;
+    }
+
+    target = command->relative ? ((int64_t)axis->position + (int64_t)command->targetPosition)
+                               : (int64_t)command->targetPosition;
+    if (target < INT32_MIN || target > INT32_MAX) {
+        return false;
+    }
+
+    *resolvedTarget = (int32_t)target;
+    return true;
+}
+
+static int32_t CO_402_demoProfileVelocityFeedback(uint32_t magnitude, int32_t current, int32_t target)
+{
+    int32_t velocity = magnitude > (uint32_t)INT32_MAX ? INT32_MAX : (int32_t)magnitude;
+
+    if (target < current) {
+        velocity = -velocity;
+    } else if (target == current) {
+        velocity = 0;
+    }
+
+    return velocity;
+}
+
+static CO_402_drive_result_t CO_402_demoProfilePosition(
+    void *object, const CO_402_profile_position_command_t *command)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL || command == NULL) {
+        return CO_402_DRIVE_ERROR;
+    }
+
+    if (command->newSetPoint) {
+        if (!CO_402_demoResolvePositionTarget(axis, command, &axis->ppTarget)) {
+            CO_RTT_LOG_E("axis=%u PP target overflow: current=%ld request=%ld relative=%u",
+                         (unsigned int)axis->axis, (long)axis->position,
+                         (long)command->targetPosition, command->relative ? 1U : 0U);
+            return CO_402_DRIVE_ERROR;
+        }
+
+        axis->ppActive = true;
+        axis->ppHalted = false;
+        axis->velocity = command->halt
+            ? 0
+            : CO_402_demoProfileVelocityFeedback(command->profileVelocity, axis->position, axis->ppTarget);
+        CO_RTT_LOG_I("axis=%u PP accept target=%ld resolved=%ld vel=%lu acc=%lu dec=%lu rel=%u imm=%u halt=%u",
+                     (unsigned int)axis->axis, (long)command->targetPosition, (long)axis->ppTarget,
+                     (unsigned long)command->profileVelocity, (unsigned long)command->profileAcceleration,
+                     (unsigned long)command->profileDeceleration, command->relative ? 1U : 0U,
+                     command->changeImmediately ? 1U : 0U, command->halt ? 1U : 0U);
+    }
+
+    if (!axis->ppActive) {
+        return CO_402_DRIVE_DONE;
+    }
+
+    if (command->halt) {
+        axis->velocity = 0;
+        if (!axis->ppHalted) {
+            axis->ppHalted = true;
+            CO_RTT_LOG_I("axis=%u PP halted at position=%ld", (unsigned int)axis->axis,
+                         (long)axis->position);
+        }
+        return CO_402_DRIVE_BUSY;
+    }
+
+    if (command->newSetPoint) {
+        /* Keep one BUSY supervisor interval visible so the protocol path can exercise in-flight ownership. */
+        return CO_402_DRIVE_BUSY;
+    }
+
+    axis->position = axis->ppTarget;
+    axis->velocity = 0;
+    axis->ppActive = false;
+    axis->ppHalted = false;
+    CO_RTT_LOG_I("axis=%u PP complete position=%ld", (unsigned int)axis->axis, (long)axis->position);
+    return CO_402_DRIVE_DONE;
+}
+
+static bool CO_402_demoPvChanged(const CO_402_demo_axis_t *axis,
+                                 const CO_402_profile_velocity_command_t *command)
+{
+    const CO_402_profile_velocity_command_t *last = &axis->lastPvCommand;
+
+    return !axis->pvCommandValid || last->targetVelocity != command->targetVelocity
+           || last->profileAcceleration != command->profileAcceleration
+           || last->profileDeceleration != command->profileDeceleration
+           || last->quickStopDeceleration != command->quickStopDeceleration
+           || last->halt != command->halt;
+}
+
+static CO_402_drive_result_t CO_402_demoProfileVelocity(
+    void *object, const CO_402_profile_velocity_command_t *command)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL || command == NULL) {
+        return CO_402_DRIVE_ERROR;
+    }
+
+    if (CO_402_demoPvChanged(axis, command)) {
+        CO_RTT_LOG_I("axis=%u PV apply target=%ld acc=%lu dec=%lu halt=%u",
+                     (unsigned int)axis->axis, (long)command->targetVelocity,
+                     (unsigned long)command->profileAcceleration,
+                     (unsigned long)command->profileDeceleration, command->halt ? 1U : 0U);
+        axis->lastPvCommand = *command;
+        axis->pvCommandValid = true;
+    }
+
+    axis->velocity = command->halt ? 0 : command->targetVelocity;
+    return CO_402_DRIVE_DONE;
+}
+
+static CO_402_drive_result_t CO_402_demoHoming(void *object, const CO_402_homing_command_t *command)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL || command == NULL) {
+        return CO_402_DRIVE_ERROR;
+    }
+
+    if (command->startEdge) {
+        axis->hmActive = true;
+        axis->hmHalted = false;
+        CO_RTT_LOG_I("axis=%u HM start method=%d offset=%ld speed-switch=%lu speed-zero=%lu acc=%lu",
+                     (unsigned int)axis->axis, (int)command->homingMethod, (long)command->homeOffset,
+                     (unsigned long)command->speedSwitch, (unsigned long)command->speedZero,
+                     (unsigned long)command->acceleration);
+    }
+
+    if (!axis->hmActive) {
+        return CO_402_DRIVE_DONE;
+    }
+
+    if (!command->start) {
+        axis->hmActive = false;
+        axis->hmHalted = false;
+        axis->velocity = 0;
+        CO_RTT_LOG_I("axis=%u HM abort acknowledged at position=%ld",
+                     (unsigned int)axis->axis, (long)axis->position);
+        return CO_402_DRIVE_DONE;
+    }
+
+    if (command->halt) {
+        axis->velocity = 0;
+        if (!axis->hmHalted) {
+            axis->hmHalted = true;
+            CO_RTT_LOG_I("axis=%u HM halted at position=%ld", (unsigned int)axis->axis,
+                         (long)axis->position);
+        }
+        return CO_402_DRIVE_BUSY;
+    }
+
+    if (command->startEdge) {
+        /* Match PP: expose one BUSY interval before publishing deterministic completion feedback. */
+        return CO_402_DRIVE_BUSY;
+    }
+
+    axis->position = command->homeOffset;
+    axis->velocity = 0;
+    axis->hmActive = false;
+    axis->hmHalted = false;
+    CO_RTT_LOG_I("axis=%u HM complete home-position=%ld", (unsigned int)axis->axis,
+                 (long)axis->position);
+    return CO_402_DRIVE_DONE;
+}
+
+/* Deterministic software DriveIF used to validate protocol and supervisor behavior without motor hardware. */
 static const CO_402_drive_if_t CO_402_demoDriveIf = {
-    .shutdown = CO_402_demoTransitionDone,
-    .switchOn = CO_402_demoTransitionDone,
-    .enableOperation = CO_402_demoTransitionDone,
-    .disableOperation = CO_402_demoTransitionDone,
-    .quickStop = CO_402_demoTransitionDone,
-    .faultReaction = CO_402_demoTransitionDone,
-    .faultReset = CO_402_demoTransitionDone,
+    .shutdown = CO_402_demoShutdown,
+    .switchOn = CO_402_demoSwitchOn,
+    .enableOperation = CO_402_demoEnableOperation,
+    .disableOperation = CO_402_demoDisableOperation,
+    .quickStop = CO_402_demoQuickStop,
+    .faultReaction = CO_402_demoFaultReaction,
+    .faultReset = CO_402_demoFaultReset,
     .getPosition = CO_402_demoGetPosition,
     .getVelocity = CO_402_demoGetVelocity,
     .getTorque = CO_402_demoGetTorque,
-    .disableVoltage = CO_402_demoTransitionDone,
+    .disableVoltage = CO_402_demoDisableVoltage,
+    .modeEnter = CO_402_demoModeEnter,
+    .modeExit = CO_402_demoModeExit,
+    .profilePosition = CO_402_demoProfilePosition,
+    .profileVelocity = CO_402_demoProfileVelocity,
+    .homing = CO_402_demoHoming,
 };
 
-/** Generated demo OD provides three consecutive local logical-device blocks. */
+/* Generated demo OD provides three consecutive local logical-device blocks. */
 static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
-    { .logicalDevice = 0U, .drive = &CO_402_demoDriveIf, .driveObject = NULL },
-    { .logicalDevice = 1U, .drive = &CO_402_demoDriveIf, .driveObject = NULL },
-    { .logicalDevice = 2U, .drive = &CO_402_demoDriveIf, .driveObject = NULL },
+    {.logicalDevice = 0U, .drive = &CO_402_demoDriveIf, .driveObject = &CO_402_demoAxes[0]},
+    {.logicalDevice = 1U, .drive = &CO_402_demoDriveIf, .driveObject = &CO_402_demoAxes[1]},
+    {.logicalDevice = 2U, .drive = &CO_402_demoDriveIf, .driveObject = &CO_402_demoAxes[2]},
 };
 
 CO_402_DEVICE_RTT_AUTOSTART_DEFINE(cia402_demo, CO_402_demoAxisConfigs,

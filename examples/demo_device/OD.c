@@ -354,6 +354,19 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x6064_axis0PositionActualValue = 0,
     .x606C_axis0VelocityActualValue = 0,
     .x607A_axis0TargetPosition = 0,
+    .x607C_axis0HomeOffset = 0,
+    .x6081_axis0ProfileVelocity = 0x00000000,
+    .x6083_axis0ProfileAcceleration = 0x00000000,
+    .x6084_axis0ProfileDeceleration = 0x00000000,
+    .x6085_axis0QuickStopDeceleration = 0x00000000,
+    .x6086_axis0MotionProfileType = 0,
+    .x6098_axis0HomingMethod = 0,
+    .x6099_axis0HomingSpeeds = {
+        .highestSub_indexSupported = 0x02,
+        .speedDuringSearchForSwitch = 0x00000000,
+        .speedDuringSearchForZero = 0x00000000
+    },
+    .x609A_axis0HomingAcceleration = 0x00000000,
     .x60FF_axis0TargetVelocity = 0,
     .x6502_axis0SupportedDriveModes = 0x00000000,
     .x683F_axis1ErrorCode = 0x0000,
@@ -364,6 +377,19 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x6864_axis1PositionActualValue = 0,
     .x686C_axis1VelocityActualValue = 0,
     .x687A_axis1TargetPosition = 0,
+    .x687C_axis1HomeOffset = 0,
+    .x6881_axis1ProfileVelocity = 0x00000000,
+    .x6883_axis1ProfileAcceleration = 0x00000000,
+    .x6884_axis1ProfileDeceleration = 0x00000000,
+    .x6885_axis1QuickStopDeceleration = 0x00000000,
+    .x6886_axis1MotionProfileType = 0,
+    .x6898_axis1HomingMethod = 0,
+    .x6899_axis1HomingSpeeds = {
+        .highestSub_indexSupported = 0x02,
+        .speedDuringSearchForSwitch = 0x00000000,
+        .speedDuringSearchForZero = 0x00000000
+    },
+    .x689A_axis1HomingAcceleration = 0x00000000,
     .x68FF_axis1TargetVelocity = 0,
     .x6D02_axis1SupportedDriveModes = 0x00000000,
     .x703F_axis2ErrorCode = 0x0000,
@@ -374,6 +400,19 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x7064_axis2PositionActualValue = 0,
     .x706C_axis2VelocityActualValue = 0,
     .x707A_axis2TargetPosition = 0,
+    .x707C_axis2HomeOffset = 0,
+    .x7081_axis2ProfileVelocity = 0x00000000,
+    .x7083_axis2ProfileAcceleration = 0x00000000,
+    .x7084_axis2ProfileDeceleration = 0x00000000,
+    .x7085_axis2QuickStopDeceleration = 0x00000000,
+    .x7086_axis2MotionProfileType = 0,
+    .x7098_axis2HomingMethod = 0,
+    .x7099_axis2HomingSpeeds = {
+        .highestSub_indexSupported = 0x02,
+        .speedDuringSearchForSwitch = 0x00000000,
+        .speedDuringSearchForZero = 0x00000000
+    },
+    .x709A_axis2HomingAcceleration = 0x00000000,
     .x70FF_axis2TargetVelocity = 0,
     .x7502_axis2SupportedDriveModes = 0x00000000
 };
@@ -449,6 +488,15 @@ typedef struct {
     OD_obj_var_t o_6064_axis0PositionActualValue;
     OD_obj_var_t o_606C_axis0VelocityActualValue;
     OD_obj_var_t o_607A_axis0TargetPosition;
+    OD_obj_var_t o_607C_axis0HomeOffset;
+    OD_obj_var_t o_6081_axis0ProfileVelocity;
+    OD_obj_var_t o_6083_axis0ProfileAcceleration;
+    OD_obj_var_t o_6084_axis0ProfileDeceleration;
+    OD_obj_var_t o_6085_axis0QuickStopDeceleration;
+    OD_obj_var_t o_6086_axis0MotionProfileType;
+    OD_obj_var_t o_6098_axis0HomingMethod;
+    OD_obj_record_t o_6099_axis0HomingSpeeds[3];
+    OD_obj_var_t o_609A_axis0HomingAcceleration;
     OD_obj_var_t o_60FF_axis0TargetVelocity;
     OD_obj_var_t o_6502_axis0SupportedDriveModes;
     OD_obj_var_t o_683F_axis1ErrorCode;
@@ -459,6 +507,15 @@ typedef struct {
     OD_obj_var_t o_6864_axis1PositionActualValue;
     OD_obj_var_t o_686C_axis1VelocityActualValue;
     OD_obj_var_t o_687A_axis1TargetPosition;
+    OD_obj_var_t o_687C_axis1HomeOffset;
+    OD_obj_var_t o_6881_axis1ProfileVelocity;
+    OD_obj_var_t o_6883_axis1ProfileAcceleration;
+    OD_obj_var_t o_6884_axis1ProfileDeceleration;
+    OD_obj_var_t o_6885_axis1QuickStopDeceleration;
+    OD_obj_var_t o_6886_axis1MotionProfileType;
+    OD_obj_var_t o_6898_axis1HomingMethod;
+    OD_obj_record_t o_6899_axis1HomingSpeeds[3];
+    OD_obj_var_t o_689A_axis1HomingAcceleration;
     OD_obj_var_t o_68FF_axis1TargetVelocity;
     OD_obj_var_t o_6D02_axis1SupportedDriveModes;
     OD_obj_var_t o_703F_axis2ErrorCode;
@@ -469,6 +526,15 @@ typedef struct {
     OD_obj_var_t o_7064_axis2PositionActualValue;
     OD_obj_var_t o_706C_axis2VelocityActualValue;
     OD_obj_var_t o_707A_axis2TargetPosition;
+    OD_obj_var_t o_707C_axis2HomeOffset;
+    OD_obj_var_t o_7081_axis2ProfileVelocity;
+    OD_obj_var_t o_7083_axis2ProfileAcceleration;
+    OD_obj_var_t o_7084_axis2ProfileDeceleration;
+    OD_obj_var_t o_7085_axis2QuickStopDeceleration;
+    OD_obj_var_t o_7086_axis2MotionProfileType;
+    OD_obj_var_t o_7098_axis2HomingMethod;
+    OD_obj_record_t o_7099_axis2HomingSpeeds[3];
+    OD_obj_var_t o_709A_axis2HomingAcceleration;
     OD_obj_var_t o_70FF_axis2TargetVelocity;
     OD_obj_var_t o_7502_axis2SupportedDriveModes;
 } ODObjs_t;
@@ -2113,6 +2179,66 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
         .dataLength = 4
     },
+    .o_607C_axis0HomeOffset = {
+        .dataOrig = &OD_RAM.x607C_axis0HomeOffset,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6081_axis0ProfileVelocity = {
+        .dataOrig = &OD_RAM.x6081_axis0ProfileVelocity,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6083_axis0ProfileAcceleration = {
+        .dataOrig = &OD_RAM.x6083_axis0ProfileAcceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6084_axis0ProfileDeceleration = {
+        .dataOrig = &OD_RAM.x6084_axis0ProfileDeceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6085_axis0QuickStopDeceleration = {
+        .dataOrig = &OD_RAM.x6085_axis0QuickStopDeceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6086_axis0MotionProfileType = {
+        .dataOrig = &OD_RAM.x6086_axis0MotionProfileType,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6098_axis0HomingMethod = {
+        .dataOrig = &OD_RAM.x6098_axis0HomingMethod,
+        .attribute = ODA_SDO_RW,
+        .dataLength = 1
+    },
+    .o_6099_axis0HomingSpeeds = {
+        {
+            .dataOrig = &OD_RAM.x6099_axis0HomingSpeeds.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x6099_axis0HomingSpeeds.speedDuringSearchForSwitch,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x6099_axis0HomingSpeeds.speedDuringSearchForZero,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        }
+    },
+    .o_609A_axis0HomingAcceleration = {
+        .dataOrig = &OD_RAM.x609A_axis0HomingAcceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
     .o_60FF_axis0TargetVelocity = {
         .dataOrig = &OD_RAM.x60FF_axis0TargetVelocity,
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
@@ -2163,6 +2289,66 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
         .dataLength = 4
     },
+    .o_687C_axis1HomeOffset = {
+        .dataOrig = &OD_RAM.x687C_axis1HomeOffset,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6881_axis1ProfileVelocity = {
+        .dataOrig = &OD_RAM.x6881_axis1ProfileVelocity,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6883_axis1ProfileAcceleration = {
+        .dataOrig = &OD_RAM.x6883_axis1ProfileAcceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6884_axis1ProfileDeceleration = {
+        .dataOrig = &OD_RAM.x6884_axis1ProfileDeceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6885_axis1QuickStopDeceleration = {
+        .dataOrig = &OD_RAM.x6885_axis1QuickStopDeceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_6886_axis1MotionProfileType = {
+        .dataOrig = &OD_RAM.x6886_axis1MotionProfileType,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6898_axis1HomingMethod = {
+        .dataOrig = &OD_RAM.x6898_axis1HomingMethod,
+        .attribute = ODA_SDO_RW,
+        .dataLength = 1
+    },
+    .o_6899_axis1HomingSpeeds = {
+        {
+            .dataOrig = &OD_RAM.x6899_axis1HomingSpeeds.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x6899_axis1HomingSpeeds.speedDuringSearchForSwitch,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x6899_axis1HomingSpeeds.speedDuringSearchForZero,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        }
+    },
+    .o_689A_axis1HomingAcceleration = {
+        .dataOrig = &OD_RAM.x689A_axis1HomingAcceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
     .o_68FF_axis1TargetVelocity = {
         .dataOrig = &OD_RAM.x68FF_axis1TargetVelocity,
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
@@ -2211,6 +2397,66 @@ static CO_PROGMEM ODObjs_t ODObjs = {
     .o_707A_axis2TargetPosition = {
         .dataOrig = &OD_RAM.x707A_axis2TargetPosition,
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 4
+    },
+    .o_707C_axis2HomeOffset = {
+        .dataOrig = &OD_RAM.x707C_axis2HomeOffset,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_7081_axis2ProfileVelocity = {
+        .dataOrig = &OD_RAM.x7081_axis2ProfileVelocity,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_7083_axis2ProfileAcceleration = {
+        .dataOrig = &OD_RAM.x7083_axis2ProfileAcceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_7084_axis2ProfileDeceleration = {
+        .dataOrig = &OD_RAM.x7084_axis2ProfileDeceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_7085_axis2QuickStopDeceleration = {
+        .dataOrig = &OD_RAM.x7085_axis2QuickStopDeceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 4
+    },
+    .o_7086_axis2MotionProfileType = {
+        .dataOrig = &OD_RAM.x7086_axis2MotionProfileType,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataLength = 2
+    },
+    .o_7098_axis2HomingMethod = {
+        .dataOrig = &OD_RAM.x7098_axis2HomingMethod,
+        .attribute = ODA_SDO_RW,
+        .dataLength = 1
+    },
+    .o_7099_axis2HomingSpeeds = {
+        {
+            .dataOrig = &OD_RAM.x7099_axis2HomingSpeeds.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_RAM.x7099_axis2HomingSpeeds.speedDuringSearchForSwitch,
+            .subIndex = 1,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_RAM.x7099_axis2HomingSpeeds.speedDuringSearchForZero,
+            .subIndex = 2,
+            .attribute = ODA_SDO_RW | ODA_MB,
+            .dataLength = 4
+        }
+    },
+    .o_709A_axis2HomingAcceleration = {
+        .dataOrig = &OD_RAM.x709A_axis2HomingAcceleration,
+        .attribute = ODA_SDO_RW | ODA_MB,
         .dataLength = 4
     },
     .o_70FF_axis2TargetVelocity = {
@@ -2295,6 +2541,15 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x6064, 0x01, ODT_VAR, &ODObjs.o_6064_axis0PositionActualValue, NULL},
     {0x606C, 0x01, ODT_VAR, &ODObjs.o_606C_axis0VelocityActualValue, NULL},
     {0x607A, 0x01, ODT_VAR, &ODObjs.o_607A_axis0TargetPosition, NULL},
+    {0x607C, 0x01, ODT_VAR, &ODObjs.o_607C_axis0HomeOffset, NULL},
+    {0x6081, 0x01, ODT_VAR, &ODObjs.o_6081_axis0ProfileVelocity, NULL},
+    {0x6083, 0x01, ODT_VAR, &ODObjs.o_6083_axis0ProfileAcceleration, NULL},
+    {0x6084, 0x01, ODT_VAR, &ODObjs.o_6084_axis0ProfileDeceleration, NULL},
+    {0x6085, 0x01, ODT_VAR, &ODObjs.o_6085_axis0QuickStopDeceleration, NULL},
+    {0x6086, 0x01, ODT_VAR, &ODObjs.o_6086_axis0MotionProfileType, NULL},
+    {0x6098, 0x01, ODT_VAR, &ODObjs.o_6098_axis0HomingMethod, NULL},
+    {0x6099, 0x03, ODT_REC, &ODObjs.o_6099_axis0HomingSpeeds, NULL},
+    {0x609A, 0x01, ODT_VAR, &ODObjs.o_609A_axis0HomingAcceleration, NULL},
     {0x60FF, 0x01, ODT_VAR, &ODObjs.o_60FF_axis0TargetVelocity, NULL},
     {0x6502, 0x01, ODT_VAR, &ODObjs.o_6502_axis0SupportedDriveModes, NULL},
     {0x683F, 0x01, ODT_VAR, &ODObjs.o_683F_axis1ErrorCode, NULL},
@@ -2305,6 +2560,15 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x6864, 0x01, ODT_VAR, &ODObjs.o_6864_axis1PositionActualValue, NULL},
     {0x686C, 0x01, ODT_VAR, &ODObjs.o_686C_axis1VelocityActualValue, NULL},
     {0x687A, 0x01, ODT_VAR, &ODObjs.o_687A_axis1TargetPosition, NULL},
+    {0x687C, 0x01, ODT_VAR, &ODObjs.o_687C_axis1HomeOffset, NULL},
+    {0x6881, 0x01, ODT_VAR, &ODObjs.o_6881_axis1ProfileVelocity, NULL},
+    {0x6883, 0x01, ODT_VAR, &ODObjs.o_6883_axis1ProfileAcceleration, NULL},
+    {0x6884, 0x01, ODT_VAR, &ODObjs.o_6884_axis1ProfileDeceleration, NULL},
+    {0x6885, 0x01, ODT_VAR, &ODObjs.o_6885_axis1QuickStopDeceleration, NULL},
+    {0x6886, 0x01, ODT_VAR, &ODObjs.o_6886_axis1MotionProfileType, NULL},
+    {0x6898, 0x01, ODT_VAR, &ODObjs.o_6898_axis1HomingMethod, NULL},
+    {0x6899, 0x03, ODT_REC, &ODObjs.o_6899_axis1HomingSpeeds, NULL},
+    {0x689A, 0x01, ODT_VAR, &ODObjs.o_689A_axis1HomingAcceleration, NULL},
     {0x68FF, 0x01, ODT_VAR, &ODObjs.o_68FF_axis1TargetVelocity, NULL},
     {0x6D02, 0x01, ODT_VAR, &ODObjs.o_6D02_axis1SupportedDriveModes, NULL},
     {0x703F, 0x01, ODT_VAR, &ODObjs.o_703F_axis2ErrorCode, NULL},
@@ -2315,6 +2579,15 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x7064, 0x01, ODT_VAR, &ODObjs.o_7064_axis2PositionActualValue, NULL},
     {0x706C, 0x01, ODT_VAR, &ODObjs.o_706C_axis2VelocityActualValue, NULL},
     {0x707A, 0x01, ODT_VAR, &ODObjs.o_707A_axis2TargetPosition, NULL},
+    {0x707C, 0x01, ODT_VAR, &ODObjs.o_707C_axis2HomeOffset, NULL},
+    {0x7081, 0x01, ODT_VAR, &ODObjs.o_7081_axis2ProfileVelocity, NULL},
+    {0x7083, 0x01, ODT_VAR, &ODObjs.o_7083_axis2ProfileAcceleration, NULL},
+    {0x7084, 0x01, ODT_VAR, &ODObjs.o_7084_axis2ProfileDeceleration, NULL},
+    {0x7085, 0x01, ODT_VAR, &ODObjs.o_7085_axis2QuickStopDeceleration, NULL},
+    {0x7086, 0x01, ODT_VAR, &ODObjs.o_7086_axis2MotionProfileType, NULL},
+    {0x7098, 0x01, ODT_VAR, &ODObjs.o_7098_axis2HomingMethod, NULL},
+    {0x7099, 0x03, ODT_REC, &ODObjs.o_7099_axis2HomingSpeeds, NULL},
+    {0x709A, 0x01, ODT_VAR, &ODObjs.o_709A_axis2HomingAcceleration, NULL},
     {0x70FF, 0x01, ODT_VAR, &ODObjs.o_70FF_axis2TargetVelocity, NULL},
     {0x7502, 0x01, ODT_VAR, &ODObjs.o_7502_axis2SupportedDriveModes, NULL},
     {0x0000, 0x00, 0, NULL, NULL}

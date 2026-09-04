@@ -111,9 +111,9 @@ static void processOperationEnabled(CO_402_device_axis_t *axis, CO_402_command_t
 /*
  * Handle commands accepted while the axis is Quick stop active.
  *
- * A3 does not bind the Quick stop option code, so it cannot select a normative
- * automatic recovery policy. Only Disable voltage is accepted here; later
- * stages may add recovery after the corresponding OD/policy contract exists.
+ * The current Device core does not bind the Quick stop option code, so it cannot select a normative
+ * automatic recovery policy. Only Disable voltage is accepted here until the
+ * corresponding OD and product recovery policy are explicitly available.
  */
 static void processQuickStopActive(CO_402_device_axis_t *axis, CO_402_command_t command)
 {

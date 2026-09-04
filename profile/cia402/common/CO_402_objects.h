@@ -26,10 +26,28 @@ extern "C" {
 #define CO_402_INDEX_MODES_OF_OPERATION_DISPLAY 0x6061U
 /** Axis-0 Position actual value object. */
 #define CO_402_INDEX_POSITION_ACTUAL_VALUE 0x6064U
-/** Axis-0 Target position object. */
-#define CO_402_INDEX_TARGET_POSITION 0x607AU
 /** Axis-0 Velocity actual value object. */
 #define CO_402_INDEX_VELOCITY_ACTUAL_VALUE 0x606CU
+/** Axis-0 Home offset object. */
+#define CO_402_INDEX_HOME_OFFSET 0x607CU
+/** Axis-0 Target position object. */
+#define CO_402_INDEX_TARGET_POSITION 0x607AU
+/** Axis-0 Profile velocity object. */
+#define CO_402_INDEX_PROFILE_VELOCITY 0x6081U
+/** Axis-0 Profile acceleration object. */
+#define CO_402_INDEX_PROFILE_ACCELERATION 0x6083U
+/** Axis-0 Profile deceleration object. */
+#define CO_402_INDEX_PROFILE_DECELERATION 0x6084U
+/** Axis-0 Quick stop deceleration object. */
+#define CO_402_INDEX_QUICK_STOP_DECELERATION 0x6085U
+/** Axis-0 Motion profile type object. */
+#define CO_402_INDEX_MOTION_PROFILE_TYPE 0x6086U
+/** Axis-0 Homing method object. */
+#define CO_402_INDEX_HOMING_METHOD 0x6098U
+/** Axis-0 Homing speeds record. */
+#define CO_402_INDEX_HOMING_SPEEDS 0x6099U
+/** Axis-0 Homing acceleration object. */
+#define CO_402_INDEX_HOMING_ACCELERATION 0x609AU
 /** Axis-0 Target velocity object. */
 #define CO_402_INDEX_TARGET_VELOCITY 0x60FFU
 /** Axis-0 Supported drive modes object. */

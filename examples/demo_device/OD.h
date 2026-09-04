@@ -16,7 +16,7 @@
 
         Created:      2026/7/6 14:52:30
         Created By:   wdfk-prog
-        Modified:     2026/8/21 16:26:04
+        Modified:     2026/9/1 21:12:33
         Modified By:  wdfk-prog
 
     Device Info:
@@ -397,6 +397,19 @@ typedef struct {
     int32_t x6064_axis0PositionActualValue;
     int32_t x606C_axis0VelocityActualValue;
     int32_t x607A_axis0TargetPosition;
+    int32_t x607C_axis0HomeOffset;
+    uint32_t x6081_axis0ProfileVelocity;
+    uint32_t x6083_axis0ProfileAcceleration;
+    uint32_t x6084_axis0ProfileDeceleration;
+    uint32_t x6085_axis0QuickStopDeceleration;
+    int16_t x6086_axis0MotionProfileType;
+    int8_t x6098_axis0HomingMethod;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t speedDuringSearchForSwitch;
+        uint32_t speedDuringSearchForZero;
+    } x6099_axis0HomingSpeeds;
+    uint32_t x609A_axis0HomingAcceleration;
     int32_t x60FF_axis0TargetVelocity;
     uint32_t x6502_axis0SupportedDriveModes;
     uint16_t x683F_axis1ErrorCode;
@@ -407,6 +420,19 @@ typedef struct {
     int32_t x6864_axis1PositionActualValue;
     int32_t x686C_axis1VelocityActualValue;
     int32_t x687A_axis1TargetPosition;
+    int32_t x687C_axis1HomeOffset;
+    uint32_t x6881_axis1ProfileVelocity;
+    uint32_t x6883_axis1ProfileAcceleration;
+    uint32_t x6884_axis1ProfileDeceleration;
+    uint32_t x6885_axis1QuickStopDeceleration;
+    int16_t x6886_axis1MotionProfileType;
+    int8_t x6898_axis1HomingMethod;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t speedDuringSearchForSwitch;
+        uint32_t speedDuringSearchForZero;
+    } x6899_axis1HomingSpeeds;
+    uint32_t x689A_axis1HomingAcceleration;
     int32_t x68FF_axis1TargetVelocity;
     uint32_t x6D02_axis1SupportedDriveModes;
     uint16_t x703F_axis2ErrorCode;
@@ -417,6 +443,19 @@ typedef struct {
     int32_t x7064_axis2PositionActualValue;
     int32_t x706C_axis2VelocityActualValue;
     int32_t x707A_axis2TargetPosition;
+    int32_t x707C_axis2HomeOffset;
+    uint32_t x7081_axis2ProfileVelocity;
+    uint32_t x7083_axis2ProfileAcceleration;
+    uint32_t x7084_axis2ProfileDeceleration;
+    uint32_t x7085_axis2QuickStopDeceleration;
+    int16_t x7086_axis2MotionProfileType;
+    int8_t x7098_axis2HomingMethod;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t speedDuringSearchForSwitch;
+        uint32_t speedDuringSearchForZero;
+    } x7099_axis2HomingSpeeds;
+    uint32_t x709A_axis2HomingAcceleration;
     int32_t x70FF_axis2TargetVelocity;
     uint32_t x7502_axis2SupportedDriveModes;
 } OD_RAM_t;
@@ -505,28 +544,55 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H6064 &OD->list[62]
 #define OD_ENTRY_H606C &OD->list[63]
 #define OD_ENTRY_H607A &OD->list[64]
-#define OD_ENTRY_H60FF &OD->list[65]
-#define OD_ENTRY_H6502 &OD->list[66]
-#define OD_ENTRY_H683F &OD->list[67]
-#define OD_ENTRY_H6840 &OD->list[68]
-#define OD_ENTRY_H6841 &OD->list[69]
-#define OD_ENTRY_H6860 &OD->list[70]
-#define OD_ENTRY_H6861 &OD->list[71]
-#define OD_ENTRY_H6864 &OD->list[72]
-#define OD_ENTRY_H686C &OD->list[73]
-#define OD_ENTRY_H687A &OD->list[74]
-#define OD_ENTRY_H68FF &OD->list[75]
-#define OD_ENTRY_H6D02 &OD->list[76]
-#define OD_ENTRY_H703F &OD->list[77]
-#define OD_ENTRY_H7040 &OD->list[78]
-#define OD_ENTRY_H7041 &OD->list[79]
-#define OD_ENTRY_H7060 &OD->list[80]
-#define OD_ENTRY_H7061 &OD->list[81]
-#define OD_ENTRY_H7064 &OD->list[82]
-#define OD_ENTRY_H706C &OD->list[83]
-#define OD_ENTRY_H707A &OD->list[84]
-#define OD_ENTRY_H70FF &OD->list[85]
-#define OD_ENTRY_H7502 &OD->list[86]
+#define OD_ENTRY_H607C &OD->list[65]
+#define OD_ENTRY_H6081 &OD->list[66]
+#define OD_ENTRY_H6083 &OD->list[67]
+#define OD_ENTRY_H6084 &OD->list[68]
+#define OD_ENTRY_H6085 &OD->list[69]
+#define OD_ENTRY_H6086 &OD->list[70]
+#define OD_ENTRY_H6098 &OD->list[71]
+#define OD_ENTRY_H6099 &OD->list[72]
+#define OD_ENTRY_H609A &OD->list[73]
+#define OD_ENTRY_H60FF &OD->list[74]
+#define OD_ENTRY_H6502 &OD->list[75]
+#define OD_ENTRY_H683F &OD->list[76]
+#define OD_ENTRY_H6840 &OD->list[77]
+#define OD_ENTRY_H6841 &OD->list[78]
+#define OD_ENTRY_H6860 &OD->list[79]
+#define OD_ENTRY_H6861 &OD->list[80]
+#define OD_ENTRY_H6864 &OD->list[81]
+#define OD_ENTRY_H686C &OD->list[82]
+#define OD_ENTRY_H687A &OD->list[83]
+#define OD_ENTRY_H687C &OD->list[84]
+#define OD_ENTRY_H6881 &OD->list[85]
+#define OD_ENTRY_H6883 &OD->list[86]
+#define OD_ENTRY_H6884 &OD->list[87]
+#define OD_ENTRY_H6885 &OD->list[88]
+#define OD_ENTRY_H6886 &OD->list[89]
+#define OD_ENTRY_H6898 &OD->list[90]
+#define OD_ENTRY_H6899 &OD->list[91]
+#define OD_ENTRY_H689A &OD->list[92]
+#define OD_ENTRY_H68FF &OD->list[93]
+#define OD_ENTRY_H6D02 &OD->list[94]
+#define OD_ENTRY_H703F &OD->list[95]
+#define OD_ENTRY_H7040 &OD->list[96]
+#define OD_ENTRY_H7041 &OD->list[97]
+#define OD_ENTRY_H7060 &OD->list[98]
+#define OD_ENTRY_H7061 &OD->list[99]
+#define OD_ENTRY_H7064 &OD->list[100]
+#define OD_ENTRY_H706C &OD->list[101]
+#define OD_ENTRY_H707A &OD->list[102]
+#define OD_ENTRY_H707C &OD->list[103]
+#define OD_ENTRY_H7081 &OD->list[104]
+#define OD_ENTRY_H7083 &OD->list[105]
+#define OD_ENTRY_H7084 &OD->list[106]
+#define OD_ENTRY_H7085 &OD->list[107]
+#define OD_ENTRY_H7086 &OD->list[108]
+#define OD_ENTRY_H7098 &OD->list[109]
+#define OD_ENTRY_H7099 &OD->list[110]
+#define OD_ENTRY_H709A &OD->list[111]
+#define OD_ENTRY_H70FF &OD->list[112]
+#define OD_ENTRY_H7502 &OD->list[113]
 
 
 /*******************************************************************************
@@ -597,28 +663,55 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H6064_axis0PositionActualValue &OD->list[62]
 #define OD_ENTRY_H606C_axis0VelocityActualValue &OD->list[63]
 #define OD_ENTRY_H607A_axis0TargetPosition &OD->list[64]
-#define OD_ENTRY_H60FF_axis0TargetVelocity &OD->list[65]
-#define OD_ENTRY_H6502_axis0SupportedDriveModes &OD->list[66]
-#define OD_ENTRY_H683F_axis1ErrorCode &OD->list[67]
-#define OD_ENTRY_H6840_axis1Controlword &OD->list[68]
-#define OD_ENTRY_H6841_axis1Statusword &OD->list[69]
-#define OD_ENTRY_H6860_axis1ModesOfOperation &OD->list[70]
-#define OD_ENTRY_H6861_axis1ModesOfOperationDisplay &OD->list[71]
-#define OD_ENTRY_H6864_axis1PositionActualValue &OD->list[72]
-#define OD_ENTRY_H686C_axis1VelocityActualValue &OD->list[73]
-#define OD_ENTRY_H687A_axis1TargetPosition &OD->list[74]
-#define OD_ENTRY_H68FF_axis1TargetVelocity &OD->list[75]
-#define OD_ENTRY_H6D02_axis1SupportedDriveModes &OD->list[76]
-#define OD_ENTRY_H703F_axis2ErrorCode &OD->list[77]
-#define OD_ENTRY_H7040_axis2Controlword &OD->list[78]
-#define OD_ENTRY_H7041_axis2Statusword &OD->list[79]
-#define OD_ENTRY_H7060_axis2ModesOfOperation &OD->list[80]
-#define OD_ENTRY_H7061_axis2ModesOfOperationDisplay &OD->list[81]
-#define OD_ENTRY_H7064_axis2PositionActualValue &OD->list[82]
-#define OD_ENTRY_H706C_axis2VelocityActualValue &OD->list[83]
-#define OD_ENTRY_H707A_axis2TargetPosition &OD->list[84]
-#define OD_ENTRY_H70FF_axis2TargetVelocity &OD->list[85]
-#define OD_ENTRY_H7502_axis2SupportedDriveModes &OD->list[86]
+#define OD_ENTRY_H607C_axis0HomeOffset &OD->list[65]
+#define OD_ENTRY_H6081_axis0ProfileVelocity &OD->list[66]
+#define OD_ENTRY_H6083_axis0ProfileAcceleration &OD->list[67]
+#define OD_ENTRY_H6084_axis0ProfileDeceleration &OD->list[68]
+#define OD_ENTRY_H6085_axis0QuickStopDeceleration &OD->list[69]
+#define OD_ENTRY_H6086_axis0MotionProfileType &OD->list[70]
+#define OD_ENTRY_H6098_axis0HomingMethod &OD->list[71]
+#define OD_ENTRY_H6099_axis0HomingSpeeds &OD->list[72]
+#define OD_ENTRY_H609A_axis0HomingAcceleration &OD->list[73]
+#define OD_ENTRY_H60FF_axis0TargetVelocity &OD->list[74]
+#define OD_ENTRY_H6502_axis0SupportedDriveModes &OD->list[75]
+#define OD_ENTRY_H683F_axis1ErrorCode &OD->list[76]
+#define OD_ENTRY_H6840_axis1Controlword &OD->list[77]
+#define OD_ENTRY_H6841_axis1Statusword &OD->list[78]
+#define OD_ENTRY_H6860_axis1ModesOfOperation &OD->list[79]
+#define OD_ENTRY_H6861_axis1ModesOfOperationDisplay &OD->list[80]
+#define OD_ENTRY_H6864_axis1PositionActualValue &OD->list[81]
+#define OD_ENTRY_H686C_axis1VelocityActualValue &OD->list[82]
+#define OD_ENTRY_H687A_axis1TargetPosition &OD->list[83]
+#define OD_ENTRY_H687C_axis1HomeOffset &OD->list[84]
+#define OD_ENTRY_H6881_axis1ProfileVelocity &OD->list[85]
+#define OD_ENTRY_H6883_axis1ProfileAcceleration &OD->list[86]
+#define OD_ENTRY_H6884_axis1ProfileDeceleration &OD->list[87]
+#define OD_ENTRY_H6885_axis1QuickStopDeceleration &OD->list[88]
+#define OD_ENTRY_H6886_axis1MotionProfileType &OD->list[89]
+#define OD_ENTRY_H6898_axis1HomingMethod &OD->list[90]
+#define OD_ENTRY_H6899_axis1HomingSpeeds &OD->list[91]
+#define OD_ENTRY_H689A_axis1HomingAcceleration &OD->list[92]
+#define OD_ENTRY_H68FF_axis1TargetVelocity &OD->list[93]
+#define OD_ENTRY_H6D02_axis1SupportedDriveModes &OD->list[94]
+#define OD_ENTRY_H703F_axis2ErrorCode &OD->list[95]
+#define OD_ENTRY_H7040_axis2Controlword &OD->list[96]
+#define OD_ENTRY_H7041_axis2Statusword &OD->list[97]
+#define OD_ENTRY_H7060_axis2ModesOfOperation &OD->list[98]
+#define OD_ENTRY_H7061_axis2ModesOfOperationDisplay &OD->list[99]
+#define OD_ENTRY_H7064_axis2PositionActualValue &OD->list[100]
+#define OD_ENTRY_H706C_axis2VelocityActualValue &OD->list[101]
+#define OD_ENTRY_H707A_axis2TargetPosition &OD->list[102]
+#define OD_ENTRY_H707C_axis2HomeOffset &OD->list[103]
+#define OD_ENTRY_H7081_axis2ProfileVelocity &OD->list[104]
+#define OD_ENTRY_H7083_axis2ProfileAcceleration &OD->list[105]
+#define OD_ENTRY_H7084_axis2ProfileDeceleration &OD->list[106]
+#define OD_ENTRY_H7085_axis2QuickStopDeceleration &OD->list[107]
+#define OD_ENTRY_H7086_axis2MotionProfileType &OD->list[108]
+#define OD_ENTRY_H7098_axis2HomingMethod &OD->list[109]
+#define OD_ENTRY_H7099_axis2HomingSpeeds &OD->list[110]
+#define OD_ENTRY_H709A_axis2HomingAcceleration &OD->list[111]
+#define OD_ENTRY_H70FF_axis2TargetVelocity &OD->list[112]
+#define OD_ENTRY_H7502_axis2SupportedDriveModes &OD->list[113]
 
 
 /*******************************************************************************
