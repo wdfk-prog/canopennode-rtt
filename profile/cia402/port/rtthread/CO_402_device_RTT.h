@@ -45,6 +45,9 @@ typedef struct {
     rt_bool_t semInitialized;              /**< True while cia402Sem is an initialized RT-Thread object. */
     rt_bool_t communicationReady;          /**< Gate for processing the current CANopen stack generation. */
     CANopenNodeRTT *app;                    /**< Attached application used by the co_402 thread; caller-owned. */
+#if defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG)
+    uint32_t demoSyncLogSequence;           /**< Last cyclic generation sampled for deferred demo logging. */
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG) */
 } CO_402_device_RTT_t;
 
 /**
@@ -53,12 +56,14 @@ typedef struct {
  * This function initializes the caller-owned @p runtime, stores persistent axis/config
  * pointers, and registers that runtime with the generic CANopenNodeRTT lifecycle registry.
  * It does not create RT-Thread objects, start a thread, touch hardware, or bind the Object
- * Dictionary. @p runtime, @p axes, @p configs, and every DriveIF object must remain valid
- * for the CANopenNodeRTT instance lifetime.
+ * Dictionary. @p runtime, @p axes, @p configs, and every referenced DriveIF/SyncIF
+ * table/object must remain valid for the CANopenNodeRTT instance lifetime.
  *
  * The co_402 thread executes DriveIF callbacks while holding lifecycleMutex and
  * the CANopenNode OD lock. DriveIF callbacks must therefore remain non-blocking
- * and must not recursively acquire either wrapper lifecycle or OD lock.
+ * and must not recursively acquire either wrapper lifecycle or OD lock. When a
+ * cyclic SyncIF is enabled, its callbacks execute in co_rt under the same two
+ * caller-owned locks and must follow the same non-blocking/no-recursive-lock rule.
  *
  * @param app Zero-initialized CANopenNode RT-Thread application instance.
  * @param runtime Zero-initialized caller-owned CiA 402 RT-Thread runtime storage.
@@ -78,7 +83,7 @@ rt_err_t CO_402_device_RTT_attach(CANopenNodeRTT *app, CO_402_device_RTT_t *runt
  * @brief Allocate and attach one lifecycle-owned CiA 402 Device runtime.
  *
  * Only the adapter runtime and CO_402_device_axis_t array are heap-owned. @p config,
- * every DriveIF table, and every driveObject remain product-owned and must outlive
+ * every DriveIF/SyncIF table and their product objects remain product-owned and must outlive
  * the default CANopenNodeRTT instance. On failure no lifecycle slot or heap object
  * remains. Communication Reset reuses the same allocation; final lifecycle teardown
  * releases it after runtimeDeinit.
@@ -95,8 +100,9 @@ rt_err_t CO_402_device_RTT_autoAttach(CANopenNodeRTT *app, const CO_402_device_R
 /**
  * @brief Bind the optional MSH frontend after the local Device worker has started.
  *
- * The frontend stores the pointers only; every command later acquires the
- * application lifecycle mutex and OD lock before touching the manager.
+ * The frontend publishes the singleton pointer pair under its binding mutex.
+ * Commands snapshot that pair, then acquire the application lifecycle mutex and
+ * revalidate the runtime before taking the OD lock and touching the manager.
  *
  * @param app Running default CANopenNode RT-Thread application instance.
  * @param runtime Started local Device runtime owned by @p app.
@@ -107,8 +113,8 @@ void CO_402_device_RTT_mshBind(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime
  * @brief Remove the optional MSH binding before Device runtime teardown.
  *
  * Lifecycle teardown calls this while the application lifecycle mutex excludes
- * command execution, so clearing the binding happens before runtime storage or
- * its semaphore can be released.
+ * command execution. The binding mutex serializes the pointer-pair clear, so the
+ * runtime is unpublished before its semaphore or storage can be released.
  *
  * @param app Application instance previously supplied to the MSH frontend.
  * @param runtime Device runtime previously supplied to the MSH frontend.
@@ -122,7 +128,7 @@ void CO_402_device_RTT_mshUnbind(CANopenNodeRTT *app, CO_402_device_RTT_t *runti
  * Exactly one definition is expected when PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART
  * is enabled. @p axisCount_ must be a compile-time constant in the supported
  * logical-device range; the macro rejects an invalid count before the uint8_t
- * configuration field is initialized. The axis/config/DriveIF objects referenced
+ * configuration field is initialized. The axis/config/DriveIF/SyncIF objects referenced
  * by @p configs_ remain product-owned; only runtime axis state is dynamically allocated.
  */
 #define CO_402_DEVICE_RTT_AUTOSTART_DEFINE(name_, configs_, axisCount_)                                      \

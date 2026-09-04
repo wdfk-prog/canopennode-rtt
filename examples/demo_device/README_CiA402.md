@@ -18,6 +18,8 @@ logical-device range:
 - `0x6061` Modes of operation display
 - `0x6064` Position actual value
 - `0x606C` Velocity actual value
+- `0x6071` Target torque
+- `0x6077` Torque actual value
 - `0x607A` Target position
 - `0x607C` Home offset
 - `0x6081` Profile velocity
@@ -71,3 +73,24 @@ Before release:
 5. Review the generated diff, then replace the checked-in generated artifacts.
 
 Do not hand-edit generated `OD.c` or `OD.h` to add or remove CiA 402 objects.
+
+## Cyclic synchronous demo observability
+
+When CSP/CSV/CST is enabled, the package demo provides a software `SyncIF` for
+all three logical devices. Enable `PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG` only
+for protocol bring-up to print command/feedback snapshots from the lower-priority
+`co_402` worker. If that worker lags `co_rt`, intermediate SYNC generations may be
+coalesced; the log is observability, not a one-record-per-SYNC trace. The synchronous
+`co_rt` callback itself does not log; it only performs the bounded handoff.
+
+A successful sample has the form `axis=0 SYNC seq=42 mode=8 ... pub=1 ...
+fresh=1 follow=1`. `pub=0` shows command rejection by the endpoint, while `fresh=0`
+shows missing or stale feedback for that generation. `follow=1` is the product
+SyncIF verdict used for cyclic Statusword bit 12; generation freshness alone does
+not assert that the physical drive follows the command.
+
+The checked-in RPDO1/2/3 engineering example still maps Controlword, Modes of
+operation, and Target position and remains disabled by default. For RPDO-driven
+CSV or CST tests, remap the selected axis PDO to Target velocity (`0x60FF`) or
+Target torque (`0x6071`) before enabling that PDO; do not change the checked-in
+mapping merely to run one mode-specific test.

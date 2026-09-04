@@ -36,6 +36,28 @@ typedef struct {
 } CO_402_device_RTT_msh_status_t;
 
 static CO_402_device_RTT_msh_t CO_402_msh;
+static struct rt_mutex CO_402_mshBindingMutex;
+static rt_bool_t CO_402_mshBindingMutexInitialized;
+
+/** Initialize the process-lifetime lock which serializes publication of the singleton MSH binding. */
+static int CO_402_mshBindingInit(void)
+{
+    rt_err_t ret = rt_mutex_init(&CO_402_mshBindingMutex, "402_bnd", RT_IPC_FLAG_PRIO);
+
+    if (ret == RT_EOK) {
+        CO_402_mshBindingMutexInitialized = RT_TRUE;
+    }
+    return (int)ret;
+}
+INIT_COMPONENT_EXPORT(CO_402_mshBindingInit);
+
+static rt_err_t CO_402_mshBindingTake(void)
+{
+    if (CO_402_mshBindingMutexInitialized != RT_TRUE) {
+        return -RT_ERROR;
+    }
+    return rt_mutex_take(&CO_402_mshBindingMutex, RT_WAITING_FOREVER);
+}
 
 static const char *CO_402_mshStateName(CO_402_state_t state)
 {
@@ -219,22 +241,26 @@ static void CO_402_mshPrintUsage(void)
 }
 
 /*
- * Serialize against stack recreation first, then take the OD lock in the same
- * lifecycleMutex -> OD order used by co_402 and co_rt. This keeps console writes
- * on the current communication generation without introducing a second owner.
+ * Snapshot the singleton binding first, then serialize stack/runtime lifetime and
+ * finally take the OD lock in the lifecycleMutex -> OD order used by co_402/co_rt.
+ * The binding mutex is never held while waiting for lifecycleMutex, preventing a
+ * lock inversion with runtimeDeinit(), which unbinds while lifecycle ownership is held.
  */
 static rt_err_t CO_402_mshLock(CANopenNodeRTT **appOut, CO_402_device_RTT_t **runtimeOut, CO_t **coOut)
 {
-    CANopenNodeRTT *app = CO_402_msh.app;
+    CANopenNodeRTT *app;
     CO_402_device_RTT_t *runtime;
     CO_t *co;
     rt_err_t ret;
 
-    /*
-     * The MSH option is tied to the default auto-start application, whose app
-     * storage outlives runtime teardown. Lock that stable owner before reading
-     * the heap-owned CiA 402 runtime pointer.
-     */
+    ret = CO_402_mshBindingTake();
+    if (ret != RT_EOK) {
+        return ret;
+    }
+    app = CO_402_msh.app;
+    (void)rt_mutex_release(&CO_402_mshBindingMutex);
+
+    /* The MSH option is restricted to the static default app, whose storage outlives runtime teardown. */
     if (app == NULL) {
         return -RT_ERROR;
     }
@@ -244,8 +270,15 @@ static rt_err_t CO_402_mshLock(CANopenNodeRTT **appOut, CO_402_device_RTT_t **ru
         return ret;
     }
 
-    runtime = CO_402_msh.runtime;
-    if (app != CO_402_msh.app || runtime == NULL || runtime->managerInitialized != RT_TRUE
+    ret = CO_402_mshBindingTake();
+    if (ret != RT_EOK) {
+        (void)rt_mutex_release(&app->lifecycleMutex);
+        return ret;
+    }
+    runtime = (CO_402_msh.app == app) ? CO_402_msh.runtime : NULL;
+    (void)rt_mutex_release(&CO_402_mshBindingMutex);
+
+    if (runtime == NULL || runtime->managerInitialized != RT_TRUE
         || runtime->communicationReady != RT_TRUE || !runtime->manager.odBound) {
         (void)rt_mutex_release(&app->lifecycleMutex);
         return -RT_ERROR;
@@ -552,7 +585,7 @@ static int CO_402_mshSetBit(uint8_t axisIndex, uint16_t bit, bool set, bool requ
         modeUsesBit4 = axis->mode == CO_402_MODE_PROFILE_POSITION || axis->mode == CO_402_MODE_HOMING;
         if (odRet != ODR_OK || !CO_402_modeFromRaw(requestedRaw, &requestedMode)
             || requestedMode != axis->mode || !modeUsesBit4
-            || axis->state != CO_402_STATE_OPERATION_ENABLED
+            || axis->state != CO_402_STATE_OPERATION_ENABLED || axis->pdsTransitionOperation != NULL
             || axis->pendingExitMode != CO_402_MODE_NONE || axis->pendingEnterMode != CO_402_MODE_NONE) {
             CO_402_mshUnlock(app, co);
             rt_kprintf("cia402: axis %u is not in a stable operation-enabled PP/HM mode; retry start\n",
@@ -898,16 +931,24 @@ MSH_CMD_EXPORT(cia402, control and inspect the local CiA 402 Device supervisor);
 
 void CO_402_device_RTT_mshBind(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime)
 {
+    if (CO_402_mshBindingTake() != RT_EOK) {
+        return;
+    }
     CO_402_msh.app = app;
     CO_402_msh.runtime = runtime;
+    (void)rt_mutex_release(&CO_402_mshBindingMutex);
 }
 
 void CO_402_device_RTT_mshUnbind(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime)
 {
+    if (CO_402_mshBindingTake() != RT_EOK) {
+        return;
+    }
     if (CO_402_msh.app == app && CO_402_msh.runtime == runtime) {
         CO_402_msh.app = NULL;
         CO_402_msh.runtime = NULL;
     }
+    (void)rt_mutex_release(&CO_402_mshBindingMutex);
 }
 
 #endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH) */

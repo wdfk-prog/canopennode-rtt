@@ -1216,6 +1216,24 @@ Device Profile Specific Parameters
 | ----------------------- | --- | --- | ---- | ------------------------------- |
 | INTEGER32               | ro  | t   | no   | 0                               |
 
+### 0x6071 - Axis0 Target torque
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | rw  | r   | no   | 0                               |
+
+### 0x6077 - Axis0 Torque actual value
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | ro  | t   | no   | 0                               |
+
 ### 0x607A - Axis0 Target position
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
@@ -1389,6 +1407,24 @@ Device Profile Specific Parameters
 | ----------------------- | --- | --- | ---- | ------------------------------- |
 | INTEGER32               | ro  | t   | no   | 0                               |
 
+### 0x6871 - Axis1 Target torque
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | rw  | r   | no   | 0                               |
+
+### 0x6877 - Axis1 Torque actual value
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | ro  | t   | no   | 0                               |
+
 ### 0x687A - Axis1 Target position
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
@@ -1561,6 +1597,24 @@ Device Profile Specific Parameters
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
 | INTEGER32               | ro  | t   | no   | 0                               |
+
+### 0x7071 - Axis2 Target torque
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | rw  | r   | no   | 0                               |
+
+### 0x7077 - Axis2 Torque actual value
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | ro  | t   | no   | 0                               |
 
 ### 0x707A - Axis2 Target position
 | Object Type | Count Label    | Storage Group  |

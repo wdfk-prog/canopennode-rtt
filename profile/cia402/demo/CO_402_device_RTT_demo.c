@@ -31,6 +31,10 @@ typedef struct {
     bool hmHalted;
     bool pvCommandValid;
     CO_402_profile_velocity_command_t lastPvCommand;
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    CO_402_sync_feedback_t syncFeedback;
+    bool syncCommandValid;
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 } CO_402_demo_axis_t;
 
 /* Product-owned software feedback intentionally survives CANopen Communication Reset like a physical drive. */
@@ -49,6 +53,12 @@ static const char *CO_402_demoModeName(CO_402_mode_t mode)
             return "PV";
         case CO_402_MODE_HOMING:
             return "HM";
+        case CO_402_MODE_CYCLIC_SYNC_POSITION:
+            return "CSP";
+        case CO_402_MODE_CYCLIC_SYNC_VELOCITY:
+            return "CSV";
+        case CO_402_MODE_CYCLIC_SYNC_TORQUE:
+            return "CST";
         case CO_402_MODE_NONE:
             return "NONE";
         default:
@@ -63,6 +73,10 @@ static void CO_402_demoStopMotion(CO_402_demo_axis_t *axis)
     axis->ppHalted = false;
     axis->hmActive = false;
     axis->hmHalted = false;
+    axis->torque = 0;
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    axis->syncCommandValid = false;
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 }
 
 static CO_402_drive_result_t CO_402_demoPdsDone(void *object, const char *action, bool stopMotion)
@@ -148,6 +162,9 @@ static CO_402_drive_result_t CO_402_demoModeEnter(void *object, CO_402_mode_t mo
 
     axis->mode = mode;
     axis->pvCommandValid = false;
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    axis->syncCommandValid = false;
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
     CO_RTT_LOG_I("axis=%u mode-enter %s(%d)", (unsigned int)axis->axis,
                  CO_402_demoModeName(mode), (int)mode);
     return CO_402_DRIVE_DONE;
@@ -346,6 +363,84 @@ static CO_402_drive_result_t CO_402_demoHoming(void *object, const CO_402_homing
     return CO_402_DRIVE_DONE;
 }
 
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+/*
+ * Apply one coherent cyclic command without logging. This callback runs from co_rt;
+ * optional demo tracing is deferred to the lower-priority co_402 worker.
+ */
+static bool CO_402_demoSyncPublishCommand(void *object, const CO_402_sync_command_t *command)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL || command == NULL || axis->mode != command->mode) {
+        return false;
+    }
+
+    switch (command->mode) {
+#if CO_402_CONFIG_MODE_CSP
+        case CO_402_MODE_CYCLIC_SYNC_POSITION:
+            axis->position = command->targetPosition;
+            axis->velocity = 0;
+            axis->torque = 0;
+            break;
+#endif /* CO_402_CONFIG_MODE_CSP */
+#if CO_402_CONFIG_MODE_CSV
+        case CO_402_MODE_CYCLIC_SYNC_VELOCITY:
+            axis->velocity = command->targetVelocity;
+            axis->torque = 0;
+            break;
+#endif /* CO_402_CONFIG_MODE_CSV */
+#if CO_402_CONFIG_MODE_CST
+        case CO_402_MODE_CYCLIC_SYNC_TORQUE:
+            axis->velocity = 0;
+            axis->torque = command->targetTorque;
+            break;
+#endif /* CO_402_CONFIG_MODE_CST */
+        case CO_402_MODE_NONE:
+        default:
+            return false;
+    }
+
+    axis->syncFeedback.sequence = command->sequence;
+    axis->syncFeedback.positionActual = axis->position;
+    axis->syncFeedback.velocityActual = axis->velocity;
+    axis->syncFeedback.torqueActual = axis->torque;
+    axis->syncFeedback.driveFollowsCommand = true;
+    axis->syncCommandValid = true;
+    return true;
+}
+
+/* Return only a complete feedback generation previously produced by publishCommand(). */
+static bool CO_402_demoSyncReadFeedback(void *object, CO_402_sync_feedback_t *feedback)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL || feedback == NULL || !axis->syncCommandValid) {
+        return false;
+    }
+
+    *feedback = axis->syncFeedback;
+    return true;
+}
+
+/* Software SyncIF advertises only cyclic modes enabled by this build. */
+static const CO_402_device_sync_if_t CO_402_demoSyncIf = {
+    .supportedModes =
+#if CO_402_CONFIG_MODE_CSP
+        CO_402_SUPPORTED_MODE_CSP |
+#endif /* CO_402_CONFIG_MODE_CSP */
+#if CO_402_CONFIG_MODE_CSV
+        CO_402_SUPPORTED_MODE_CSV |
+#endif /* CO_402_CONFIG_MODE_CSV */
+#if CO_402_CONFIG_MODE_CST
+        CO_402_SUPPORTED_MODE_CST |
+#endif /* CO_402_CONFIG_MODE_CST */
+        0U,
+    .publishCommand = CO_402_demoSyncPublishCommand,
+    .readFeedback = CO_402_demoSyncReadFeedback,
+};
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+
 /* Deterministic software DriveIF used to validate protocol and supervisor behavior without motor hardware. */
 static const CO_402_drive_if_t CO_402_demoDriveIf = {
     .shutdown = CO_402_demoShutdown,
@@ -368,9 +463,33 @@ static const CO_402_drive_if_t CO_402_demoDriveIf = {
 
 /* Generated demo OD provides three consecutive local logical-device blocks. */
 static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
-    {.logicalDevice = 0U, .drive = &CO_402_demoDriveIf, .driveObject = &CO_402_demoAxes[0]},
-    {.logicalDevice = 1U, .drive = &CO_402_demoDriveIf, .driveObject = &CO_402_demoAxes[1]},
-    {.logicalDevice = 2U, .drive = &CO_402_demoDriveIf, .driveObject = &CO_402_demoAxes[2]},
+    {
+        .logicalDevice = 0U,
+        .drive = &CO_402_demoDriveIf,
+        .driveObject = &CO_402_demoAxes[0],
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+        .sync = &CO_402_demoSyncIf,
+        .syncObject = &CO_402_demoAxes[0],
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+    },
+    {
+        .logicalDevice = 1U,
+        .drive = &CO_402_demoDriveIf,
+        .driveObject = &CO_402_demoAxes[1],
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+        .sync = &CO_402_demoSyncIf,
+        .syncObject = &CO_402_demoAxes[1],
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+    },
+    {
+        .logicalDevice = 2U,
+        .drive = &CO_402_demoDriveIf,
+        .driveObject = &CO_402_demoAxes[2],
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+        .sync = &CO_402_demoSyncIf,
+        .syncObject = &CO_402_demoAxes[2],
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+    },
 };
 
 CO_402_DEVICE_RTT_AUTOSTART_DEFINE(cia402_demo, CO_402_demoAxisConfigs,

@@ -88,6 +88,16 @@ static const CO_402_od_contract_t hmContracts[] = {
 };
 #endif /* CO_402_CONFIG_MODE_HM */
 
+#if CO_402_CONFIG_MODE_CST
+/* CST requires its RPDO target and TPDO actual torque only when the axis advertises CST. */
+static const CO_402_od_contract_t cstContracts[] = {
+    {CO_402_INDEX_TARGET_TORQUE, 2U, ODA_SDO_RW | ODA_RPDO | ODA_MB,
+     offsetof(CO_402_device_od_t, targetTorque)},
+    {CO_402_INDEX_TORQUE_ACTUAL_VALUE, 2U, ODA_SDO_R | ODA_TPDO | ODA_MB,
+     offsetof(CO_402_device_od_t, torqueActualValue)},
+};
+#endif /* CO_402_CONFIG_MODE_CST */
+
 /* Populate an OD-specific initialization diagnostic, including RECORD sub-index when relevant. */
 static void setDiag(CO_402_init_diag_t *diag, CO_402_init_error_t error, uint8_t logicalDevice,
                     uint16_t index, uint8_t subIndex)
@@ -235,6 +245,15 @@ static CO_402_init_error_t validateModeObjects(OD_t *od, CO_402_device_axis_t *a
         }
     }
 #endif /* CO_402_CONFIG_MODE_HM */
+#if CO_402_CONFIG_MODE_CST
+    if ((axis->supportedModes & CO_402_SUPPORTED_MODE_CST) != 0U) {
+        CO_402_init_error_t result =
+            validateScalarContracts(od, axis, cstContracts, sizeof(cstContracts) / sizeof(cstContracts[0]), diag);
+        if (result != CO_402_INIT_OK) {
+            return result;
+        }
+    }
+#endif /* CO_402_CONFIG_MODE_CST */
 
     (void)od;
     (void)axis;

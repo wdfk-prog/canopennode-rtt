@@ -1036,6 +1036,14 @@ static void co_app_rtt_realtime_thread_entry(void *parameter)
             CO_process_RPDO(co, sync_was, time_difference_us, NULL);
 #endif /* (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0) */
 
+            if (sync_was && CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL) {
+                /*
+                 * Synchronous extension application data follows the same NMT Operational
+                 * window as RPDO/TPDO, so Pre-operational SYNC cannot consume stale targets.
+                 */
+                CO_RTT_lifecycleSynchronousProcess(app, time_difference_us);
+            }
+
 #if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) != 0)
             CO_process_TPDO(co, sync_was, time_difference_us, NULL);
 #endif /* (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) != 0) */
