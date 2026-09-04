@@ -887,6 +887,39 @@
               <DINT />
             </q1:varDeclaration>
           </q1:struct>
+          <q1:struct name="Axis0 Homing speeds" uniqueID="UID_REC_6099">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_609900">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Speed during search for switch" uniqueID="UID_RECSUB_609901">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Speed during search for zero" uniqueID="UID_RECSUB_609902">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="Axis1 Homing speeds" uniqueID="UID_REC_6899">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_689900">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Speed during search for switch" uniqueID="UID_RECSUB_689901">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Speed during search for zero" uniqueID="UID_RECSUB_689902">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="Axis2 Homing speeds" uniqueID="UID_REC_7099">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_709900">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Speed during search for switch" uniqueID="UID_RECSUB_709901">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Speed during search for zero" uniqueID="UID_RECSUB_709902">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
         </q1:dataTypeList>
         <q1:parameterList>
           <q1:parameter uniqueID="UID_OBJ_1000">
@@ -3036,6 +3069,65 @@ The life time factor multiplied with the guard time gives the life time for the 
             <DINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_607C" access="readWrite">
+            <label lang="en">Axis0 Home offset</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6081" access="readWrite">
+            <label lang="en">Axis0 Profile velocity</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6083" access="readWrite">
+            <label lang="en">Axis0 Profile acceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6084" access="readWrite">
+            <label lang="en">Axis0 Profile deceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6085" access="readWrite">
+            <label lang="en">Axis0 Quick stop deceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6086" access="readWrite">
+            <label lang="en">Axis0 Motion profile type</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6098" access="readWrite">
+            <label lang="en">Axis0 Homing method</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6099">
+            <label lang="en">Axis0 Homing speeds</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_6099" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_609900">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_609901" access="readWrite">
+            <label lang="en">Speed during search for switch</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_609902" access="readWrite">
+            <label lang="en">Speed during search for zero</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_609A" access="readWrite">
+            <label lang="en">Axis0 Homing acceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_60FF" access="readWriteOutput">
             <label lang="en">Axis0 Target velocity</label>
             <DINT />
@@ -3086,6 +3178,65 @@ The life time factor multiplied with the guard time gives the life time for the 
             <DINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_687C" access="readWrite">
+            <label lang="en">Axis1 Home offset</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6881" access="readWrite">
+            <label lang="en">Axis1 Profile velocity</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6883" access="readWrite">
+            <label lang="en">Axis1 Profile acceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6884" access="readWrite">
+            <label lang="en">Axis1 Profile deceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6885" access="readWrite">
+            <label lang="en">Axis1 Quick stop deceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6886" access="readWrite">
+            <label lang="en">Axis1 Motion profile type</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6898" access="readWrite">
+            <label lang="en">Axis1 Homing method</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6899">
+            <label lang="en">Axis1 Homing speeds</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_6899" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_689900">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_689901" access="readWrite">
+            <label lang="en">Speed during search for switch</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_689902" access="readWrite">
+            <label lang="en">Speed during search for zero</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_689A" access="readWrite">
+            <label lang="en">Axis1 Homing acceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_68FF" access="readWriteOutput">
             <label lang="en">Axis1 Target velocity</label>
             <DINT />
@@ -3135,6 +3286,65 @@ The life time factor multiplied with the guard time gives the life time for the 
             <label lang="en">Axis2 Target position</label>
             <DINT />
             <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_707C" access="readWrite">
+            <label lang="en">Axis2 Home offset</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7081" access="readWrite">
+            <label lang="en">Axis2 Profile velocity</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7083" access="readWrite">
+            <label lang="en">Axis2 Profile acceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7084" access="readWrite">
+            <label lang="en">Axis2 Profile deceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7085" access="readWrite">
+            <label lang="en">Axis2 Quick stop deceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7086" access="readWrite">
+            <label lang="en">Axis2 Motion profile type</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7098" access="readWrite">
+            <label lang="en">Axis2 Homing method</label>
+            <SINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7099">
+            <label lang="en">Axis2 Homing speeds</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_7099" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_709900">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_709901" access="readWrite">
+            <label lang="en">Speed during search for switch</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_709902" access="readWrite">
+            <label lang="en">Speed during search for zero</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_709A" access="readWrite">
+            <label lang="en">Axis2 Homing acceleration</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_70FF" access="readWriteOutput">
             <label lang="en">Axis2 Target velocity</label>
@@ -3592,6 +3802,19 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="6064" name="Axis0 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6064" />
           <CANopenObject index="606C" name="Axis0 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_606C" />
           <CANopenObject index="607A" name="Axis0 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_607A" />
+          <CANopenObject index="607C" name="Axis0 Home offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_607C" />
+          <CANopenObject index="6081" name="Axis0 Profile velocity" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6081" />
+          <CANopenObject index="6083" name="Axis0 Profile acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6083" />
+          <CANopenObject index="6084" name="Axis0 Profile deceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6084" />
+          <CANopenObject index="6085" name="Axis0 Quick stop deceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6085" />
+          <CANopenObject index="6086" name="Axis0 Motion profile type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6086" />
+          <CANopenObject index="6098" name="Axis0 Homing method" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6098" />
+          <CANopenObject index="6099" name="Axis0 Homing speeds" objectType="9" uniqueIDRef="UID_OBJ_6099" subNumber="3">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_609900" />
+            <CANopenSubObject subIndex="01" name="Speed during search for switch" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_609901" />
+            <CANopenSubObject subIndex="02" name="Speed during search for zero" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_609902" />
+          </CANopenObject>
+          <CANopenObject index="609A" name="Axis0 Homing acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_609A" />
           <CANopenObject index="60FF" name="Axis0 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_60FF" />
           <CANopenObject index="6502" name="Axis0 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6502" />
           <CANopenObject index="683F" name="Axis1 Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_683F" />
@@ -3602,6 +3825,19 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="6864" name="Axis1 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6864" />
           <CANopenObject index="686C" name="Axis1 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_686C" />
           <CANopenObject index="687A" name="Axis1 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_687A" />
+          <CANopenObject index="687C" name="Axis1 Home offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_687C" />
+          <CANopenObject index="6881" name="Axis1 Profile velocity" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6881" />
+          <CANopenObject index="6883" name="Axis1 Profile acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6883" />
+          <CANopenObject index="6884" name="Axis1 Profile deceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6884" />
+          <CANopenObject index="6885" name="Axis1 Quick stop deceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6885" />
+          <CANopenObject index="6886" name="Axis1 Motion profile type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6886" />
+          <CANopenObject index="6898" name="Axis1 Homing method" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6898" />
+          <CANopenObject index="6899" name="Axis1 Homing speeds" objectType="9" uniqueIDRef="UID_OBJ_6899" subNumber="3">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_689900" />
+            <CANopenSubObject subIndex="01" name="Speed during search for switch" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_689901" />
+            <CANopenSubObject subIndex="02" name="Speed during search for zero" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_689902" />
+          </CANopenObject>
+          <CANopenObject index="689A" name="Axis1 Homing acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_689A" />
           <CANopenObject index="68FF" name="Axis1 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_68FF" />
           <CANopenObject index="6D02" name="Axis1 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6D02" />
           <CANopenObject index="703F" name="Axis2 Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_703F" />
@@ -3612,6 +3848,19 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="7064" name="Axis2 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7064" />
           <CANopenObject index="706C" name="Axis2 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_706C" />
           <CANopenObject index="707A" name="Axis2 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_707A" />
+          <CANopenObject index="707C" name="Axis2 Home offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_707C" />
+          <CANopenObject index="7081" name="Axis2 Profile velocity" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7081" />
+          <CANopenObject index="7083" name="Axis2 Profile acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7083" />
+          <CANopenObject index="7084" name="Axis2 Profile deceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7084" />
+          <CANopenObject index="7085" name="Axis2 Quick stop deceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7085" />
+          <CANopenObject index="7086" name="Axis2 Motion profile type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7086" />
+          <CANopenObject index="7098" name="Axis2 Homing method" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7098" />
+          <CANopenObject index="7099" name="Axis2 Homing speeds" objectType="9" uniqueIDRef="UID_OBJ_7099" subNumber="3">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_709900" />
+            <CANopenSubObject subIndex="01" name="Speed during search for switch" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_709901" />
+            <CANopenSubObject subIndex="02" name="Speed during search for zero" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_709902" />
+          </CANopenObject>
+          <CANopenObject index="709A" name="Axis2 Homing acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_709A" />
           <CANopenObject index="70FF" name="Axis2 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_70FF" />
           <CANopenObject index="7502" name="Axis2 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7502" />
         </q2:CANopenObjectList>

@@ -58,10 +58,22 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         _add_required(os.path.join('profile', 'cia402', 'common', 'CO_402_state.c'))
 
     if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE'):
-        CPPPATH += [os.path.join(cwd, 'profile', 'cia402', 'device')]
+        CPPPATH += [
+            os.path.join(cwd, 'profile', 'cia402', 'device'),
+            os.path.join(cwd, 'profile', 'cia402', 'device', 'modes'),
+        ]
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device.c'))
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_fsa.c'))
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_od.c'))
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_PP'),
+                          'CiA 402 Profile Position mode',
+                          [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_pp.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_PV'),
+                          'CiA 402 Profile Velocity mode',
+                          [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_pv.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_HM'),
+                          'CiA 402 Homing mode',
+                          [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_hm.c')])
 
     if GetDepend('PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS'):
         _add_required(os.path.join('port', 'rtthread', 'CO_lifecycle_RTT.c'))
@@ -69,6 +81,10 @@ if GetDepend('PKG_USING_CANOPENNODE'):
     if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD'):
         CPPPATH += [os.path.join(cwd, 'profile', 'cia402', 'port', 'rtthread')]
         _add_required(os.path.join('profile', 'cia402', 'port', 'rtthread', 'CO_402_device_RTT.c'))
+
+    _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH'),
+                      'CiA 402 RT-Thread MSH debug control',
+                      [os.path.join('profile', 'cia402', 'port', 'rtthread', 'CO_402_device_RTT_msh.c')])
 
     if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO'):
         _add_required(os.path.join('profile', 'cia402', 'demo', 'CO_402_device_RTT_demo.c'))

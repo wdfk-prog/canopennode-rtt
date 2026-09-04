@@ -13,10 +13,12 @@ config PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO
     select PKG_CANOPENNODE_USING_DEMO_OD
     help
         Register the package-provided software-only CiA 402 Device factory for
-        the default CANopenNodeRTT application. The demo supplies immediate-DONE
-        DriveIF callbacks and uses logical devices 0..N-1 from the generated demo
-        Object Dictionary. It is intended for SDO/PDO/PDS/lifecycle validation
-        and never controls a physical motor or power stage.
+        the default CANopenNodeRTT application. PDS transitions complete without
+        hardware; PP/HM expose one BUSY interval before deterministic completion,
+        while PV updates software feedback from the live command. The demo uses
+        logical devices 0..N-1 from the generated demo Object Dictionary and never
+        controls a physical motor or power stage. Enable CANopen debug + RT-Thread
+        ULOG to print the simulated PDS and PP/PV/HM actions.
 
 if PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO
 

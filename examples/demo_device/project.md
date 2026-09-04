@@ -1225,6 +1225,89 @@ Device Profile Specific Parameters
 | ----------------------- | --- | --- | ---- | ------------------------------- |
 | INTEGER32               | rw  | r   | no   | 0                               |
 
+### 0x607C - Axis0 Home offset
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER32               | rw  | no  | no   | 0                               |
+
+### 0x6081 - Axis0 Profile velocity
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6083 - Axis0 Profile acceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6084 - Axis0 Profile deceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6085 - Axis0 Quick stop deceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6086 - Axis0 Motion profile type
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | rw  | no  | no   | 0                               |
+
+### 0x6098 - Axis0 Homing method
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER8                | rw  | no  | no   | 0                               |
+
+### 0x6099 - Axis0 Homing speeds
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | RAM            |
+
+| SI   | Name                     | Data Type  | SDO | PDO | SRDO | Default Value |
+| ---- | ------------------------ | ---------- | --- | --- | ---- | ------------- |
+| 0x00 | Highest sub-index supported | UNSIGNED8  | ro  | no  | no   | 0x02          |
+| 0x01 | Speed during search for switch | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+| 0x02 | Speed during search for zero | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+
+### 0x609A - Axis0 Homing acceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
 ### 0x60FF - Axis0 Target velocity
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
@@ -1315,6 +1398,89 @@ Device Profile Specific Parameters
 | ----------------------- | --- | --- | ---- | ------------------------------- |
 | INTEGER32               | rw  | r   | no   | 0                               |
 
+### 0x687C - Axis1 Home offset
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER32               | rw  | no  | no   | 0                               |
+
+### 0x6881 - Axis1 Profile velocity
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6883 - Axis1 Profile acceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6884 - Axis1 Profile deceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6885 - Axis1 Quick stop deceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x6886 - Axis1 Motion profile type
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | rw  | no  | no   | 0                               |
+
+### 0x6898 - Axis1 Homing method
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER8                | rw  | no  | no   | 0                               |
+
+### 0x6899 - Axis1 Homing speeds
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | RAM            |
+
+| SI   | Name                     | Data Type  | SDO | PDO | SRDO | Default Value |
+| ---- | ------------------------ | ---------- | --- | --- | ---- | ------------- |
+| 0x00 | Highest sub-index supported | UNSIGNED8  | ro  | no  | no   | 0x02          |
+| 0x01 | Speed during search for switch | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+| 0x02 | Speed during search for zero | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+
+### 0x689A - Axis1 Homing acceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
 ### 0x68FF - Axis1 Target velocity
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
@@ -1404,6 +1570,89 @@ Device Profile Specific Parameters
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
 | ----------------------- | --- | --- | ---- | ------------------------------- |
 | INTEGER32               | rw  | r   | no   | 0                               |
+
+### 0x707C - Axis2 Home offset
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER32               | rw  | no  | no   | 0                               |
+
+### 0x7081 - Axis2 Profile velocity
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x7083 - Axis2 Profile acceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x7084 - Axis2 Profile deceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x7085 - Axis2 Quick stop deceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
+
+### 0x7086 - Axis2 Motion profile type
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER16               | rw  | no  | no   | 0                               |
+
+### 0x7098 - Axis2 Homing method
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| INTEGER8                | rw  | no  | no   | 0                               |
+
+### 0x7099 - Axis2 Homing speeds
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| RECORD      |                | RAM            |
+
+| SI   | Name                     | Data Type  | SDO | PDO | SRDO | Default Value |
+| ---- | ------------------------ | ---------- | --- | --- | ---- | ------------- |
+| 0x00 | Highest sub-index supported | UNSIGNED8  | ro  | no  | no   | 0x02          |
+| 0x01 | Speed during search for switch | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+| 0x02 | Speed during search for zero | UNSIGNED32 | rw  | no  | no   | 0x00000000    |
+
+### 0x709A - Axis2 Homing acceleration
+| Object Type | Count Label    | Storage Group  |
+| ----------- | -------------- | -------------- |
+| VAR         |                | RAM            |
+
+| Data Type               | SDO | PDO | SRDO | Default Value                   |
+| ----------------------- | --- | --- | ---- | ------------------------------- |
+| UNSIGNED32              | rw  | no  | no   | 0x00000000                      |
 
 ### 0x70FF - Axis2 Target velocity
 | Object Type | Count Label    | Storage Group  |

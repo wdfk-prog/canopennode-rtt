@@ -125,7 +125,7 @@ DefaultValue=0x00000001
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=74
+SupportedObjects=101
 1=0x1002
 2=0x1003
 3=0x1005
@@ -178,28 +178,55 @@ SupportedObjects=74
 50=0x6064
 51=0x606C
 52=0x607A
-53=0x60FF
-54=0x6502
-55=0x683F
-56=0x6840
-57=0x6841
-58=0x6860
-59=0x6861
-60=0x6864
-61=0x686C
-62=0x687A
-63=0x68FF
-64=0x6D02
-65=0x703F
-66=0x7040
-67=0x7041
-68=0x7060
-69=0x7061
-70=0x7064
-71=0x706C
-72=0x707A
-73=0x70FF
-74=0x7502
+53=0x607C
+54=0x6081
+55=0x6083
+56=0x6084
+57=0x6085
+58=0x6086
+59=0x6098
+60=0x6099
+61=0x609A
+62=0x60FF
+63=0x6502
+64=0x683F
+65=0x6840
+66=0x6841
+67=0x6860
+68=0x6861
+69=0x6864
+70=0x686C
+71=0x687A
+72=0x687C
+73=0x6881
+74=0x6883
+75=0x6884
+76=0x6885
+77=0x6886
+78=0x6898
+79=0x6899
+80=0x689A
+81=0x68FF
+82=0x6D02
+83=0x703F
+84=0x7040
+85=0x7041
+86=0x7060
+87=0x7061
+88=0x7064
+89=0x706C
+90=0x707A
+91=0x707C
+92=0x7081
+93=0x7083
+94=0x7084
+95=0x7085
+96=0x7086
+97=0x7098
+98=0x7099
+99=0x709A
+100=0x70FF
+101=0x7502
 
 [1002]
 ParameterName=Manufacturer status register
@@ -2319,6 +2346,111 @@ AccessType=rww
 DefaultValue=0
 PDOMapping=1
 
+[607C]
+ParameterName=Axis0 Home offset
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6081]
+ParameterName=Axis0 Profile velocity
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6083]
+ParameterName=Axis0 Profile acceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6084]
+ParameterName=Axis0 Profile deceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6085]
+ParameterName=Axis0 Quick stop deceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6086]
+ParameterName=Axis0 Motion profile type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6098]
+ParameterName=Axis0 Homing method
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6099]
+ParameterName=Axis0 Homing speeds
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x3
+
+[6099sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[6099sub1]
+ParameterName=Speed during search for switch
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6099sub2]
+ParameterName=Speed during search for zero
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[609A]
+ParameterName=Axis0 Homing acceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
 [60FF]
 ParameterName=Axis0 Target velocity
 ObjectType=0x7
@@ -2409,6 +2541,111 @@ AccessType=rww
 DefaultValue=0
 PDOMapping=1
 
+[687C]
+ParameterName=Axis1 Home offset
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6881]
+ParameterName=Axis1 Profile velocity
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6883]
+ParameterName=Axis1 Profile acceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6884]
+ParameterName=Axis1 Profile deceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6885]
+ParameterName=Axis1 Quick stop deceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6886]
+ParameterName=Axis1 Motion profile type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6898]
+ParameterName=Axis1 Homing method
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[6899]
+ParameterName=Axis1 Homing speeds
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x3
+
+[6899sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[6899sub1]
+ParameterName=Speed during search for switch
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[6899sub2]
+ParameterName=Speed during search for zero
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[689A]
+ParameterName=Axis1 Homing acceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
 [68FF]
 ParameterName=Axis1 Target velocity
 ObjectType=0x7
@@ -2498,6 +2735,111 @@ DataType=0x0004
 AccessType=rww
 DefaultValue=0
 PDOMapping=1
+
+[707C]
+ParameterName=Axis2 Home offset
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7081]
+ParameterName=Axis2 Profile velocity
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[7083]
+ParameterName=Axis2 Profile acceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[7084]
+ParameterName=Axis2 Profile deceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[7085]
+ParameterName=Axis2 Quick stop deceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[7086]
+ParameterName=Axis2 Motion profile type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7098]
+ParameterName=Axis2 Homing method
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0002
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7099]
+ParameterName=Axis2 Homing speeds
+ObjectType=0x9
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7099sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7099sub1]
+ParameterName=Speed during search for switch
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[7099sub2]
+ParameterName=Speed during search for zero
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[709A]
+ParameterName=Axis2 Homing acceleration
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
 
 [70FF]
 ParameterName=Axis2 Target velocity

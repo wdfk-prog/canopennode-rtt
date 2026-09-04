@@ -19,6 +19,15 @@ logical-device range:
 - `0x6064` Position actual value
 - `0x606C` Velocity actual value
 - `0x607A` Target position
+- `0x607C` Home offset
+- `0x6081` Profile velocity
+- `0x6083` Profile acceleration
+- `0x6084` Profile deceleration
+- `0x6085` Quick stop deceleration
+- `0x6086` Motion profile type
+- `0x6098` Homing method
+- `0x6099` Homing speeds
+- `0x609A` Homing acceleration
 - `0x60FF` Target velocity
 - `0x6502` Supported drive modes
 
@@ -40,7 +49,7 @@ in the final project dictionary. Keep PDO communication/mapping configuration in
 `project.xdd` and validate it against the selected CiA 301/CiA 402 normative
 matrix.
 
-The current PDO mapping in `project.xdd` is an A2 engineering example. Mapping
+The current PDO mapping in `project.xdd` is an engineering example. Mapping
 entries for Axis0/1/2 are pre-filled in `0x1601..0x1603` and
 `0x1A01..0x1A03`, but their matching `0x1401..0x1403` and
 `0x1801..0x1803` communication objects remain disabled by default. This keeps

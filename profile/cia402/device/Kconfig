@@ -7,3 +7,30 @@ config PKG_CANOPENNODE_CIA402_DEVICE
         Build the Pure-C local Device manager, generated-OD binding and PDS
         supervisor. This layer has no RT-Thread/BSP dependency and allocates no
         axis storage dynamically.
+
+config PKG_CANOPENNODE_CIA402_DEVICE_MODE_PP
+    bool "Profile Position (PP) mode"
+    default y
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    help
+        Build the Pure-C Profile Position supervisor. An axis advertises PP only
+        when its DriveIF provides mode entry/exit and profilePosition callbacks;
+        only then are the PP-specific OD objects required during binding.
+
+config PKG_CANOPENNODE_CIA402_DEVICE_MODE_PV
+    bool "Profile Velocity (PV) mode"
+    default y
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    help
+        Build the Pure-C Profile Velocity supervisor. An axis advertises PV only
+        when its DriveIF provides mode entry/exit and profileVelocity callbacks;
+        only then are the PV-specific OD objects required during binding.
+
+config PKG_CANOPENNODE_CIA402_DEVICE_MODE_HM
+    bool "Homing (HM) mode"
+    default y
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    help
+        Build the Pure-C Homing supervisor. An axis advertises HM only when its
+        DriveIF provides mode entry/exit and homing callbacks; only then are the
+        homing-specific OD objects required during binding.

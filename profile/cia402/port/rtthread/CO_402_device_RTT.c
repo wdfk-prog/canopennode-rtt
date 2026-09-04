@@ -190,6 +190,9 @@ static rt_err_t CO_402_device_RTT_onRuntimeStart(CANopenNodeRTT *app, void *cont
     if (ret == RT_EOK) {
         CO_RTT_LOG_I("CiA402 Device thread started: dev=%s axes=%u prio=%u", app->canName,
                      runtime->config.axisCount, PKG_CANOPENNODE_CIA402_THREAD_PRIORITY);
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH)
+        CO_402_device_RTT_mshBind(app, runtime);
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH) */
     }
     return ret;
 }
@@ -221,7 +224,9 @@ static void CO_402_device_RTT_onRuntimeDeinit(CANopenNodeRTT *app, void *context
 {
     CO_402_device_RTT_t *runtime = (CO_402_device_RTT_t *)context;
 
-    (void)app;
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH)
+    CO_402_device_RTT_mshUnbind(app, runtime);
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_MSH) */
     runtime->communicationReady = RT_FALSE;
     CO_402_device_RTT_onResetWakeups(app, context);
 

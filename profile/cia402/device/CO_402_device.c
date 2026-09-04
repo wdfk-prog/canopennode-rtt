@@ -29,14 +29,43 @@ static void setDiag(CO_402_init_diag_t *diag, CO_402_init_error_t error, uint8_t
 /*
  * Check the mandatory asynchronous PDS transition callbacks.
  *
- * Feedback callbacks remain optional because the Device core can expose the
- * generated OD even when a product does not provide all measurements yet.
+ * Feedback and operation-mode callbacks remain optional. supportedModesForDrive()
+ * advertises only modes whose complete non-blocking DriveIF is available.
  */
 static bool driveInterfaceValid(const CO_402_drive_if_t *drive)
 {
     return drive != NULL && drive->shutdown != NULL && drive->switchOn != NULL && drive->enableOperation != NULL
            && drive->disableVoltage != NULL && drive->disableOperation != NULL && drive->quickStop != NULL
            && drive->faultReaction != NULL && drive->faultReset != NULL;
+}
+
+/* Advertise a mode only when both the build and this axis' complete DriveIF path support it. */
+static uint32_t supportedModesForDrive(const CO_402_drive_if_t *drive)
+{
+    uint32_t supportedModes = 0U;
+
+    /* Safe mode switching requires explicit non-blocking entry and exit ownership. */
+    if (drive == NULL || drive->modeEnter == NULL || drive->modeExit == NULL) {
+        return 0U;
+    }
+
+#if CO_402_CONFIG_MODE_PP
+    if (drive->profilePosition != NULL) {
+        supportedModes |= CO_402_SUPPORTED_MODE_PP;
+    }
+#endif /* CO_402_CONFIG_MODE_PP */
+#if CO_402_CONFIG_MODE_PV
+    if (drive->profileVelocity != NULL) {
+        supportedModes |= CO_402_SUPPORTED_MODE_PV;
+    }
+#endif /* CO_402_CONFIG_MODE_PV */
+#if CO_402_CONFIG_MODE_HM
+    if (drive->homing != NULL) {
+        supportedModes |= CO_402_SUPPORTED_MODE_HM;
+    }
+#endif /* CO_402_CONFIG_MODE_HM */
+
+    return supportedModes;
 }
 
 /*
@@ -54,7 +83,7 @@ static CO_402_init_error_t validateConfigs(const CO_402_device_axis_config_t *co
     }
 
     for (axisIndex = 0U; axisIndex < axisCount; axisIndex++) {
-        /* Every axis must reference one valid logical-device block and a complete DriveIF. */
+        /* Every axis must reference one valid logical-device block and a complete PDS DriveIF. */
         if (configs[axisIndex].logicalDevice >= CO_402_LOGICAL_DEVICE_COUNT_MAX
             || !driveInterfaceValid(configs[axisIndex].drive)) {
             setDiag(diag, CO_402_INIT_BAD_AXIS, configs[axisIndex].logicalDevice);
@@ -71,6 +100,198 @@ static CO_402_init_error_t validateConfigs(const CO_402_device_axis_config_t *co
     }
 
     return CO_402_INIT_OK;
+}
+
+/* Reset mode-local edge/command state without disturbing PDS state or another axis. */
+static void resetModeRuntime(CO_402_device_axis_t *axis, CO_402_mode_t mode, uint16_t controlword)
+{
+    if (axis == NULL) {
+        return;
+    }
+
+    switch (mode) {
+#if CO_402_CONFIG_MODE_PP
+        case CO_402_MODE_PROFILE_POSITION:
+            CO_402_mode_pp_reset(&axis->pp, controlword);
+            break;
+#endif /* CO_402_CONFIG_MODE_PP */
+#if CO_402_CONFIG_MODE_PV
+        case CO_402_MODE_PROFILE_VELOCITY:
+            CO_402_mode_pv_reset(&axis->pv);
+            break;
+#endif /* CO_402_CONFIG_MODE_PV */
+#if CO_402_CONFIG_MODE_HM
+        case CO_402_MODE_HOMING:
+            CO_402_mode_hm_reset(&axis->hm, controlword);
+            break;
+#endif /* CO_402_CONFIG_MODE_HM */
+        case CO_402_MODE_NONE:
+        default:
+            break;
+    }
+}
+
+/* Capability gating rejects recognized modes that this axis did not advertise in 0x6502. */
+static bool modeSupported(const CO_402_device_axis_t *axis, CO_402_mode_t mode)
+{
+    const uint32_t bit = CO_402_modeCapabilityBit(mode);
+
+    return mode == CO_402_MODE_NONE || (bit != 0U && (axis->supportedModes & bit) != 0U);
+}
+
+/* Fault-reaction and Quick-stop own the drive; mode entry/exit cannot run concurrently with them. */
+static bool modeTransitionAllowed(CO_402_state_t state)
+{
+    return state == CO_402_STATE_SWITCH_ON_DISABLED || state == CO_402_STATE_READY_TO_SWITCH_ON
+           || state == CO_402_STATE_SWITCHED_ON || state == CO_402_STATE_OPERATION_ENABLED;
+}
+
+/* A BUSY exit retains transition ownership, so later 0x6060 writes cannot overtake the retiring mode. */
+static bool continueModeExit(CO_402_device_axis_t *axis, uint16_t controlword)
+{
+    CO_402_drive_result_t result;
+
+    if (axis->pendingExitMode == CO_402_MODE_NONE || !modeTransitionAllowed(axis->state)) {
+        return true;
+    }
+
+    result = axis->drive->modeExit(axis->driveObject, axis->pendingExitMode);
+    if (result == CO_402_DRIVE_ERROR) {
+        axis->pendingExitMode = CO_402_MODE_NONE;
+        return false;
+    }
+    if (result == CO_402_DRIVE_BUSY) {
+        return true;
+    }
+
+    if (axis->mode == axis->pendingExitMode) {
+        resetModeRuntime(axis, axis->mode, controlword);
+        axis->mode = CO_402_MODE_NONE;
+    }
+    axis->pendingExitMode = CO_402_MODE_NONE;
+    return true;
+}
+
+/* A BUSY entry retains transition ownership until the selected mode is fully prepared. */
+static bool continueModeEnter(CO_402_device_axis_t *axis, uint16_t controlword)
+{
+    CO_402_drive_result_t result;
+    CO_402_mode_t enteringMode;
+
+    if (axis->pendingEnterMode == CO_402_MODE_NONE || !modeTransitionAllowed(axis->state)) {
+        return true;
+    }
+
+    enteringMode = axis->pendingEnterMode;
+    result = axis->drive->modeEnter(axis->driveObject, enteringMode);
+    if (result == CO_402_DRIVE_ERROR) {
+        axis->pendingEnterMode = CO_402_MODE_NONE;
+        return false;
+    }
+    if (result == CO_402_DRIVE_BUSY) {
+        return true;
+    }
+
+    axis->mode = enteringMode;
+    axis->pendingEnterMode = CO_402_MODE_NONE;
+    resetModeRuntime(axis, enteringMode, controlword);
+    return true;
+}
+
+/* Serialize exit-before-enter and defer new requests while either callback owns the transition. */
+static bool processModeSelection(CO_402_device_axis_t *axis, uint16_t controlword, bool *runActiveMode)
+{
+    CO_402_mode_t requestedMode;
+
+    if (runActiveMode == NULL) {
+        return false;
+    }
+    *runActiveMode = true;
+
+    /* A BUSY transition owns the axis until its matching callback completes; later 0x6060 writes are queued. */
+    if (axis->pendingExitMode != CO_402_MODE_NONE) {
+        *runActiveMode = false;
+        return continueModeExit(axis, controlword);
+    }
+    if (axis->pendingEnterMode != CO_402_MODE_NONE) {
+        *runActiveMode = false;
+        return continueModeEnter(axis, controlword);
+    }
+
+    if (!axis->requestedModeRecognized || !CO_402_modeFromRaw(axis->requestedModeRaw, &requestedMode)
+        || !modeSupported(axis, requestedMode) || !modeTransitionAllowed(axis->state)) {
+        return true;
+    }
+    if (axis->mode == requestedMode) {
+        return true;
+    }
+
+    /* Never issue a mode command in a cycle already owned by mode entry/exit. */
+    *runActiveMode = false;
+    if (axis->mode != CO_402_MODE_NONE) {
+        axis->pendingExitMode = axis->mode;
+        return continueModeExit(axis, controlword);
+    }
+
+    if (requestedMode != CO_402_MODE_NONE) {
+        axis->pendingEnterMode = requestedMode;
+        return continueModeEnter(axis, controlword);
+    }
+
+    return true;
+}
+
+/* Mode commands are executable only while PDS owns the axis in Operation enabled. */
+static bool processActiveMode(CO_402_device_axis_t *axis, uint16_t controlword)
+{
+    if (axis->mode == CO_402_MODE_NONE) {
+        return true;
+    }
+    if (axis->state != CO_402_STATE_OPERATION_ENABLED) {
+        /* PDS callbacks own physical stop/fault/quick-stop actions; only protocol transient state is reset here. */
+        resetModeRuntime(axis, axis->mode, controlword);
+        return true;
+    }
+
+    switch (axis->mode) {
+#if CO_402_CONFIG_MODE_PP
+        case CO_402_MODE_PROFILE_POSITION:
+            return CO_402_mode_pp_process(axis, controlword);
+#endif /* CO_402_CONFIG_MODE_PP */
+#if CO_402_CONFIG_MODE_PV
+        case CO_402_MODE_PROFILE_VELOCITY:
+            return CO_402_mode_pv_process(axis, controlword);
+#endif /* CO_402_CONFIG_MODE_PV */
+#if CO_402_CONFIG_MODE_HM
+        case CO_402_MODE_HOMING:
+            return CO_402_mode_hm_process(axis, controlword);
+#endif /* CO_402_CONFIG_MODE_HM */
+        case CO_402_MODE_NONE:
+        default:
+            return false;
+    }
+}
+
+/** Encode mode-specific Statusword bits without modifying the PDS state bits. */
+static uint16_t modeStatusword(const CO_402_device_axis_t *axis)
+{
+    switch (axis->mode) {
+#if CO_402_CONFIG_MODE_PP
+        case CO_402_MODE_PROFILE_POSITION:
+            return CO_402_mode_pp_statusword(&axis->pp);
+#endif /* CO_402_CONFIG_MODE_PP */
+#if CO_402_CONFIG_MODE_PV
+        case CO_402_MODE_PROFILE_VELOCITY:
+            return CO_402_mode_pv_statusword(&axis->pv);
+#endif /* CO_402_CONFIG_MODE_PV */
+#if CO_402_CONFIG_MODE_HM
+        case CO_402_MODE_HOMING:
+            return CO_402_mode_hm_statusword(&axis->hm);
+#endif /* CO_402_CONFIG_MODE_HM */
+        case CO_402_MODE_NONE:
+        default:
+            return 0U;
+    }
 }
 
 CO_402_init_error_t CO_402_device_managerInit(CO_402_device_manager_t *manager, OD_t *od,
@@ -118,6 +339,9 @@ CO_402_init_error_t CO_402_device_managerInit(CO_402_device_manager_t *manager, 
         axis->driveObject = configs[axisIndex].driveObject;
         axis->faultResetBitPrevious = false;
         axis->faultResetInProgress = false;
+        axis->pendingExitMode = CO_402_MODE_NONE;
+        axis->pendingEnterMode = CO_402_MODE_NONE;
+        axis->supportedModes = supportedModesForDrive(configs[axisIndex].drive);
     }
 
     /* OD binding is performed only after every axis runtime record is valid. */
@@ -137,7 +361,10 @@ CO_402_init_error_t CO_402_device_managerInit(CO_402_device_manager_t *manager, 
 }
 
 /*
- * Snapshot the requested operation mode without activating mode runtime.
+ * Snapshot the requested operation mode without directly changing the active mode.
+ *
+ * The raw INTEGER8 request stays observable even when unsupported; processModeSelection()
+ * owns the serialized acceptance/entry/exit transition.
  */
 static void updateModeRequest(CO_402_device_axis_t *axis)
 {
@@ -152,12 +379,6 @@ static void updateModeRequest(CO_402_device_axis_t *axis)
 
     axis->requestedModeRaw = raw;
     axis->requestedModeRecognized = CO_402_modeFromRaw(raw, &mode);
-    if (axis->requestedModeRecognized && mode == CO_402_MODE_NONE) {
-        axis->mode = CO_402_MODE_NONE;
-    }
-
-    /* A3 implements the PDS supervisor only; mode activation remains owned by A5/A6. */
-    (void)OD_set_i8(axis->od.modesOfOperationDisplay, 0U, (int8_t)axis->mode, true);
 }
 
 /*
@@ -183,13 +404,33 @@ void CO_402_device_process(CO_402_device_manager_t *manager)
         return;
     }
 
-    /* Each axis is processed independently so one PDS state cannot overwrite another axis runtime. */
+    /* Each axis is processed independently so one PDS/mode runtime cannot overwrite another axis. */
     for (axisIndex = 0U; axisIndex < manager->axisCount; axisIndex++) {
         CO_402_device_axis_t *axis = &manager->axes[axisIndex];
+        uint16_t controlword = 0U;
+        uint16_t statusword;
+        bool runActiveMode = true;
 
         updateModeRequest(axis);
-        CO_402_device_axisProcess(axis);
+
+        /* Snapshot the same generated Controlword used by the mode handshake during this supervisor pass. */
+        if (OD_get_u16(axis->od.controlword, 0U, &controlword, true) != ODR_OK) {
+            axis->state = CO_402_STATE_FAULT_REACTION_ACTIVE;
+        } else {
+            CO_402_device_axisProcess(axis);
+            if (!processModeSelection(axis, controlword, &runActiveMode)
+                || (runActiveMode && !processActiveMode(axis, controlword))) {
+                axis->state = CO_402_STATE_FAULT_REACTION_ACTIVE;
+            } else if (!runActiveMode && axis->state != CO_402_STATE_OPERATION_ENABLED
+                       && axis->mode != CO_402_MODE_NONE) {
+                /* PDS owns the physical stop while a paused mode transition retains only protocol ownership. */
+                resetModeRuntime(axis, axis->mode, controlword);
+            }
+        }
+
         updateFeedback(axis);
-        (void)OD_set_u16(axis->od.statusword, 0U, CO_402_statuswordForState(axis->state), true);
+        statusword = (uint16_t)(CO_402_statuswordForState(axis->state) | modeStatusword(axis));
+        (void)OD_set_u16(axis->od.statusword, 0U, statusword, true);
+        (void)OD_set_i8(axis->od.modesOfOperationDisplay, 0U, (int8_t)axis->mode, true);
     }
 }
