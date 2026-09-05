@@ -71,6 +71,18 @@ typedef struct {
  * polling contract. Operation-mode callbacks run only from the Pure-C Device
  * supervisor and are not part of the RT-Thread synchronous realtime path.
  *
+ * For normal PDS transitions, CO_402_DRIVE_BUSY retains exclusive ownership of
+ * the originally accepted callback and target state for ordinary requests. A later
+ * Quick-stop or Disable-voltage command may transfer ownership at a supervisor
+ * callback boundary; faultReaction has still higher priority. The incoming safety
+ * callback must synchronously supersede/cancel any physical action left BUSY by
+ * the retired owner before it returns BUSY or DONE. If takeover returns ERROR,
+ * the supervisor invokes faultReaction immediately in the same supervisor pass.
+ * The supervisor never executes two DriveIF callbacks concurrently and never
+ * invents a timeout for BUSY work.
+ * Controlword read failure uses the same ownership-transfer rule for faultReaction,
+ * including when Fault Reset or mode entry/exit was BUSY.
+ *
  * For PP/PV/HM, CO_402_DRIVE_BUSY means the command is accepted but the mode
  * target has not yet been reached, CO_402_DRIVE_DONE means the mode-specific
  * target/completion condition is satisfied, and CO_402_DRIVE_ERROR causes PDS
@@ -79,19 +91,20 @@ typedef struct {
  * backing OD changes, while live Controlword fields such as halt/start are
  * refreshed. PV is sampled from the current OD on every Operation-enabled pass.
  *
- * A BUSY modeEnter/modeExit callback retains transition ownership even if
- * 0x6060 changes again; the supervisor keeps polling the original callback and
- * only consumes the latest requested mode after it completes. modeExit must
- * cancel/retire mode-owned motion before returning DONE so an in-operation
- * switch cannot leave old and new commands running in parallel.
+ * A BUSY modeEnter/modeExit callback retains exclusive DriveIF ownership across
+ * ordinary 0x6060/PDS changes. Quick-stop, Disable-voltage, or fault reaction may
+ * retire that software token and take over at the next supervisor callback boundary;
+ * the incoming safety callback must then synchronously supersede the unfinished mode
+ * action. modeExit must still cancel/retire mode-owned motion before returning DONE
+ * when no safety transfer occurs.
  */
 typedef struct {
     CO_402_drive_result_t (*shutdown)(void *object);         /**< Reach Ready to switch on without a voltage-off shortcut. */
     CO_402_drive_result_t (*switchOn)(void *object);         /**< Complete the transition to Switched on. */
     CO_402_drive_result_t (*enableOperation)(void *object);  /**< Enable product motion/power operation. */
     CO_402_drive_result_t (*disableOperation)(void *object); /**< Leave Operation enabled while retaining switch-on state. */
-    CO_402_drive_result_t (*quickStop)(void *object);        /**< Start or continue the product quick-stop action. */
-    CO_402_drive_result_t (*faultReaction)(void *object);    /**< Execute the product fault-reaction action. */
+    CO_402_drive_result_t (*quickStop)(void *object);        /**< Safety owner; first call may supersede lower-priority BUSY work. */
+    CO_402_drive_result_t (*faultReaction)(void *object);    /**< Highest-priority safety owner; may supersede any BUSY work. */
     CO_402_drive_result_t (*faultReset)(void *object);       /**< Clear the product fault when reset is allowed. */
 
     int32_t (*getPosition)(void *object); /**< Optional position feedback callback. */
@@ -99,7 +112,7 @@ typedef struct {
     int16_t (*getTorque)(void *object);   /**< Optional torque feedback callback for torque-oriented modes. */
 
     /* Keep this established member position stable; later mode callbacks remain append-only for ABI compatibility. */
-    CO_402_drive_result_t (*disableVoltage)(void *object); /**< Remove drive voltage for Switch on disabled. */
+    CO_402_drive_result_t (*disableVoltage)(void *object); /**< Safety owner; may supersede Quick-stop or ordinary BUSY work. */
 
     /* New mode callbacks are append-only so existing positional/designated DriveIF initializers keep their layout. */
     CO_402_drive_result_t (*modeEnter)(void *object, CO_402_mode_t mode); /**< Begin/continue setup; BUSY owns entry. */

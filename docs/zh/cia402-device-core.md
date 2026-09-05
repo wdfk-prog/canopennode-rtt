@@ -72,7 +72,7 @@ XDD/生成后的 `OD.c`、`OD.h` 是对象存在性和语义数据类型的 sour
 
 ## 4. PDS supervisor 与 DriveIF
 
-A3 每次 `CO_402_device_process()` 对每个 axis 只运行一个状态 handler。这样 DriveIF 返回 `BUSY` 时可以保持当前 PDS state；只要 Controlword 仍请求同一 transition，下一周期就会重试同一个动作，不阻塞 caller。
+A3 每次 `CO_402_device_process()` 对每个 axis 只运行一个状态 handler。DriveIF 返回 `BUSY` 后，普通请求仍由当前 callback 独占并在下一 supervisor 周期继续轮询；但 Quick-stop、Disable-voltage 可以在 callback 边界转移 ownership，fault reaction 的优先级更高。新的 safety callback 必须在返回前同步 supersede 旧 owner 留下的物理动作，不能让两个 DriveIF 动作并行。
 
 当前 DriveIF 的状态动作分别是：
 
@@ -89,13 +89,13 @@ A3 每次 `CO_402_device_process()` 对每个 axis 只运行一个状态 handler
 
 返回值语义：
 
-- `CO_402_DRIVE_BUSY`：保持当前 state；若 Controlword 仍请求同一 transition，下一 supervisor 周期再次调用对应 callback；
+- `CO_402_DRIVE_BUSY`：普通请求保持当前 state/owner 并在下一 supervisor 周期继续轮询；更高优先级 safety 请求可在 callback 边界替换该 owner；
 - `CO_402_DRIVE_DONE`：动作完成，提交 target PDS state；
 - `CO_402_DRIVE_ERROR`：普通迁移动作进入 Fault reaction active；fault-reaction 本身结束或失败后进入 Fault。
 
 A3 不把 Controlword `0x000F` 当成从 Switch on disabled/Ready to switch on 自动跨越多个状态的快捷命令；host/controller 必须按状态逐步发命令。Quick stop active 当前也不会用 `0x000F` 直接恢复 Operation enabled，因为 A3 尚未绑定 Quick stop option code 等对应 policy 对象；在规范矩阵和对象契约明确前不隐式发明恢复策略。
 
-Fault Reset 使用独立的边沿事务语义：supervisor 在每次成功读取 Controlword 后都记录 bit 7，只有处于 Fault 时观察到新的 `0 -> 1` 才启动一次 `faultReset`。回调返回 `BUSY` 后事务会锁存并在后续周期继续推进，直到 `DONE` 或 `ERROR`；bit 7 持续保持为 1 不会在后续再次进入 Fault 时自动触发 reset。普通 PDS command 解码会忽略 bit 7，因此 bit 7 的旧高电平也不会屏蔽 Shutdown/Enable operation 等正常状态命令。
+Fault Reset 使用独立的边沿事务语义：supervisor 在每次成功读取 Controlword 后都记录 bit 7，只有处于 Fault 时观察到新的 `0 -> 1` 才启动一次 `faultReset`。回调返回 `BUSY` 后事务会锁存并在后续周期继续推进，直到 `DONE` 或 `ERROR`；普通 Controlword state command 不会抢占已接受的 Fault Reset，但 Controlword 读取失败会立即把 ownership 转移到 fault reaction。bit 7 持续保持为 1 不会在后续再次进入 Fault 时自动触发 reset。普通 PDS command 解码会忽略 bit 7，因此 bit 7 的旧高电平也不会屏蔽 Shutdown/Enable operation 等正常状态命令。
 
 ## 5. 生命周期与无 heap 约束
 

@@ -21,6 +21,61 @@ typedef struct {
 } CO_402_device_RTT_auto_owner_t;
 #endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART) */
 
+#if defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG)
+/** One lock-consistent cyclic snapshot copied for deferred demo logging. */
+typedef struct {
+    uint8_t axis;
+    CO_402_device_sync_runtime_t sync;
+} CO_402_device_RTT_sync_log_snapshot_t;
+
+/** Copy the newest unseen cyclic generation while lifecycleMutex and the OD lock still protect it. */
+static uint8_t CO_402_device_RTT_captureSyncLog(
+    CO_402_device_RTT_t *runtime, CO_402_device_RTT_sync_log_snapshot_t *snapshots, uint8_t capacity)
+{
+    uint8_t axisIndex;
+    uint8_t count = 0U;
+
+    if (runtime == NULL || snapshots == NULL || runtime->manager.syncSequence == runtime->demoSyncLogSequence) {
+        return 0U;
+    }
+
+    runtime->demoSyncLogSequence = runtime->manager.syncSequence;
+    for (axisIndex = 0U; axisIndex < runtime->manager.axisCount && count < capacity; axisIndex++) {
+        const CO_402_device_axis_t *axis = &runtime->manager.axes[axisIndex];
+
+        if (!axis->syncRuntime.active) {
+            continue;
+        }
+        snapshots[count].axis = axis->logicalDevice;
+        snapshots[count].sync = axis->syncRuntime;
+        count++;
+    }
+
+    return count;
+}
+
+/** Emit copied demo data only after the co_402 worker released lifecycle/OD locks. */
+static void CO_402_device_RTT_emitSyncLog(
+    const CO_402_device_RTT_sync_log_snapshot_t *snapshots, uint8_t count)
+{
+    uint8_t index;
+
+    for (index = 0U; index < count; index++) {
+        const CO_402_device_RTT_sync_log_snapshot_t *snapshot = &snapshots[index];
+        const CO_402_sync_command_t *command = &snapshot->sync.command;
+        const CO_402_sync_feedback_t *feedback = &snapshot->sync.feedback;
+
+        CO_RTT_LOG_D(
+            "axis=%u SYNC seq=%lu mode=%d cmd[p=%ld v=%ld t=%d] pub=%u fb[seq=%lu p=%ld v=%ld t=%d] fresh=%u follow=%u",
+            (unsigned int)snapshot->axis, (unsigned long)command->sequence, (int)command->mode,
+            (long)command->targetPosition, (long)command->targetVelocity, (int)command->targetTorque,
+            snapshot->sync.commandPublished ? 1U : 0U, (unsigned long)feedback->sequence,
+            (long)feedback->positionActual, (long)feedback->velocityActual, (int)feedback->torqueActual,
+            snapshot->sync.feedbackFresh ? 1U : 0U, feedback->driveFollowsCommand ? 1U : 0U);
+    }
+}
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG) */
+
 /** Detach only OD extensions still owned by this Device runtime. */
 static void CO_402_device_RTT_unbindOwnedExtensions(CO_402_device_RTT_t *runtime)
 {
@@ -54,6 +109,10 @@ static void CO_402_device_RTT_threadEntry(void *parameter)
 
     while (1) {
         CO_t *co;
+#if defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG)
+        CO_402_device_RTT_sync_log_snapshot_t syncLogs[CO_402_LOGICAL_DEVICE_COUNT_MAX];
+        uint8_t syncLogCount = 0U;
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG) */
 
         if (rt_sem_take(&runtime->cia402Sem, RT_WAITING_FOREVER) != RT_EOK) {
             continue;
@@ -75,10 +134,18 @@ static void CO_402_device_RTT_threadEntry(void *parameter)
              */
             CO_LOCK_OD(co->CANmodule);
             CO_402_device_process(&runtime->manager);
+#if defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG)
+            syncLogCount = CO_402_device_RTT_captureSyncLog(
+                runtime, syncLogs, (uint8_t)CO_402_LOGICAL_DEVICE_COUNT_MAX);
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG) */
             CO_UNLOCK_OD(co->CANmodule);
         }
 
         (void)rt_mutex_release(&app->lifecycleMutex);
+#if defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG)
+        /* ULOG is outside both locks; a lagging co_402 worker may coalesce intermediate SYNC generations. */
+        CO_402_device_RTT_emitSyncLog(syncLogs, syncLogCount);
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG) */
     }
 }
 
@@ -87,8 +154,9 @@ static void CO_402_device_RTT_onCommunicationStop(CANopenNodeRTT *app, void *con
 {
     CO_402_device_RTT_t *runtime = (CO_402_device_RTT_t *)context;
 
-    (void)app;
     runtime->communicationReady = RT_FALSE;
+    CO_RTT_LOG_D("CiA402 communication stop: dev=%s",
+                 app != NULL && app->canName != NULL ? app->canName : "?");
 }
 
 /** Release Device-owned OD extensions only after the wrapper has drained old CAN RX. */
@@ -121,6 +189,12 @@ static rt_err_t CO_402_device_RTT_onCommunicationBind(CANopenNodeRTT *app, CO_t 
          */
         runtime->manager.od = od;
         result = CO_402_device_bindOD(&runtime->manager, &diag);
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH)
+        if (result == CO_402_INIT_OK) {
+            /* Reset only cyclic snapshots; physical PDS/power state remains supervisor/product-owned. */
+            CO_402_device_onCommunicationReset(&runtime->manager);
+        }
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH) */
     }
 
     if (result != CO_402_INIT_OK) {
@@ -130,14 +204,17 @@ static rt_err_t CO_402_device_RTT_onCommunicationBind(CANopenNodeRTT *app, CO_t 
         return -RT_ERROR;
     }
 
+    CO_RTT_LOG_I("CiA402 OD bound: dev=%s axes=%u", app->canName != NULL ? app->canName : "?",
+                 (unsigned int)runtime->config.axisCount);
     return RT_EOK;
 }
 
 /** Enable Device processing only after the current CAN module reached normal mode. */
 static void CO_402_device_RTT_onCommunicationReady(CANopenNodeRTT *app, void *context)
 {
-    (void)app;
     ((CO_402_device_RTT_t *)context)->communicationReady = RT_TRUE;
+    CO_RTT_LOG_D("CiA402 communication ready: dev=%s",
+                 app != NULL && app->canName != NULL ? app->canName : "?");
 }
 
 /** Create the co_402 semaphore/thread after the initial OD binding has succeeded. */
@@ -243,6 +320,20 @@ static void CO_402_device_RTT_onRuntimeDeinit(CANopenNodeRTT *app, void *context
     runtime->managerInitialized = RT_FALSE;
 }
 
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH)
+/** Run the Pure-C cyclic bridge from lifecycle dispatch after RPDO and before TPDO. */
+static void CO_402_device_RTT_onSynchronousProcess(CANopenNodeRTT *app, void *context, uint32_t dtUs)
+{
+    CO_402_device_RTT_t *runtime = (CO_402_device_RTT_t *)context;
+
+    (void)app;
+    if (runtime != NULL && runtime->managerInitialized == RT_TRUE
+        && runtime->communicationReady == RT_TRUE && runtime->manager.odBound) {
+        CO_402_device_processSyncLocked(&runtime->manager, dtUs);
+    }
+}
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH) */
+
 /** Static ops table registered by attach; registration order defines lifecycle ordering. */
 static const CO_RTT_lifecycle_ops_t CO_402_device_RTT_lifecycleOps = {
     .runtimeInit = CO_402_device_RTT_onRuntimeInit,
@@ -254,6 +345,9 @@ static const CO_RTT_lifecycle_ops_t CO_402_device_RTT_lifecycleOps = {
     .realtimeTick = CO_402_device_RTT_onRealtimeTick,
     .resetWakeups = CO_402_device_RTT_onResetWakeups,
     .runtimeDeinit = CO_402_device_RTT_onRuntimeDeinit,
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH)
+    .synchronousProcess = CO_402_device_RTT_onSynchronousProcess,
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH) */
 };
 
 /** Shared attach implementation for caller-owned and lifecycle-owned adapter contexts. */

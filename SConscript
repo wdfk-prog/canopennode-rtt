@@ -65,6 +65,9 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device.c'))
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_fsa.c'))
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_od.c'))
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH'),
+                          'CiA 402 cyclic synchronous bridge',
+                          [os.path.join('profile', 'cia402', 'device', 'CO_402_device_sync.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_PP'),
                           'CiA 402 Profile Position mode',
                           [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_pp.c')])
@@ -74,6 +77,15 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_HM'),
                           'CiA 402 Homing mode',
                           [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_hm.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSP'),
+                          'CiA 402 Cyclic Synchronous Position mode',
+                          [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_csp.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSV'),
+                          'CiA 402 Cyclic Synchronous Velocity mode',
+                          [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_csv.c')])
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_MODE_CST'),
+                          'CiA 402 Cyclic Synchronous Torque mode',
+                          [os.path.join('profile', 'cia402', 'device', 'modes', 'CO_402_mode_cst.c')])
 
     if GetDepend('PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS'):
         _add_required(os.path.join('port', 'rtthread', 'CO_lifecycle_RTT.c'))

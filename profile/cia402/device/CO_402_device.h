@@ -30,6 +30,9 @@
 #if CO_402_CONFIG_MODE_HM
 #include "modes/CO_402_mode_hm.h"
 #endif /* CO_402_CONFIG_MODE_HM */
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+#include "CO_402_device_sync.h"
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,6 +65,10 @@ typedef struct {
     uint8_t logicalDevice;           /**< Zero-based logical-device number used to derive the profile OD block. */
     const CO_402_drive_if_t *drive;  /**< Persistent non-blocking hardware abstraction for this axis. */
     void *driveObject;               /**< Product-owned object passed unchanged to every DriveIF callback. */
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    const CO_402_device_sync_if_t *sync; /**< Optional bounded cyclic command/feedback transport for CSP/CSV/CST. */
+    void *syncObject;                    /**< Product-owned object passed unchanged to every SyncIF callback. */
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 } CO_402_device_axis_config_t;
 
 /** Runtime state for one local logical-device axis. */
@@ -82,9 +89,9 @@ typedef struct CO_402_device_axis {
     bool faultResetInProgress;              /**< Accepted reset edge remains latched while the DriveIF returns BUSY. */
 
     /* Mode runtime remains after the established PDS fields so previously published member offsets stay unchanged. */
-    CO_402_mode_t pendingExitMode;           /**< Mode whose BUSY exit must finish before another request can run. */
-    CO_402_mode_t pendingEnterMode;          /**< Mode whose BUSY entry must finish before a newer 0x6060 request is consumed. */
-    uint32_t supportedModes;                 /**< 0x6502 mask for modes enabled by build configuration and this axis DriveIF. */
+    CO_402_mode_t pendingExitMode;           /**< BUSY exit owner; ordinary requests wait, safety transfer may retire it. */
+    CO_402_mode_t pendingEnterMode;          /**< BUSY entry owner; ordinary requests wait, safety transfer may retire it. */
+    uint32_t supportedModes;                 /**< 0x6502 mask for modes enabled by build configuration and this axis interfaces. */
 
 #if CO_402_CONFIG_MODE_PP
     CO_402_mode_pp_t pp;                    /**< PP edge-handshake and accepted set-point ownership state. */
@@ -95,6 +102,16 @@ typedef struct CO_402_device_axis {
 #if CO_402_CONFIG_MODE_HM
     CO_402_mode_hm_t hm;                    /**< HM start/abort ownership and completion/error state. */
 #endif /* CO_402_CONFIG_MODE_HM */
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    /* Appended so existing master member offsets remain unchanged when cyclic modes are disabled. */
+    const CO_402_device_sync_if_t *sync;     /**< Persistent bounded SyncIF selected by the immutable axis config. */
+    void *syncObject;                        /**< Product-owned SyncIF context; lifetime must cover the manager. */
+    CO_402_device_sync_runtime_t syncRuntime; /**< co_rt-owned cyclic generation/snapshot observability. */
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+
+    /* Tail-appended ownership state preserves all previously published member offsets. */
+    CO_402_drive_result_t (*pdsTransitionOperation)(void *); /**< BUSY PDS owner; stricter safety commands may replace it. */
+    CO_402_state_t pdsTransitionTargetState; /**< State committed when the current PDS owner completes successfully. */
 } CO_402_device_axis_t;
 
 /** Multi-axis Device manager. */
@@ -104,6 +121,9 @@ typedef struct CO_402_device {
     const CO_402_device_axis_config_t *configs;    /**< Persistent caller-owned axis configuration array. */
     uint8_t axisCount;                             /**< Number of valid entries in axes/configs. */
     bool odBound;                                  /**< True after all required OD entries/extensions are bound. */
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    uint32_t syncSequence;                         /**< Modulo-2^32 SYNC generation shared by all local axes. */
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 } CO_402_device_t;
 
 /** Role-oriented alias for code that treats the Device object as a multi-axis manager. */
@@ -134,7 +154,7 @@ CO_402_init_error_t CO_402_device_managerInit(CO_402_device_manager_t *manager, 
  * The function validates every axis before installing any forwarding OD
  * extension, so a validation failure does not leave a partially bound manager.
  * Mode-specific objects are required only for modes which are compiled in
- * and actually advertised by the axis DriveIF.
+ * and actually advertised by the axis DriveIF/SyncIF.
  *
  * @param manager Initialized manager with valid axis/config storage.
  * @param diag Optional initialization diagnostic destination.
@@ -147,6 +167,34 @@ CO_402_init_error_t CO_402_device_bindOD(CO_402_device_manager_t *manager, CO_40
  * @param manager Bound multi-axis Device manager.
  */
 void CO_402_device_process(CO_402_device_manager_t *manager);
+
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+/**
+ * @brief Execute one bounded all-axis cyclic bridge after synchronous RPDO and before TPDO.
+ *
+ * The caller already owns the communication-generation lifetime boundary and OD lock.
+ * This function never waits for the lower-priority supervisor and performs no sleep,
+ * allocation or normal logging. Missing/late synchronous RPDO therefore retains the
+ * current OD target until a later SYNC; stale motor feedback is rejected by sequence
+ * and leaves the prior OD actual values unchanged.
+ *
+ * @param manager Bound Device manager.
+ * @param dtUs Elapsed realtime period reserved for timing instrumentation/integration.
+ */
+void CO_402_device_processSyncLocked(CO_402_device_manager_t *manager, uint32_t dtUs);
+
+/**
+ * @brief Clear cyclic snapshots after Communication Reset without rewinding generation.
+ *
+ * Keeping syncSequence across reset prevents ordinary delayed feedback from the previous
+ * communication generation from matching the next command. The sequence is modulo 2^32;
+ * a product endpoint must not retain an unmatched feedback snapshot across a full wrap.
+ * Physical PDS/power state is intentionally not changed here.
+ *
+ * @param manager Initialized Device manager.
+ */
+void CO_402_device_onCommunicationReset(CO_402_device_manager_t *manager);
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 
 #ifdef __cplusplus
 }

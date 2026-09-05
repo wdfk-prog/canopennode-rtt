@@ -353,6 +353,8 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x6061_axis0ModesOfOperationDisplay = 0,
     .x6064_axis0PositionActualValue = 0,
     .x606C_axis0VelocityActualValue = 0,
+    .x6071_axis0TargetTorque = 0,
+    .x6077_axis0TorqueActualValue = 0,
     .x607A_axis0TargetPosition = 0,
     .x607C_axis0HomeOffset = 0,
     .x6081_axis0ProfileVelocity = 0x00000000,
@@ -376,6 +378,8 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x6861_axis1ModesOfOperationDisplay = 0,
     .x6864_axis1PositionActualValue = 0,
     .x686C_axis1VelocityActualValue = 0,
+    .x6871_axis1TargetTorque = 0,
+    .x6877_axis1TorqueActualValue = 0,
     .x687A_axis1TargetPosition = 0,
     .x687C_axis1HomeOffset = 0,
     .x6881_axis1ProfileVelocity = 0x00000000,
@@ -399,6 +403,8 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x7061_axis2ModesOfOperationDisplay = 0,
     .x7064_axis2PositionActualValue = 0,
     .x706C_axis2VelocityActualValue = 0,
+    .x7071_axis2TargetTorque = 0,
+    .x7077_axis2TorqueActualValue = 0,
     .x707A_axis2TargetPosition = 0,
     .x707C_axis2HomeOffset = 0,
     .x7081_axis2ProfileVelocity = 0x00000000,
@@ -487,6 +493,8 @@ typedef struct {
     OD_obj_var_t o_6061_axis0ModesOfOperationDisplay;
     OD_obj_var_t o_6064_axis0PositionActualValue;
     OD_obj_var_t o_606C_axis0VelocityActualValue;
+    OD_obj_var_t o_6071_axis0TargetTorque;
+    OD_obj_var_t o_6077_axis0TorqueActualValue;
     OD_obj_var_t o_607A_axis0TargetPosition;
     OD_obj_var_t o_607C_axis0HomeOffset;
     OD_obj_var_t o_6081_axis0ProfileVelocity;
@@ -506,6 +514,8 @@ typedef struct {
     OD_obj_var_t o_6861_axis1ModesOfOperationDisplay;
     OD_obj_var_t o_6864_axis1PositionActualValue;
     OD_obj_var_t o_686C_axis1VelocityActualValue;
+    OD_obj_var_t o_6871_axis1TargetTorque;
+    OD_obj_var_t o_6877_axis1TorqueActualValue;
     OD_obj_var_t o_687A_axis1TargetPosition;
     OD_obj_var_t o_687C_axis1HomeOffset;
     OD_obj_var_t o_6881_axis1ProfileVelocity;
@@ -525,6 +535,8 @@ typedef struct {
     OD_obj_var_t o_7061_axis2ModesOfOperationDisplay;
     OD_obj_var_t o_7064_axis2PositionActualValue;
     OD_obj_var_t o_706C_axis2VelocityActualValue;
+    OD_obj_var_t o_7071_axis2TargetTorque;
+    OD_obj_var_t o_7077_axis2TorqueActualValue;
     OD_obj_var_t o_707A_axis2TargetPosition;
     OD_obj_var_t o_707C_axis2HomeOffset;
     OD_obj_var_t o_7081_axis2ProfileVelocity;
@@ -2174,6 +2186,16 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
         .dataLength = 4
     },
+    .o_6071_axis0TargetTorque = {
+        .dataOrig = &OD_RAM.x6071_axis0TargetTorque,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6077_axis0TorqueActualValue = {
+        .dataOrig = &OD_RAM.x6077_axis0TorqueActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 2
+    },
     .o_607A_axis0TargetPosition = {
         .dataOrig = &OD_RAM.x607A_axis0TargetPosition,
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
@@ -2284,6 +2306,16 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
         .dataLength = 4
     },
+    .o_6871_axis1TargetTorque = {
+        .dataOrig = &OD_RAM.x6871_axis1TargetTorque,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_6877_axis1TorqueActualValue = {
+        .dataOrig = &OD_RAM.x6877_axis1TorqueActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 2
+    },
     .o_687A_axis1TargetPosition = {
         .dataOrig = &OD_RAM.x687A_axis1TargetPosition,
         .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
@@ -2393,6 +2425,16 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .dataOrig = &OD_RAM.x706C_axis2VelocityActualValue,
         .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
         .dataLength = 4
+    },
+    .o_7071_axis2TargetTorque = {
+        .dataOrig = &OD_RAM.x7071_axis2TargetTorque,
+        .attribute = ODA_SDO_RW | ODA_RPDO | ODA_MB,
+        .dataLength = 2
+    },
+    .o_7077_axis2TorqueActualValue = {
+        .dataOrig = &OD_RAM.x7077_axis2TorqueActualValue,
+        .attribute = ODA_SDO_R | ODA_TPDO | ODA_MB,
+        .dataLength = 2
     },
     .o_707A_axis2TargetPosition = {
         .dataOrig = &OD_RAM.x707A_axis2TargetPosition,
@@ -2540,6 +2582,8 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x6061, 0x01, ODT_VAR, &ODObjs.o_6061_axis0ModesOfOperationDisplay, NULL},
     {0x6064, 0x01, ODT_VAR, &ODObjs.o_6064_axis0PositionActualValue, NULL},
     {0x606C, 0x01, ODT_VAR, &ODObjs.o_606C_axis0VelocityActualValue, NULL},
+    {0x6071, 0x01, ODT_VAR, &ODObjs.o_6071_axis0TargetTorque, NULL},
+    {0x6077, 0x01, ODT_VAR, &ODObjs.o_6077_axis0TorqueActualValue, NULL},
     {0x607A, 0x01, ODT_VAR, &ODObjs.o_607A_axis0TargetPosition, NULL},
     {0x607C, 0x01, ODT_VAR, &ODObjs.o_607C_axis0HomeOffset, NULL},
     {0x6081, 0x01, ODT_VAR, &ODObjs.o_6081_axis0ProfileVelocity, NULL},
@@ -2559,6 +2603,8 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x6861, 0x01, ODT_VAR, &ODObjs.o_6861_axis1ModesOfOperationDisplay, NULL},
     {0x6864, 0x01, ODT_VAR, &ODObjs.o_6864_axis1PositionActualValue, NULL},
     {0x686C, 0x01, ODT_VAR, &ODObjs.o_686C_axis1VelocityActualValue, NULL},
+    {0x6871, 0x01, ODT_VAR, &ODObjs.o_6871_axis1TargetTorque, NULL},
+    {0x6877, 0x01, ODT_VAR, &ODObjs.o_6877_axis1TorqueActualValue, NULL},
     {0x687A, 0x01, ODT_VAR, &ODObjs.o_687A_axis1TargetPosition, NULL},
     {0x687C, 0x01, ODT_VAR, &ODObjs.o_687C_axis1HomeOffset, NULL},
     {0x6881, 0x01, ODT_VAR, &ODObjs.o_6881_axis1ProfileVelocity, NULL},
@@ -2578,6 +2624,8 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x7061, 0x01, ODT_VAR, &ODObjs.o_7061_axis2ModesOfOperationDisplay, NULL},
     {0x7064, 0x01, ODT_VAR, &ODObjs.o_7064_axis2PositionActualValue, NULL},
     {0x706C, 0x01, ODT_VAR, &ODObjs.o_706C_axis2VelocityActualValue, NULL},
+    {0x7071, 0x01, ODT_VAR, &ODObjs.o_7071_axis2TargetTorque, NULL},
+    {0x7077, 0x01, ODT_VAR, &ODObjs.o_7077_axis2TorqueActualValue, NULL},
     {0x707A, 0x01, ODT_VAR, &ODObjs.o_707A_axis2TargetPosition, NULL},
     {0x707C, 0x01, ODT_VAR, &ODObjs.o_707C_axis2HomeOffset, NULL},
     {0x7081, 0x01, ODT_VAR, &ODObjs.o_7081_axis2ProfileVelocity, NULL},

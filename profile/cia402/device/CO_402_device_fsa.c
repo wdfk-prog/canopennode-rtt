@@ -4,6 +4,7 @@
  */
 
 #include "CO_402_device_fsa.h"
+#include "CO_402_device_internal.h"
 #include "CO_402_log.h"
 
 #define CO_402_CONTROLWORD_FAULT_RESET 0x0080U
@@ -18,38 +19,33 @@ static void setState(CO_402_device_axis_t *axis, CO_402_state_t targetState)
     }
 }
 
+/* Safety actions can transfer DriveIF ownership only at supervisor callback boundaries. */
+typedef enum {
+    CO_402_SAFETY_PRIORITY_NONE = 0,
+    CO_402_SAFETY_PRIORITY_QUICK_STOP,
+    CO_402_SAFETY_PRIORITY_DISABLE_VOLTAGE
+} CO_402_safety_priority_t;
+
 /*
- * Move an axis into the serialized fault-reaction state.
+ * Retire the software ownership token before a higher-priority safety callback starts.
  *
- * Abort an accepted Fault Reset transaction here so an ERROR cannot be replayed
- * after fault reaction without observing a new Controlword bit-7 rising edge.
+ * No two callbacks execute concurrently. The incoming safety callback is responsible
+ * for synchronously superseding any physical action left BUSY by the retired owner.
  */
-static void setFaultReaction(CO_402_device_axis_t *axis)
+static void releaseOwnerForSafetyTransfer(CO_402_device_axis_t *axis)
 {
+    axis->pdsTransitionOperation = NULL;
+    axis->pdsTransitionTargetState = CO_402_STATE_UNKNOWN;
     axis->faultResetInProgress = false;
-    setState(axis, CO_402_STATE_FAULT_REACTION_ACTIVE);
+    axis->pendingExitMode = CO_402_MODE_NONE;
+    axis->pendingEnterMode = CO_402_MODE_NONE;
 }
 
-/*
- * Apply one asynchronous DriveIF transition result to the PDS state.
- *
- * BUSY deliberately keeps the current state so the same transition can be
- * retried on the next supervisor cycle without blocking the caller.
- */
-static bool applyTransition(CO_402_device_axis_t *axis, CO_402_drive_result_t result, CO_402_state_t targetState)
+/* Fault reaction is the highest-priority safety owner and cannot wait behind BUSY work. */
+static void setFaultReaction(CO_402_device_axis_t *axis)
 {
-    if (result == CO_402_DRIVE_DONE) {
-        setState(axis, targetState);
-        return true;
-    }
-    if (result == CO_402_DRIVE_ERROR) {
-        CO_402_LOG_E("CiA402 drive transition failed: axis=%u state=%u", (unsigned int)axis->logicalDevice,
-                     (unsigned int)axis->state);
-        /* Transition errors are owned by the PDS supervisor, which serializes fault reaction on later cycles. */
-        setFaultReaction(axis);
-    }
-
-    return false;
+    releaseOwnerForSafetyTransfer(axis);
+    setState(axis, CO_402_STATE_FAULT_REACTION_ACTIVE);
 }
 
 /* Invoke one DriveIF transition callback through the axis-owned drive object. */
@@ -64,11 +60,119 @@ static CO_402_drive_result_t callDrive(CO_402_device_axis_t *axis, CO_402_drive_
     return operation(axis->driveObject);
 }
 
+/*
+ * Continue the callback latched by the first accepted PDS command.
+ *
+ * While BUSY, the callback pointer is the ownership token: ordinary Controlword
+ * commands, operation-mode callbacks and the synchronous fast path must not
+ * overtake it. Only the explicit safety-transfer path may retire this token.
+ */
+static void continuePdsTransition(CO_402_device_axis_t *axis)
+{
+    CO_402_drive_result_t result;
+    CO_402_state_t targetState;
+
+    if (axis->pdsTransitionOperation == NULL) {
+        return;
+    }
+
+    targetState = axis->pdsTransitionTargetState;
+    result = callDrive(axis, axis->pdsTransitionOperation);
+    if (result == CO_402_DRIVE_BUSY) {
+        return;
+    }
+
+    axis->pdsTransitionOperation = NULL;
+    axis->pdsTransitionTargetState = CO_402_STATE_UNKNOWN;
+    if (result == CO_402_DRIVE_DONE) {
+        setState(axis, targetState);
+        return;
+    }
+
+    CO_402_LOG_E("CiA402 drive transition failed: axis=%u state=%u", (unsigned int)axis->logicalDevice,
+                 (unsigned int)axis->state);
+    setFaultReaction(axis);
+}
+
+/* Latch one PDS owner before its first callback; only a stricter safety request may replace it while BUSY. */
+static void startPdsTransition(CO_402_device_axis_t *axis,
+                               CO_402_drive_result_t (*operation)(void *),
+                               CO_402_state_t targetState)
+{
+    axis->pdsTransitionOperation = operation;
+    axis->pdsTransitionTargetState = targetState;
+    continuePdsTransition(axis);
+}
+
+static void processFaultReactionActive(CO_402_device_axis_t *axis);
+
+/* Classify the latched PDS target, not callback identity: products may reuse one function for multiple actions. */
+static CO_402_safety_priority_t activePdsSafetyPriority(const CO_402_device_axis_t *axis)
+{
+    if (axis->pdsTransitionTargetState == CO_402_STATE_SWITCH_ON_DISABLED) {
+        return CO_402_SAFETY_PRIORITY_DISABLE_VOLTAGE;
+    }
+    if (axis->pdsTransitionTargetState == CO_402_STATE_QUICK_STOP_ACTIVE) {
+        return CO_402_SAFETY_PRIORITY_QUICK_STOP;
+    }
+    return CO_402_SAFETY_PRIORITY_NONE;
+}
+
+/*
+ * Transfer one BUSY owner to a stricter Controlword safety request.
+ *
+ * Ordinary state/mode requests remain serialized behind the active owner. Quick-stop
+ * may also interrupt an in-progress Enable operation whose target is Operation enabled.
+ */
+static bool preemptOwnerForSafetyCommand(CO_402_device_axis_t *axis, CO_402_command_t command)
+{
+    CO_402_drive_result_t (*operation)(void *) = NULL;
+    CO_402_state_t targetState = CO_402_STATE_UNKNOWN;
+    CO_402_safety_priority_t requestedPriority = CO_402_SAFETY_PRIORITY_NONE;
+    CO_402_safety_priority_t activePriority;
+    bool ownerActive;
+
+    if (command == CO_402_COMMAND_DISABLE_VOLTAGE) {
+        operation = axis->drive->disableVoltage;
+        targetState = CO_402_STATE_SWITCH_ON_DISABLED;
+        requestedPriority = CO_402_SAFETY_PRIORITY_DISABLE_VOLTAGE;
+    } else if (command == CO_402_COMMAND_QUICK_STOP
+               && (axis->state == CO_402_STATE_OPERATION_ENABLED
+                   || axis->pdsTransitionTargetState == CO_402_STATE_OPERATION_ENABLED)) {
+        operation = axis->drive->quickStop;
+        targetState = CO_402_STATE_QUICK_STOP_ACTIVE;
+        requestedPriority = CO_402_SAFETY_PRIORITY_QUICK_STOP;
+    } else {
+        return false;
+    }
+
+    /* Fault Reset is preemptible only by fault reaction, never by a normal Controlword state command. */
+    ownerActive = axis->pdsTransitionOperation != NULL || CO_402_device_modeTransitionPending(axis);
+    if (!ownerActive) {
+        return false;
+    }
+
+    activePriority = activePdsSafetyPriority(axis);
+    if (activePriority >= requestedPriority) {
+        return false;
+    }
+
+    CO_402_LOG_I("CiA402 safety owner transfer: axis=%u command=%u",
+                 (unsigned int)axis->logicalDevice, (unsigned int)command);
+    releaseOwnerForSafetyTransfer(axis);
+    startPdsTransition(axis, operation, targetState);
+    if (axis->state == CO_402_STATE_FAULT_REACTION_ACTIVE) {
+        /* A failed takeover cannot leave the retired physical action uncontrolled until the next supervisor tick. */
+        processFaultReactionActive(axis);
+    }
+    return true;
+}
+
 /* Handle commands accepted while the axis is Switch on disabled. */
 static void processSwitchOnDisabled(CO_402_device_axis_t *axis, CO_402_command_t command)
 {
     if (command == CO_402_COMMAND_SHUTDOWN) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->shutdown), CO_402_STATE_READY_TO_SWITCH_ON);
+        startPdsTransition(axis, axis->drive->shutdown, CO_402_STATE_READY_TO_SWITCH_ON);
     }
 }
 
@@ -76,9 +180,9 @@ static void processSwitchOnDisabled(CO_402_device_axis_t *axis, CO_402_command_t
 static void processReadyToSwitchOn(CO_402_device_axis_t *axis, CO_402_command_t command)
 {
     if (command == CO_402_COMMAND_DISABLE_VOLTAGE) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->disableVoltage), CO_402_STATE_SWITCH_ON_DISABLED);
+        startPdsTransition(axis, axis->drive->disableVoltage, CO_402_STATE_SWITCH_ON_DISABLED);
     } else if (command == CO_402_COMMAND_SWITCH_ON_OR_DISABLE_OPERATION) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->switchOn), CO_402_STATE_SWITCHED_ON);
+        startPdsTransition(axis, axis->drive->switchOn, CO_402_STATE_SWITCHED_ON);
     }
 }
 
@@ -86,11 +190,11 @@ static void processReadyToSwitchOn(CO_402_device_axis_t *axis, CO_402_command_t 
 static void processSwitchedOn(CO_402_device_axis_t *axis, CO_402_command_t command)
 {
     if (command == CO_402_COMMAND_DISABLE_VOLTAGE) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->disableVoltage), CO_402_STATE_SWITCH_ON_DISABLED);
+        startPdsTransition(axis, axis->drive->disableVoltage, CO_402_STATE_SWITCH_ON_DISABLED);
     } else if (command == CO_402_COMMAND_SHUTDOWN) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->shutdown), CO_402_STATE_READY_TO_SWITCH_ON);
+        startPdsTransition(axis, axis->drive->shutdown, CO_402_STATE_READY_TO_SWITCH_ON);
     } else if (command == CO_402_COMMAND_ENABLE_OPERATION) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->enableOperation), CO_402_STATE_OPERATION_ENABLED);
+        startPdsTransition(axis, axis->drive->enableOperation, CO_402_STATE_OPERATION_ENABLED);
     }
 }
 
@@ -98,13 +202,13 @@ static void processSwitchedOn(CO_402_device_axis_t *axis, CO_402_command_t comma
 static void processOperationEnabled(CO_402_device_axis_t *axis, CO_402_command_t command)
 {
     if (command == CO_402_COMMAND_QUICK_STOP) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->quickStop), CO_402_STATE_QUICK_STOP_ACTIVE);
+        startPdsTransition(axis, axis->drive->quickStop, CO_402_STATE_QUICK_STOP_ACTIVE);
     } else if (command == CO_402_COMMAND_DISABLE_VOLTAGE) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->disableVoltage), CO_402_STATE_SWITCH_ON_DISABLED);
+        startPdsTransition(axis, axis->drive->disableVoltage, CO_402_STATE_SWITCH_ON_DISABLED);
     } else if (command == CO_402_COMMAND_SHUTDOWN) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->shutdown), CO_402_STATE_READY_TO_SWITCH_ON);
+        startPdsTransition(axis, axis->drive->shutdown, CO_402_STATE_READY_TO_SWITCH_ON);
     } else if (command == CO_402_COMMAND_SWITCH_ON_OR_DISABLE_OPERATION) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->disableOperation), CO_402_STATE_SWITCHED_ON);
+        startPdsTransition(axis, axis->drive->disableOperation, CO_402_STATE_SWITCHED_ON);
     }
 }
 
@@ -118,7 +222,7 @@ static void processOperationEnabled(CO_402_device_axis_t *axis, CO_402_command_t
 static void processQuickStopActive(CO_402_device_axis_t *axis, CO_402_command_t command)
 {
     if (command == CO_402_COMMAND_DISABLE_VOLTAGE) {
-        (void)applyTransition(axis, callDrive(axis, axis->drive->disableVoltage), CO_402_STATE_SWITCH_ON_DISABLED);
+        startPdsTransition(axis, axis->drive->disableVoltage, CO_402_STATE_SWITCH_ON_DISABLED);
     }
 }
 
@@ -172,6 +276,28 @@ static void processFault(CO_402_device_axis_t *axis, bool faultResetRisingEdge)
     setFaultReaction(axis);
 }
 
+void CO_402_device_axisControlwordReadFailed(CO_402_device_axis_t *axis)
+{
+    CO_402_state_t stateBefore;
+
+    if (axis == NULL || axis->drive == NULL) {
+        return;
+    }
+
+    CO_402_LOG_E("CiA402 Controlword read failed: axis=%u", (unsigned int)axis->logicalDevice);
+    stateBefore = axis->state;
+
+    /* Once Fault is reached, an unreadable Controlword cannot authorize reset; remain failed closed. */
+    if (stateBefore == CO_402_STATE_FAULT && !axis->faultResetInProgress
+        && axis->pdsTransitionOperation == NULL && !CO_402_device_modeTransitionPending(axis)) {
+        return;
+    }
+
+    /* Fault reaction supersedes any BUSY PDS, Fault Reset, or mode owner at this callback boundary. */
+    setFaultReaction(axis);
+    processFaultReactionActive(axis);
+}
+
 void CO_402_device_axisProcess(CO_402_device_axis_t *axis)
 {
     uint16_t controlword = 0U;
@@ -184,10 +310,9 @@ void CO_402_device_axisProcess(CO_402_device_axis_t *axis)
         return;
     }
 
-    /* A failed Controlword snapshot is treated as a local control-path failure and enters fault reaction. */
+    /* A failed Controlword snapshot transfers any in-flight owner directly to fault reaction. */
     if (OD_get_u16(axis->od.controlword, 0U, &controlword, true) != ODR_OK) {
-        CO_402_LOG_E("CiA402 Controlword read failed: axis=%u", (unsigned int)axis->logicalDevice);
-        setFaultReaction(axis);
+        CO_402_device_axisControlwordReadFailed(axis);
         return;
     }
 
@@ -204,6 +329,22 @@ void CO_402_device_axisProcess(CO_402_device_axis_t *axis)
     if (faultResetRisingEdge && axis->state != CO_402_STATE_FAULT) {
         CO_402_LOG_D("CiA402 fault reset edge ignored outside Fault: axis=%u state=%u",
                      (unsigned int)axis->logicalDevice, (unsigned int)axis->state);
+    }
+
+    /*
+     * BUSY mode/PDS/Fault-Reset callbacks keep exclusive ownership for ordinary
+     * requests. A stricter Quick-stop or Disable-voltage request transfers that
+     * ownership before the old callback is polled again.
+     */
+    if (preemptOwnerForSafetyCommand(axis, command)) {
+        return;
+    }
+    if (CO_402_device_modeTransitionPending(axis)) {
+        return;
+    }
+    if (axis->pdsTransitionOperation != NULL) {
+        continuePdsTransition(axis);
+        return;
     }
 
     /* Exactly one state handler runs per supervisor cycle, preserving asynchronous DriveIF sequencing. */

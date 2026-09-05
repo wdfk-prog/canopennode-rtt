@@ -81,6 +81,32 @@
 
 /* Private function prototypes -----------------------------------------------*/
 
+#if defined(PKG_CANOPENNODE_NMT_STATE_LOG)
+/* Return a stable diagnostic name for a local NMT state. */
+static const char *co_app_rtt_nmt_state_name(CO_NMT_internalState_t state)
+{
+    switch (state) {
+    case CO_NMT_INITIALIZING:
+        return "initializing";
+    case CO_NMT_PRE_OPERATIONAL:
+        return "pre-operational";
+    case CO_NMT_OPERATIONAL:
+        return "operational";
+    case CO_NMT_STOPPED:
+        return "stopped";
+    case CO_NMT_UNKNOWN:
+    default:
+        return "unknown";
+    }
+}
+
+/* CANopenNode callback used only for local NMT state-change diagnostics. */
+static void co_app_rtt_nmt_state_changed(CO_NMT_internalState_t state)
+{
+    CO_RTT_LOG_I("NMT state changed: state=%s(%d)", co_app_rtt_nmt_state_name(state), (int)state);
+}
+#endif /* defined(PKG_CANOPENNODE_NMT_STATE_LOG) */
+
 #ifdef CO_MULTIPLE_OD
 /**
  * @brief Complete generated OD configuration with RT-Thread wrapper object counts.
@@ -688,6 +714,12 @@ static rt_err_t co_app_rtt_reset_communication(CANopenNodeRTT *app, bool_t loadP
                      (unsigned long)err_info);
         return -RT_ERROR;
     }
+#if defined(PKG_CANOPENNODE_NMT_STATE_LOG)
+    if (err == CO_ERROR_NO) {
+        /* CO_NMT_init() clears callback state on each Communication Reset, so rebind every successful generation. */
+        CO_NMT_initCallbackChanged(co->NMT, co_app_rtt_nmt_state_changed);
+    }
+#endif /* defined(PKG_CANOPENNODE_NMT_STATE_LOG) */
     /* Runtime extensions bind after CANopen core init and before SRDO/PDO cache OD IO. */
     ret = CO_RTT_lifecycleBindCommunication(app, co, OD);
     if (ret != RT_EOK) {
@@ -1035,6 +1067,14 @@ static void co_app_rtt_realtime_thread_entry(void *parameter)
 #if (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0)
             CO_process_RPDO(co, sync_was, time_difference_us, NULL);
 #endif /* (((CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE) != 0) */
+
+            if (sync_was && CO_NMT_getInternalState(co->NMT) == CO_NMT_OPERATIONAL) {
+                /*
+                 * Synchronous extension application data follows the same NMT Operational
+                 * window as RPDO/TPDO, so Pre-operational SYNC cannot consume stale targets.
+                 */
+                CO_RTT_lifecycleSynchronousProcess(app, time_difference_us);
+            }
 
 #if (((CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE) != 0)
             CO_process_TPDO(co, sync_was, time_difference_us, NULL);

@@ -72,7 +72,7 @@ Forwarding extensions are installed only after all axes and required objects pas
 
 ## 4. PDS supervisor and DriveIF
 
-Each `CO_402_device_process()` call runs at most one PDS state handler per axis. A DriveIF callback returning `BUSY` keeps the current PDS state; while the Controlword continues to request the same transition, the callback is retried on the next supervisor cycle without blocking the caller.
+Each `CO_402_device_process()` call runs at most one PDS state handler per axis. A DriveIF callback returning `BUSY` normally keeps exclusive ownership and is retried on the next supervisor cycle without blocking the caller. Quick-stop or Disable-voltage may transfer that ownership at a callback boundary, and fault reaction has higher priority still; the incoming safety callback must synchronously supersede the physical action left BUSY by the retired owner before returning.
 
 Current DriveIF transition callbacks are:
 
@@ -89,13 +89,13 @@ Current DriveIF transition callbacks are:
 
 Result semantics are:
 
-- `CO_402_DRIVE_BUSY`: keep the current state; if the Controlword still requests the same transition, retry the corresponding callback on the next supervisor cycle;
+- `CO_402_DRIVE_BUSY`: keep the current state and owner for ordinary requests; a stricter safety request may replace that owner at the next callback boundary;
 - `CO_402_DRIVE_DONE`: commit the target PDS state;
 - `CO_402_DRIVE_ERROR`: normal transitions enter Fault reaction active; completion or failure of fault reaction enters Fault.
 
 A3 does not treat Controlword `0x000F` as an automatic multi-state shortcut from Switch on disabled or Ready to switch on; the host/controller must sequence states explicitly. Quick stop active also does not use `0x000F` to resume Operation enabled because A3 does not yet bind the Quick stop option code and its policy. No recovery policy is invented before the corresponding normative matrix and OD contract are available.
 
-Fault Reset uses a separate edge-triggered transaction. The supervisor records Controlword bit 7 after every successful snapshot, and only a newly observed `0 -> 1` while the axis is in Fault starts `faultReset`. A `BUSY` result latches that accepted transaction and continues it across later cycles until `DONE` or `ERROR`; holding bit 7 high cannot automatically reset a later Fault. Normal PDS command decoding ignores bit 7, so a stale high Fault Reset level does not suppress Shutdown, Enable operation, or other normal state commands.
+Fault Reset uses a separate edge-triggered transaction. The supervisor records Controlword bit 7 after every successful snapshot, and only a newly observed `0 -> 1` while the axis is in Fault starts `faultReset`. A `BUSY` result latches that accepted transaction and continues it across later cycles until `DONE` or `ERROR`; normal Controlword state commands do not preempt an accepted Fault Reset. A Controlword read failure does preempt it into fault reaction. Holding bit 7 high cannot automatically reset a later Fault. Normal PDS command decoding ignores bit 7, so a stale high Fault Reset level does not suppress Shutdown, Enable operation, or other normal state commands.
 
 ## 5. Lifetime and no-heap contract
 

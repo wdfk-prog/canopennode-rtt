@@ -92,7 +92,8 @@ Keep dynamic OD enabled for configurable devices unless the product intentionall
 
 | Option | Default | Notes |
 |---|---:|---|
-| `PKG_CANOPENNODE_NMT_CALLBACK_CHANGE` | `n` | Application callback on local NMT state change. |
+| `PKG_CANOPENNODE_NMT_CALLBACK_CHANGE` | `n` | Enables CANopenNode local NMT state-change callback support; selected automatically by `PKG_CANOPENNODE_NMT_STATE_LOG`. |
+| `PKG_CANOPENNODE_NMT_STATE_LOG` | `y` when debug is enabled | RT-Thread wrapper logs local NMT state changes and re-registers the callback after Communication Reset. Requires `PKG_CANOPENNODE_USING_DEBUG`; disable it if product code must own the single callback slot. |
 | `PKG_CANOPENNODE_NMT_MASTER` | `n` | Allows this node to transmit simple NMT master commands. |
 | `PKG_CANOPENNODE_USING_HB_CONS` | `y` | Heartbeat consumer support. |
 

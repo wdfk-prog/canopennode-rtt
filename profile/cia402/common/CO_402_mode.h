@@ -27,6 +27,15 @@ extern "C" {
 #ifndef CO_402_CONFIG_MODE_HM
 #define CO_402_CONFIG_MODE_HM 0
 #endif /* !defined(CO_402_CONFIG_MODE_HM) */
+#ifndef CO_402_CONFIG_MODE_CSP
+#define CO_402_CONFIG_MODE_CSP 0
+#endif /* !defined(CO_402_CONFIG_MODE_CSP) */
+#ifndef CO_402_CONFIG_MODE_CSV
+#define CO_402_CONFIG_MODE_CSV 0
+#endif /* !defined(CO_402_CONFIG_MODE_CSV) */
+#ifndef CO_402_CONFIG_MODE_CST
+#define CO_402_CONFIG_MODE_CST 0
+#endif /* !defined(CO_402_CONFIG_MODE_CST) */
 
 /** Raw value stored in the CiA 402 INTEGER8 mode objects (0x6060/0x6061). */
 typedef int8_t CO_402_mode_raw_t;
@@ -56,12 +65,13 @@ typedef enum {
 #define CO_402_CONTROLWORD_PP_RELATIVE             (1U << 6)
 #define CO_402_CONTROLWORD_HALT                    (1U << 8)
 
-/** Statusword bits contributed by the active non-cyclic operation mode. */
-#define CO_402_STATUSWORD_TARGET_REACHED           (1U << 10)
-#define CO_402_STATUSWORD_PP_SETPOINT_ACKNOWLEDGE  (1U << 12)
-#define CO_402_STATUSWORD_HM_ATTAINED              (1U << 12)
-#define CO_402_STATUSWORD_PP_FOLLOWING_ERROR       (1U << 13)
-#define CO_402_STATUSWORD_HM_ERROR                 (1U << 13)
+/** Statusword bits contributed by the active operation mode. */
+#define CO_402_STATUSWORD_TARGET_REACHED             (1U << 10)
+#define CO_402_STATUSWORD_PP_SETPOINT_ACKNOWLEDGE    (1U << 12)
+#define CO_402_STATUSWORD_HM_ATTAINED                (1U << 12)
+#define CO_402_STATUSWORD_DRIVE_FOLLOWS_COMMAND      (1U << 12)
+#define CO_402_STATUSWORD_PP_FOLLOWING_ERROR         (1U << 13)
+#define CO_402_STATUSWORD_HM_ERROR                   (1U << 13)
 
 /**
  * @brief Convert an INTEGER8 mode value to a recognized semantic mode.

@@ -3064,6 +3064,16 @@ The life time factor multiplied with the guard time gives the life time for the 
             <DINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6071" access="readWriteOutput">
+            <label lang="en">Axis0 Target torque</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6077">
+            <label lang="en">Axis0 Torque actual value</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_607A" access="readWriteOutput">
             <label lang="en">Axis0 Target position</label>
             <DINT />
@@ -3173,6 +3183,16 @@ The life time factor multiplied with the guard time gives the life time for the 
             <DINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6871" access="readWriteOutput">
+            <label lang="en">Axis1 Target torque</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6877">
+            <label lang="en">Axis1 Torque actual value</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_687A" access="readWriteOutput">
             <label lang="en">Axis1 Target position</label>
             <DINT />
@@ -3280,6 +3300,16 @@ The life time factor multiplied with the guard time gives the life time for the 
           <q1:parameter uniqueID="UID_OBJ_706C">
             <label lang="en">Axis2 Velocity actual value</label>
             <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7071" access="readWriteOutput">
+            <label lang="en">Axis2 Target torque</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7077">
+            <label lang="en">Axis2 Torque actual value</label>
+            <INT />
             <q1:defaultValue value="0" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_707A" access="readWriteOutput">
@@ -3801,6 +3831,8 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="6061" name="Axis0 Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6061" />
           <CANopenObject index="6064" name="Axis0 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6064" />
           <CANopenObject index="606C" name="Axis0 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_606C" />
+          <CANopenObject index="6071" name="Axis0 Target torque" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6071" />
+          <CANopenObject index="6077" name="Axis0 Torque actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6077" />
           <CANopenObject index="607A" name="Axis0 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_607A" />
           <CANopenObject index="607C" name="Axis0 Home offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_607C" />
           <CANopenObject index="6081" name="Axis0 Profile velocity" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6081" />
@@ -3824,6 +3856,8 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="6861" name="Axis1 Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6861" />
           <CANopenObject index="6864" name="Axis1 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6864" />
           <CANopenObject index="686C" name="Axis1 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_686C" />
+          <CANopenObject index="6871" name="Axis1 Target torque" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6871" />
+          <CANopenObject index="6877" name="Axis1 Torque actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6877" />
           <CANopenObject index="687A" name="Axis1 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_687A" />
           <CANopenObject index="687C" name="Axis1 Home offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_687C" />
           <CANopenObject index="6881" name="Axis1 Profile velocity" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6881" />
@@ -3847,6 +3881,8 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="7061" name="Axis2 Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7061" />
           <CANopenObject index="7064" name="Axis2 Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7064" />
           <CANopenObject index="706C" name="Axis2 Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_706C" />
+          <CANopenObject index="7071" name="Axis2 Target torque" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_7071" />
+          <CANopenObject index="7077" name="Axis2 Torque actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7077" />
           <CANopenObject index="707A" name="Axis2 Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_707A" />
           <CANopenObject index="707C" name="Axis2 Home offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_707C" />
           <CANopenObject index="7081" name="Axis2 Profile velocity" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7081" />
