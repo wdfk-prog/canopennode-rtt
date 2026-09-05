@@ -8,6 +8,17 @@ config PKG_CANOPENNODE_CIA402_DEVICE
         supervisor. This layer has no RT-Thread/BSP dependency and allocates no
         axis storage dynamically.
 
+config PKG_CANOPENNODE_CIA402_DEVICE_DIAGNOSTICS
+    bool "Per-axis fault diagnostics"
+    default n
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    help
+        Add the Pure-C per-axis diagnostic latch, generated Error-code object
+        update and deferred report/reset event contract. Each configured axis
+        must provide a bounded non-blocking DiagIF which maps product/internal
+        fault origins to independent 0x603F and CANopen EMCY error codes.
+        This layer does not call CANopenNode emergency APIs directly.
+
 config PKG_CANOPENNODE_CIA402_DEVICE_MODE_PP
     bool "Profile Position (PP) mode"
     default y
@@ -44,7 +55,7 @@ config PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSP
     depends on PKG_CANOPENNODE_RPDO
     depends on PKG_CANOPENNODE_TPDO
     depends on PKG_CANOPENNODE_PDO_SYNC
-    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FAST_PATH
+    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
     help
         Build the bounded CSP target snapshot used by the synchronous fast path.
         Runtime capability still requires a complete per-axis SyncIF.
@@ -58,7 +69,7 @@ config PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSV
     depends on PKG_CANOPENNODE_RPDO
     depends on PKG_CANOPENNODE_TPDO
     depends on PKG_CANOPENNODE_PDO_SYNC
-    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FAST_PATH
+    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
     help
         Build the bounded CSV target snapshot used by the synchronous fast path.
         Runtime capability still requires a complete per-axis SyncIF.
@@ -72,12 +83,12 @@ config PKG_CANOPENNODE_CIA402_DEVICE_MODE_CST
     depends on PKG_CANOPENNODE_RPDO
     depends on PKG_CANOPENNODE_TPDO
     depends on PKG_CANOPENNODE_PDO_SYNC
-    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FAST_PATH
+    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
     help
         Build the bounded CST target/feedback bridge used by the synchronous fast path.
         Runtime capability still requires a complete per-axis SyncIF.
 
-config PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FAST_PATH
+config PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
     bool
     depends on PKG_CANOPENNODE_CIA402_DEVICE
     help

@@ -20,6 +20,21 @@ extern "C" {
 void CO_402_device_axisProcess(CO_402_device_axis_t *axis);
 
 /**
+ * @brief Transfer all current owners to fault reaction and latch the originating diagnostic.
+ *
+ * @p fault supplies an already sampled product fault when origin is PRODUCT;
+ * internal fault paths pass NULL so DiagIF maps the origin. Diagnostics never
+ * weakens the fail-closed PDS transition when a mapping is missing.
+ *
+ * @param axis Axis runtime with a valid DriveIF.
+ * @param origin Fault path which acquired fault ownership.
+ * @param fault Optional already sampled product fault mapping.
+ */
+void CO_402_device_axisEnterFaultReaction(CO_402_device_axis_t *axis,
+                                          CO_402_device_fault_origin_t origin,
+                                          const CO_402_device_fault_info_t *fault);
+
+/**
  * @brief Transfer a failed Controlword path to the fault-reaction safety owner.
  *
  * Any BUSY PDS, Fault Reset, or mode owner is retired at a supervisor callback

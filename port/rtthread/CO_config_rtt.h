@@ -41,6 +41,14 @@
  * CiA 402 feature macros to the Pure-C profile. Non-RT-Thread builds may define
  * CO_402_CONFIG_MODE_* themselves; CO_402_mode.h otherwise defaults them to 0.
  */
+#ifndef CO_402_CONFIG_DIAGNOSTICS
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_DIAGNOSTICS)
+#define CO_402_CONFIG_DIAGNOSTICS 1
+#else
+#define CO_402_CONFIG_DIAGNOSTICS 0
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_DIAGNOSTICS) */
+#endif /* !defined(CO_402_CONFIG_DIAGNOSTICS) */
+
 #ifndef CO_402_CONFIG_MODE_PP
 #if defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_PP)
 #define CO_402_CONFIG_MODE_PP 1

@@ -9,6 +9,7 @@
         "demo-minimal",
         "demo-default",
         "demo-cia402-device-rtt-autostart",
+        "demo-cia402-a7-validation",
         "demo-high-res-time",
         "demo-pdo-sync",
         "demo-emcy-consumer",

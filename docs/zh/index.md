@@ -12,11 +12,12 @@
 4. 启用硬件微秒时间源前，阅读 [High-Resolution Time 集成说明](high-resolution-time.md)。
 5. 使用 LSS 持久化时，阅读 [LSS Node-ID 与 bitrate 持久化](lss-persistence.md)。
 6. 替换 demo OD 前，阅读 [Object Dictionary 指南](object-dictionary.md)。
-7. 集成 CiA 402 Device core 前，阅读 [CiA 402 Pure-C Device Core 与 OD Binding](cia402-device-core.md)。
-8. 接入 RT-Thread 线程 与 Communication Reset 前，阅读 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
-9. 与 Linux Host 联合执行协议验证前，阅读[测试与验证](testing.md)。
-10. 更新 CANopenNode 前，阅读[子模块更新说明](submodule-update.md)。
-11. 遇到构建或运行异常时，参考[故障排查](troubleshooting.md)。
+7. 阅读 [CiA 402 Device 交付、诊断与互操作](cia402.md)，了解 A7 EMCY、发布 artifact 与产品验收。
+8. 集成 CiA 402 Device core 前，阅读 [CiA 402 Pure-C Device Core 与 OD Binding](cia402-device-core.md)。
+9. 接入 RT-Thread 线程 与 Communication Reset 前，阅读 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
+10. 与 Linux Host 联合执行协议验证前，阅读[测试与验证](testing.md)。
+11. 更新 CANopenNode 前，阅读[子模块更新说明](submodule-update.md)。
+12. 遇到构建或运行异常时，参考[故障排查](troubleshooting.md)。
 
 ## 文档地图
 
@@ -30,6 +31,7 @@
 | [测试与验证](testing.md) | MCU 侧测试夹具如何与 `canopen-slave-tester` 主站代码协同？哪些证据属于 Host、目标板或 HIL？ |
 | [NMT Master 自动测试](nmt-master-test.md) | 如何让 MCU 自动驱动 Linux Lely Slave 验证 NMT Master 命令序列？ |
 | [Object Dictionary 指南](object-dictionary.md) | 如何使用或替换 demo OD？ |
+| [CiA 402 Device 交付、诊断与互操作](cia402.md) | A7 如何完成 axis fault→EMCY、release artifact 校验和互操作验收？ |
 | [CiA 402 Pure-C Device Core 与 OD Binding](cia402-device-core.md) | A3 多轴 Device core 如何绑定 OD、运行 PDS FSA 并验证 DriveIF？ |
 | [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) | A4 如何安全接入 thread、锁顺序和 Communication Reset？ |
 | [子模块更新说明](submodule-update.md) | 如何克隆、初始化、更新或锁定 CANopenNode 子模块？ |
