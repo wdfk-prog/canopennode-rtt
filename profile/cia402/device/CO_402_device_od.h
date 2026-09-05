@@ -20,11 +20,11 @@ typedef struct {
     OD_entry_t *statusword;               /**< PDS state plus active-mode result bits published by the supervisor. */
     OD_entry_t *modesOfOperation;         /**< Requested mode; changes are serialized through mode exit/entry. */
     OD_entry_t *modesOfOperationDisplay;  /**< Mode actually active after any non-blocking transition completes. */
-    OD_entry_t *positionActualValue;      /**< Position feedback refreshed from DriveIF when that callback exists. */
-    OD_entry_t *velocityActualValue;      /**< Velocity feedback refreshed from DriveIF when that callback exists. */
-    OD_entry_t *targetPosition;           /**< PP target captured only when a fresh set-point edge is accepted. */
-    OD_entry_t *targetVelocity;           /**< PV target sampled as a live command on each enabled supervisor pass. */
-    OD_entry_t *supportedDriveModes;      /**< 0x6502 mask derived from compiled modes and per-axis DriveIF callbacks. */
+    OD_entry_t *positionActualValue;      /**< Slow DriveIF feedback or current-generation cyclic position feedback. */
+    OD_entry_t *velocityActualValue;      /**< Slow DriveIF feedback or current-generation cyclic velocity feedback. */
+    OD_entry_t *targetPosition;           /**< PP accepted set-point and CSP synchronous target source. */
+    OD_entry_t *targetVelocity;           /**< PV live command and CSV synchronous target source. */
+    OD_entry_t *supportedDriveModes;      /**< 0x6502 mask derived from compiled modes and per-axis interfaces. */
 
     /* Mode-specific entries are cached only when the axis advertises the corresponding mode capability. */
     OD_entry_t *homeOffset;               /**< HM offset captured when a new homing action is accepted. */
@@ -39,6 +39,12 @@ typedef struct {
 
     OD_extension_t controlwordExtension;  /**< Axis-owned extension installed on Controlword before PDO init. */
     OD_extension_t modeExtension;         /**< Axis-owned extension installed on Modes of operation. */
+
+#if CO_402_CONFIG_MODE_CST
+    /* Append cyclic torque entries so previously published master member offsets remain unchanged. */
+    OD_entry_t *targetTorque;              /**< CST synchronous target torque source (0x6071). */
+    OD_entry_t *torqueActualValue;         /**< Current-generation CST actual torque publication (0x6077). */
+#endif /* CO_402_CONFIG_MODE_CST */
 } CO_402_device_od_t;
 
 #ifdef __cplusplus

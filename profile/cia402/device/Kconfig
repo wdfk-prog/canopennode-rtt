@@ -34,3 +34,50 @@ config PKG_CANOPENNODE_CIA402_DEVICE_MODE_HM
         Build the Pure-C Homing supervisor. An axis advertises HM only when its
         DriveIF provides mode entry/exit and homing callbacks; only then are the
         homing-specific OD objects required during binding.
+
+config PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSP
+    bool "Cyclic Synchronous Position (CSP) mode"
+    default y
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    depends on PKG_CANOPENNODE_USING_SYNC
+    depends on PKG_CANOPENNODE_USING_PDO
+    depends on PKG_CANOPENNODE_RPDO
+    depends on PKG_CANOPENNODE_TPDO
+    depends on PKG_CANOPENNODE_PDO_SYNC
+    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
+    help
+        Build the bounded CSP target snapshot used by the synchronous fast path.
+        Runtime capability still requires a complete per-axis SyncIF.
+
+config PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSV
+    bool "Cyclic Synchronous Velocity (CSV) mode"
+    default y
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    depends on PKG_CANOPENNODE_USING_SYNC
+    depends on PKG_CANOPENNODE_USING_PDO
+    depends on PKG_CANOPENNODE_RPDO
+    depends on PKG_CANOPENNODE_TPDO
+    depends on PKG_CANOPENNODE_PDO_SYNC
+    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
+    help
+        Build the bounded CSV target snapshot used by the synchronous fast path.
+        Runtime capability still requires a complete per-axis SyncIF.
+
+config PKG_CANOPENNODE_CIA402_DEVICE_MODE_CST
+    bool "Cyclic Synchronous Torque (CST) mode"
+    default y
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    depends on PKG_CANOPENNODE_USING_SYNC
+    depends on PKG_CANOPENNODE_USING_PDO
+    depends on PKG_CANOPENNODE_RPDO
+    depends on PKG_CANOPENNODE_TPDO
+    depends on PKG_CANOPENNODE_PDO_SYNC
+    select PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
+    help
+        Build the bounded CST target/feedback bridge used by the synchronous fast path.
+
+config PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH
+    bool
+    depends on PKG_CANOPENNODE_CIA402_DEVICE
+    help
+        Internal guard for the RPDO -> CiA 402 cyclic bridge -> TPDO path.

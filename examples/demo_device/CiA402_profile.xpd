@@ -95,6 +95,16 @@
             <DINT/>
             <q1:defaultValue value="0"/>
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6071" access="readWriteOutput">
+            <label lang="en">Target torque</label>
+            <INT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6077" access="read">
+            <label lang="en">Torque actual value</label>
+            <INT/>
+            <q1:defaultValue value="0"/>
+          </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_607A" access="readWriteOutput">
             <label lang="en">Target position</label>
             <DINT/>
@@ -196,6 +206,8 @@
           <CANopenObject index="6061" name="Modes of operation display" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6061"/>
           <CANopenObject index="6064" name="Position actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6064"/>
           <CANopenObject index="606C" name="Velocity actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_606C"/>
+          <CANopenObject index="6071" name="Target torque" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6071"/>
+          <CANopenObject index="6077" name="Torque actual value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6077"/>
           <CANopenObject index="607A" name="Target position" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_607A"/>
           <CANopenObject index="607C" name="Home offset" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_607C"/>
           <CANopenObject index="6081" name="Profile velocity" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6081"/>

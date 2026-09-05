@@ -65,6 +65,30 @@
 #endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_HM) */
 #endif /* !defined(CO_402_CONFIG_MODE_HM) */
 
+#ifndef CO_402_CONFIG_MODE_CSP
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSP)
+#define CO_402_CONFIG_MODE_CSP 1
+#else
+#define CO_402_CONFIG_MODE_CSP 0
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSP) */
+#endif /* !defined(CO_402_CONFIG_MODE_CSP) */
+
+#ifndef CO_402_CONFIG_MODE_CSV
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSV)
+#define CO_402_CONFIG_MODE_CSV 1
+#else
+#define CO_402_CONFIG_MODE_CSV 0
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_CSV) */
+#endif /* !defined(CO_402_CONFIG_MODE_CSV) */
+
+#ifndef CO_402_CONFIG_MODE_CST
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_CST)
+#define CO_402_CONFIG_MODE_CST 1
+#else
+#define CO_402_CONFIG_MODE_CST 0
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_MODE_CST) */
+#endif /* !defined(CO_402_CONFIG_MODE_CST) */
+
 #if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD) && !defined(CO_402_LOG_CUSTOM_HEADER)
 /** Route optional Pure-C CiA 402 state/fault logs through the RT-Thread ulog adapter. */
 #define CO_402_LOG_CUSTOM_HEADER "CO_402_log_RTT.h"

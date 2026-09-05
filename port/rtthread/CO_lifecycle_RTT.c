@@ -440,6 +440,33 @@ void CO_RTT_lifecycleCommunicationReady(CANopenNodeRTT *app)
 }
 
 /**
+ * @brief Dispatch synchronous extension processing under the caller-owned co_rt lock boundary.
+ *
+ * The registry is immutable while a runtime is active. This dispatcher therefore
+ * only walks the fixed slot array; extensions own their bounded per-SYNC work.
+ *
+ * @param app CANopenNode RT-Thread application instance.
+ * @param dtUs Elapsed realtime period for this synchronous processing pass.
+ */
+void CO_RTT_lifecycleSynchronousProcess(CANopenNodeRTT *app, uint32_t dtUs)
+{
+    uint8_t i;
+
+    if (app == NULL) {
+        return;
+    }
+
+    for (i = 0U; i < app->lifecycle.count; i++) {
+        CO_RTT_lifecycle_slot_t *slot = &app->lifecycle.slots[i];
+
+        if (slot->runtimeInitialized == RT_TRUE && slot->communicationBound == RT_TRUE
+            && slot->ops->synchronousProcess != NULL) {
+            slot->ops->synchronousProcess(app, slot->context, dtUs);
+        }
+    }
+}
+
+/**
  * @brief Dispatch one realtime-timer notification to runtime-initialized extensions.
  *
  * This path executes from the shared RT-Thread timer callback, so extension callbacks must remain bounded and

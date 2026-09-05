@@ -50,6 +50,10 @@ typedef struct CANopenNodeRTT CANopenNodeRTT;
  * `realtimeTick` executes from the shared RT-Thread timer callback. It must be
  * bounded and non-blocking: no sleep, unbounded lock, heap allocation, or normal
  * logging is permitted. This timer hook is independent of mainline timerNext.
+ * `synchronousProcess` executes later in co_rt, after synchronous RPDO and before
+ * TPDO, with lifecycleMutex and the OD lock already held. The default co_rt caller
+ * dispatches it only for a SYNC while NMT is Operational. It has the same bounded
+ * rules and must not recursively acquire either caller-owned lock.
  */
 typedef struct {
     rt_err_t (*runtimeInit)(CANopenNodeRTT *app, void *context); /**< Create extension-owned RT resources. */
@@ -61,6 +65,9 @@ typedef struct {
     void (*realtimeTick)(CANopenNodeRTT *app, void *context); /**< Bounded callback from the shared realtime timer. */
     void (*resetWakeups)(CANopenNodeRTT *app, void *context); /**< Drain extension wake state while the timer is stopped. */
     void (*runtimeDeinit)(CANopenNodeRTT *app, void *context); /**< Release final extension state/resources. */
+    /* New lifecycle callbacks remain append-only so established member offsets do not move. */
+    /** Run bounded synchronous work after RPDO and before TPDO while the caller owns lifecycle/OD locks. */
+    void (*synchronousProcess)(CANopenNodeRTT *app, void *context, uint32_t dtUs);
 } CO_RTT_lifecycle_ops_t;
 
 /** Release function for a lifecycle-owned extension context at final teardown. */
@@ -244,6 +251,20 @@ rt_err_t CO_RTT_lifecycleBindCommunication(CANopenNodeRTT *app, CO_t *co, OD_t *
 void CO_RTT_lifecycleCommunicationReady(CANopenNodeRTT *app);
 
 /**
+ * @brief Dispatch synchronous extension work between RPDO and TPDO processing.
+ *
+ * The caller must already hold the application lifecycle mutex and CANopenNode
+ * OD lock. Callbacks execute in the co_rt path and must remain bounded and
+ * non-blocking: no sleep, heap allocation, normal logging, or unbounded lock.
+ * Only runtime-initialized extensions that own the current communication
+ * generation are dispatched.
+ *
+ * @param app CANopenNode RT-Thread application instance.
+ * @param dtUs Elapsed realtime period for this synchronous processing pass.
+ */
+void CO_RTT_lifecycleSynchronousProcess(CANopenNodeRTT *app, uint32_t dtUs);
+
+/**
  * @brief Dispatch one bounded notification from the shared realtime timer callback.
  *
  * This callback path is independent of `PKG_CANOPENNODE_GLOBAL_TIMERNEXT`. Hooks
@@ -301,6 +322,7 @@ static inline rt_err_t CO_RTT_lifecycleRegister(CANopenNodeRTT *app, const CO_RT
 #define CO_RTT_lifecycleCommunicationQuiesced(app)      do { (void)(app); } while (0)
 #define CO_RTT_lifecycleBindCommunication(app, co, od)  (RT_EOK)
 #define CO_RTT_lifecycleCommunicationReady(app)         do { (void)(app); } while (0)
+#define CO_RTT_lifecycleSynchronousProcess(app, dtUs)   do { (void)(app); (void)(dtUs); } while (0)
 #define CO_RTT_lifecycleRealtimeTick(app)               do { (void)(app); } while (0)
 #define CO_RTT_lifecycleResetWakeups(app)               do { (void)(app); } while (0)
 #define CO_RTT_lifecycleRuntimeDeinit(app)               do { (void)(app); } while (0)

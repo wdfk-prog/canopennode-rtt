@@ -7,6 +7,7 @@
 
 #include "CO_402_device.h"
 #include "CO_402_device_fsa.h"
+#include "CO_402_device_internal.h"
 
 /*
  * Populate a manager-level initialization diagnostic.
@@ -29,8 +30,8 @@ static void setDiag(CO_402_init_diag_t *diag, CO_402_init_error_t error, uint8_t
 /*
  * Check the mandatory asynchronous PDS transition callbacks.
  *
- * Feedback and operation-mode callbacks remain optional. supportedModesForDrive()
- * advertises only modes whose complete non-blocking DriveIF is available.
+ * Feedback and operation-mode callbacks remain optional. supportedModesForAxis()
+ * advertises only modes whose complete non-blocking DriveIF/SyncIF path is available.
  */
 static bool driveInterfaceValid(const CO_402_drive_if_t *drive)
 {
@@ -39,10 +40,16 @@ static bool driveInterfaceValid(const CO_402_drive_if_t *drive)
            && drive->faultReaction != NULL && drive->faultReset != NULL;
 }
 
-/* Advertise a mode only when both the build and this axis' complete DriveIF path support it. */
-static uint32_t supportedModesForDrive(const CO_402_drive_if_t *drive)
+/* Advertise a mode only when both the build and this axis' complete callback path support it. */
+static uint32_t supportedModesForAxis(const CO_402_device_axis_config_t *config)
 {
+    const CO_402_drive_if_t *drive;
     uint32_t supportedModes = 0U;
+
+    if (config == NULL) {
+        return 0U;
+    }
+    drive = config->drive;
 
     /* Safe mode switching requires explicit non-blocking entry and exit ownership. */
     if (drive == NULL || drive->modeEnter == NULL || drive->modeExit == NULL) {
@@ -64,6 +71,21 @@ static uint32_t supportedModesForDrive(const CO_402_drive_if_t *drive)
         supportedModes |= CO_402_SUPPORTED_MODE_HM;
     }
 #endif /* CO_402_CONFIG_MODE_HM */
+
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    /* Cyclic modes additionally require a complete bounded command/feedback handoff. */
+    if (config->sync != NULL && config->sync->publishCommand != NULL && config->sync->readFeedback != NULL) {
+#if CO_402_CONFIG_MODE_CSP
+        supportedModes |= config->sync->supportedModes & CO_402_SUPPORTED_MODE_CSP;
+#endif /* CO_402_CONFIG_MODE_CSP */
+#if CO_402_CONFIG_MODE_CSV
+        supportedModes |= config->sync->supportedModes & CO_402_SUPPORTED_MODE_CSV;
+#endif /* CO_402_CONFIG_MODE_CSV */
+#if CO_402_CONFIG_MODE_CST
+        supportedModes |= config->sync->supportedModes & CO_402_SUPPORTED_MODE_CST;
+#endif /* CO_402_CONFIG_MODE_CST */
+    }
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 
     return supportedModes;
 }
@@ -105,6 +127,7 @@ static CO_402_init_error_t validateConfigs(const CO_402_device_axis_config_t *co
 /* Reset mode-local edge/command state without disturbing PDS state or another axis. */
 static void resetModeRuntime(CO_402_device_axis_t *axis, CO_402_mode_t mode, uint16_t controlword)
 {
+    (void)controlword;
     if (axis == NULL) {
         return;
     }
@@ -146,7 +169,7 @@ static bool modeTransitionAllowed(CO_402_state_t state)
            || state == CO_402_STATE_SWITCHED_ON || state == CO_402_STATE_OPERATION_ENABLED;
 }
 
-/* A BUSY exit retains transition ownership, so later 0x6060 writes cannot overtake the retiring mode. */
+/* A BUSY exit blocks ordinary 0x6060 writes until completion; a safety transfer may retire it. */
 static bool continueModeExit(CO_402_device_axis_t *axis, uint16_t controlword)
 {
     CO_402_drive_result_t result;
@@ -172,7 +195,7 @@ static bool continueModeExit(CO_402_device_axis_t *axis, uint16_t controlword)
     return true;
 }
 
-/* A BUSY entry retains transition ownership until the selected mode is fully prepared. */
+/* A BUSY entry blocks ordinary mode requests until completion; a safety transfer may retire it. */
 static bool continueModeEnter(CO_402_device_axis_t *axis, uint16_t controlword)
 {
     CO_402_drive_result_t result;
@@ -198,7 +221,7 @@ static bool continueModeEnter(CO_402_device_axis_t *axis, uint16_t controlword)
     return true;
 }
 
-/* Serialize exit-before-enter and defer new requests while either callback owns the transition. */
+/* Serialize exit-before-enter and defer ordinary requests while either callback owns the transition. */
 static bool processModeSelection(CO_402_device_axis_t *axis, uint16_t controlword, bool *runActiveMode)
 {
     CO_402_mode_t requestedMode;
@@ -208,7 +231,7 @@ static bool processModeSelection(CO_402_device_axis_t *axis, uint16_t controlwor
     }
     *runActiveMode = true;
 
-    /* A BUSY transition owns the axis until its matching callback completes; later 0x6060 writes are queued. */
+    /* A BUSY mode owner queues later 0x6060 writes unless the FSA has already transferred ownership to safety. */
     if (axis->pendingExitMode != CO_402_MODE_NONE) {
         *runActiveMode = false;
         return continueModeExit(axis, controlword);
@@ -266,6 +289,19 @@ static bool processActiveMode(CO_402_device_axis_t *axis, uint16_t controlword)
         case CO_402_MODE_HOMING:
             return CO_402_mode_hm_process(axis, controlword);
 #endif /* CO_402_CONFIG_MODE_HM */
+#if CO_402_CONFIG_MODE_CSP
+        case CO_402_MODE_CYCLIC_SYNC_POSITION:
+#endif /* CO_402_CONFIG_MODE_CSP */
+#if CO_402_CONFIG_MODE_CSV
+        case CO_402_MODE_CYCLIC_SYNC_VELOCITY:
+#endif /* CO_402_CONFIG_MODE_CSV */
+#if CO_402_CONFIG_MODE_CST
+        case CO_402_MODE_CYCLIC_SYNC_TORQUE:
+#endif /* CO_402_CONFIG_MODE_CST */
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+            /* co_rt owns cyclic target/feedback execution; the supervisor only owns PDS/mode transitions. */
+            return true;
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
         case CO_402_MODE_NONE:
         default:
             return false;
@@ -288,6 +324,20 @@ static uint16_t modeStatusword(const CO_402_device_axis_t *axis)
         case CO_402_MODE_HOMING:
             return CO_402_mode_hm_statusword(&axis->hm);
 #endif /* CO_402_CONFIG_MODE_HM */
+#if CO_402_CONFIG_MODE_CSP
+        case CO_402_MODE_CYCLIC_SYNC_POSITION:
+#endif /* CO_402_CONFIG_MODE_CSP */
+#if CO_402_CONFIG_MODE_CSV
+        case CO_402_MODE_CYCLIC_SYNC_VELOCITY:
+#endif /* CO_402_CONFIG_MODE_CSV */
+#if CO_402_CONFIG_MODE_CST
+        case CO_402_MODE_CYCLIC_SYNC_TORQUE:
+#endif /* CO_402_CONFIG_MODE_CST */
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+            return CO_402_device_syncFastPathEligible(axis)
+                       ? CO_402_device_syncStatuswordBits(&axis->syncRuntime)
+                       : 0U;
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
         case CO_402_MODE_NONE:
         default:
             return 0U;
@@ -339,9 +389,15 @@ CO_402_init_error_t CO_402_device_managerInit(CO_402_device_manager_t *manager, 
         axis->driveObject = configs[axisIndex].driveObject;
         axis->faultResetBitPrevious = false;
         axis->faultResetInProgress = false;
+        axis->pdsTransitionOperation = NULL;
+        axis->pdsTransitionTargetState = CO_402_STATE_UNKNOWN;
         axis->pendingExitMode = CO_402_MODE_NONE;
         axis->pendingEnterMode = CO_402_MODE_NONE;
-        axis->supportedModes = supportedModesForDrive(configs[axisIndex].drive);
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+        axis->sync = configs[axisIndex].sync;
+        axis->syncObject = configs[axisIndex].syncObject;
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+        axis->supportedModes = supportedModesForAxis(&configs[axisIndex]);
     }
 
     /* OD binding is performed only after every axis runtime record is valid. */
@@ -382,10 +438,20 @@ static void updateModeRequest(CO_402_device_axis_t *axis)
 }
 
 /*
- * Copy optional drive feedback into the generated OD process image.
+ * Copy optional slow DriveIF feedback whenever co_rt does not own publication.
+ *
+ * Stable cyclic operation remains generation-coherent through SyncIF. During a
+ * BUSY PDS or mode transition, cyclic commands are suppressed, so the lower-
+ * priority supervisor may refresh actual values from the existing DriveIF path.
  */
 static void updateFeedback(CO_402_device_axis_t *axis)
 {
+#if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
+    if (CO_402_device_syncFastPathEligible(axis)) {
+        return;
+    }
+#endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+
     /* Missing optional feedback callbacks leave the corresponding generated OD value unchanged. */
     if (axis->drive->getPosition != NULL) {
         (void)OD_set_i32(axis->od.positionActualValue, 0U, axis->drive->getPosition(axis->driveObject), true);
@@ -393,6 +459,12 @@ static void updateFeedback(CO_402_device_axis_t *axis)
     if (axis->drive->getVelocity != NULL) {
         (void)OD_set_i32(axis->od.velocityActualValue, 0U, axis->drive->getVelocity(axis->driveObject), true);
     }
+#if CO_402_CONFIG_MODE_CST
+    if (axis->mode == CO_402_MODE_CYCLIC_SYNC_TORQUE && axis->od.torqueActualValue != NULL
+        && axis->drive->getTorque != NULL) {
+        (void)OD_set_i16(axis->od.torqueActualValue, 0U, axis->drive->getTorque(axis->driveObject), true);
+    }
+#endif /* CO_402_CONFIG_MODE_CST */
 }
 
 void CO_402_device_process(CO_402_device_manager_t *manager)
@@ -415,11 +487,19 @@ void CO_402_device_process(CO_402_device_manager_t *manager)
 
         /* Snapshot the same generated Controlword used by the mode handshake during this supervisor pass. */
         if (OD_get_u16(axis->od.controlword, 0U, &controlword, true) != ODR_OK) {
-            axis->state = CO_402_STATE_FAULT_REACTION_ACTIVE;
+            /* Fault ownership transfer retires any BUSY mode/PDS owner; no mode callback runs in this pass. */
+            CO_402_device_axisControlwordReadFailed(axis);
+            runActiveMode = false;
         } else {
             CO_402_device_axisProcess(axis);
-            if (!processModeSelection(axis, controlword, &runActiveMode)
-                || (runActiveMode && !processActiveMode(axis, controlword))) {
+            if (axis->pdsTransitionOperation != NULL) {
+                /* A BUSY PDS transition exclusively owns the drive; mode callbacks must not counteract it. */
+                runActiveMode = false;
+                if (axis->mode != CO_402_MODE_NONE) {
+                    resetModeRuntime(axis, axis->mode, controlword);
+                }
+            } else if (!processModeSelection(axis, controlword, &runActiveMode)
+                       || (runActiveMode && !processActiveMode(axis, controlword))) {
                 axis->state = CO_402_STATE_FAULT_REACTION_ACTIVE;
             } else if (!runActiveMode && axis->state != CO_402_STATE_OPERATION_ENABLED
                        && axis->mode != CO_402_MODE_NONE) {

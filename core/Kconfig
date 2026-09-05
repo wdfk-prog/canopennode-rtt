@@ -88,6 +88,21 @@ config PKG_CANOPENNODE_NMT_CALLBACK_CHANGE
         update LEDs, notify diagnostics or gate PDO processing based on NMT
         state transitions.
 
+config PKG_CANOPENNODE_NMT_STATE_LOG
+    bool "Log local NMT state changes"
+    default y
+    depends on PKG_CANOPENNODE_USING_DEBUG
+    select PKG_CANOPENNODE_NMT_CALLBACK_CHANGE
+    help
+        Register the RT-Thread wrapper callback with CO_NMT_initCallbackChanged()
+        and log each local NMT state transition. The callback is registered again
+        after every successful Communication Reset because CO_NMT_init() clears
+        the CANopenNode NMT object.
+
+        CANopenNode provides a single NMT state-change callback slot. Disable
+        this option if product code needs to own that callback directly; the
+        callback capability can still be enabled separately above.
+
 config PKG_CANOPENNODE_NMT_MASTER
     bool "Enable simple NMT master"
     default n
