@@ -24,6 +24,18 @@ config PKG_CANOPENNODE_CIA402_THREAD_PRIORITY
         Initial supervisor priority. The default keeps co_rt (priority 3)
         higher priority. Final priority requires target WCET/jitter validation.
 
+config PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE
+    bool "Bridge CiA 402 axis faults to CANopen EMCY"
+    default y
+    depends on PKG_CANOPENNODE_CIA402_DEVICE_DIAGNOSTICS
+    depends on PKG_CANOPENNODE_EM_ERR_STATUS_BITS_COUNT >= 72
+    select PKG_CANOPENNODE_EM_PRODUCER
+    help
+        Flush axis diagnostic REPORT/RESET events after the Device worker releases
+        the OD lock while lifecycleMutex still protects the current CO_t. Axis
+        source uses manufacturer-specific error-status bits 0x40..0x47.
+        Communication Reset rebinds the new CO_EM_t and replays active faults.
+
 config PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART
     bool "Automatically create and attach CiA 402 Device runtime"
     default n

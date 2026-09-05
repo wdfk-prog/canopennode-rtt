@@ -42,9 +42,21 @@ static void releaseOwnerForSafetyTransfer(CO_402_device_axis_t *axis)
 }
 
 /* Fault reaction is the highest-priority safety owner and cannot wait behind BUSY work. */
-static void setFaultReaction(CO_402_device_axis_t *axis)
+void CO_402_device_axisEnterFaultReaction(CO_402_device_axis_t *axis,
+                                          CO_402_device_fault_origin_t origin,
+                                          const CO_402_device_fault_info_t *fault)
 {
+    if (axis == NULL) {
+        return;
+    }
+
     releaseOwnerForSafetyTransfer(axis);
+#if CO_402_CONFIG_DIAGNOSTICS
+    (void)CO_402_device_diag_latch(axis, origin, fault);
+#else
+    (void)origin;
+    (void)fault;
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
     setState(axis, CO_402_STATE_FAULT_REACTION_ACTIVE);
 }
 
@@ -91,7 +103,7 @@ static void continuePdsTransition(CO_402_device_axis_t *axis)
 
     CO_402_LOG_E("CiA402 drive transition failed: axis=%u state=%u", (unsigned int)axis->logicalDevice,
                  (unsigned int)axis->state);
-    setFaultReaction(axis);
+    CO_402_device_axisEnterFaultReaction(axis, CO_402_FAULT_ORIGIN_PDS_OPERATION, NULL);
 }
 
 /* Latch one PDS owner before its first callback; only a stricter safety request may replace it while BUSY. */
@@ -268,12 +280,21 @@ static void processFault(CO_402_device_axis_t *axis, bool faultResetRisingEdge)
     axis->faultResetInProgress = false;
     if (result == CO_402_DRIVE_DONE) {
         CO_402_LOG_I("CiA402 fault reset completed: axis=%u", (unsigned int)axis->logicalDevice);
+#if CO_402_CONFIG_DIAGNOSTICS
+        /* A successful physical reset is not externally safe to publish if its diagnostic state cannot be cleared. */
+        if (!CO_402_device_diag_clear(axis)) {
+            CO_402_LOG_E("CiA402 fault reset blocked by diagnostic contract failure: axis=%u",
+                         (unsigned int)axis->logicalDevice);
+            CO_402_device_axisEnterFaultReaction(axis, CO_402_FAULT_ORIGIN_FAULT_RESET, NULL);
+            return;
+        }
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
         setState(axis, CO_402_STATE_SWITCH_ON_DISABLED);
         return;
     }
 
     CO_402_LOG_E("CiA402 fault reset failed: axis=%u", (unsigned int)axis->logicalDevice);
-    setFaultReaction(axis);
+    CO_402_device_axisEnterFaultReaction(axis, CO_402_FAULT_ORIGIN_FAULT_RESET, NULL);
 }
 
 void CO_402_device_axisControlwordReadFailed(CO_402_device_axis_t *axis)
@@ -294,7 +315,7 @@ void CO_402_device_axisControlwordReadFailed(CO_402_device_axis_t *axis)
     }
 
     /* Fault reaction supersedes any BUSY PDS, Fault Reset, or mode owner at this callback boundary. */
-    setFaultReaction(axis);
+    CO_402_device_axisEnterFaultReaction(axis, CO_402_FAULT_ORIGIN_CONTROLWORD_OD, NULL);
     processFaultReactionActive(axis);
 }
 
@@ -379,7 +400,7 @@ void CO_402_device_axisProcess(CO_402_device_axis_t *axis)
             /* Unknown state is not recoverable locally; enter the common fault-reaction path. */
             CO_402_LOG_E("CiA402 invalid PDS state: axis=%u state=%u", (unsigned int)axis->logicalDevice,
                          (unsigned int)axis->state);
-            setFaultReaction(axis);
+            CO_402_device_axisEnterFaultReaction(axis, CO_402_FAULT_ORIGIN_INTERNAL_STATE, NULL);
             break;
     }
 }

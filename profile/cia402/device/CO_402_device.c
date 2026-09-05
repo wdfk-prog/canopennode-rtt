@@ -111,6 +111,12 @@ static CO_402_init_error_t validateConfigs(const CO_402_device_axis_config_t *co
             setDiag(diag, CO_402_INIT_BAD_AXIS, configs[axisIndex].logicalDevice);
             return CO_402_INIT_BAD_AXIS;
         }
+#if CO_402_CONFIG_DIAGNOSTICS
+        if (!CO_402_device_diag_ifValid(configs[axisIndex].diag)) {
+            setDiag(diag, CO_402_INIT_DIAG_IF, configs[axisIndex].logicalDevice);
+            return CO_402_INIT_DIAG_IF;
+        }
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 
         /* Duplicate logical-device blocks would make two axes own the same OD state. */
         for (compareIndex = (uint8_t)(axisIndex + 1U); compareIndex < axisCount; compareIndex++) {
@@ -397,6 +403,10 @@ CO_402_init_error_t CO_402_device_managerInit(CO_402_device_manager_t *manager, 
         axis->sync = configs[axisIndex].sync;
         axis->syncObject = configs[axisIndex].syncObject;
 #endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+#if CO_402_CONFIG_DIAGNOSTICS
+        axis->diag = configs[axisIndex].diag;
+        axis->diagObject = configs[axisIndex].diagObject;
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
         axis->supportedModes = supportedModesForAxis(&configs[axisIndex]);
     }
 
@@ -482,6 +492,13 @@ void CO_402_device_process(CO_402_device_manager_t *manager)
         uint16_t controlword = 0U;
         uint16_t statusword;
         bool runActiveMode = true;
+#if CO_402_CONFIG_DIAGNOSTICS
+        CO_402_device_fault_info_t productFault;
+
+        if (CO_402_device_diag_pollProductFault(axis, &productFault)) {
+            CO_402_device_axisEnterFaultReaction(axis, CO_402_FAULT_ORIGIN_PRODUCT, &productFault);
+        }
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 
         updateModeRequest(axis);
 
@@ -500,7 +517,7 @@ void CO_402_device_process(CO_402_device_manager_t *manager)
                 }
             } else if (!processModeSelection(axis, controlword, &runActiveMode)
                        || (runActiveMode && !processActiveMode(axis, controlword))) {
-                axis->state = CO_402_STATE_FAULT_REACTION_ACTIVE;
+                CO_402_device_axisEnterFaultReaction(axis, CO_402_FAULT_ORIGIN_MODE_OPERATION, NULL);
             } else if (!runActiveMode && axis->state != CO_402_STATE_OPERATION_ENABLED
                        && axis->mode != CO_402_MODE_NONE) {
                 /* PDS owns the physical stop while a paused mode transition retains only protocol ownership. */

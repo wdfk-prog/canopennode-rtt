@@ -7,6 +7,9 @@
 #define LOG_LVL LOG_LVL_DBG
 
 #include "CO_402_device_RTT.h"
+#if CO_402_CONFIG_DIAGNOSTICS
+#include "301/CO_Emergency.h"
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 #include "co_rtt_log.h"
 
 #include <limits.h>
@@ -441,6 +444,32 @@ static const CO_402_device_sync_if_t CO_402_demoSyncIf = {
 };
 #endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
 
+#if CO_402_CONFIG_DIAGNOSTICS
+/*
+ * Demo-only device-specific mappings exercise the A7 transport contract without
+ * pretending to define a product fault taxonomy. Real products must replace
+ * these values with their selected CiA 301/402/product fault matrix.
+ */
+static bool CO_402_demoGetFaultInfo(void *object, CO_402_device_fault_origin_t origin,
+                                    CO_402_device_fault_info_t *info)
+{
+    CO_402_demo_axis_t *axis = (CO_402_demo_axis_t *)object;
+
+    if (axis == NULL || info == NULL || origin == CO_402_FAULT_ORIGIN_PRODUCT) {
+        return false;
+    }
+
+    info->pdsErrorCode = (uint16_t)(0xFF10U + (uint16_t)origin);
+    info->emcyCode = CO_EMC_DEVICE_SPECIFIC;
+    info->infoCode = 0x402A0000UL | ((uint32_t)axis->axis << 8U) | (uint32_t)origin;
+    return true;
+}
+
+static const CO_402_device_diag_if_t CO_402_demoDiagIf = {
+    .getFaultInfo = CO_402_demoGetFaultInfo,
+};
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
+
 /* Deterministic software DriveIF used to validate protocol and supervisor behavior without motor hardware. */
 static const CO_402_drive_if_t CO_402_demoDriveIf = {
     .shutdown = CO_402_demoShutdown,
@@ -467,6 +496,10 @@ static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
         .logicalDevice = 0U,
         .drive = &CO_402_demoDriveIf,
         .driveObject = &CO_402_demoAxes[0],
+#if CO_402_CONFIG_DIAGNOSTICS
+        .diag = &CO_402_demoDiagIf,
+        .diagObject = &CO_402_demoAxes[0],
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 #if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
         .sync = &CO_402_demoSyncIf,
         .syncObject = &CO_402_demoAxes[0],
@@ -476,6 +509,10 @@ static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
         .logicalDevice = 1U,
         .drive = &CO_402_demoDriveIf,
         .driveObject = &CO_402_demoAxes[1],
+#if CO_402_CONFIG_DIAGNOSTICS
+        .diag = &CO_402_demoDiagIf,
+        .diagObject = &CO_402_demoAxes[1],
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 #if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
         .sync = &CO_402_demoSyncIf,
         .syncObject = &CO_402_demoAxes[1],
@@ -485,6 +522,10 @@ static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
         .logicalDevice = 2U,
         .drive = &CO_402_demoDriveIf,
         .driveObject = &CO_402_demoAxes[2],
+#if CO_402_CONFIG_DIAGNOSTICS
+        .diag = &CO_402_demoDiagIf,
+        .diagObject = &CO_402_demoAxes[2],
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 #if CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST
         .sync = &CO_402_demoSyncIf,
         .syncObject = &CO_402_demoAxes[2],

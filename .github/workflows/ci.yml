@@ -37,6 +37,7 @@ jobs:
           - demo-minimal
           - demo-default
           - demo-cia402-device-rtt-autostart
+          - demo-cia402-a7-validation
           - demo-high-res-time
           - demo-pdo-sync
           - demo-sdo-block-test
@@ -122,6 +123,17 @@ jobs:
           echo "$ARM_GCC_DIR/bin" >> "$GITHUB_PATH"
           echo "RTT_EXEC_PATH=$ARM_GCC_DIR/bin" >> "$GITHUB_ENV"
           "$ARM_GCC_DIR/bin/arm-none-eabi-gcc" --version
+
+      - name: Check CiA 402 product artifact contract
+        if: matrix.profile == 'demo-cia402-a7-validation'
+        run: |
+          python3 -m py_compile .github/ci/canopennode-rtt/verify-cia402-artifacts.py
+          if [ -f examples/cia402_multi_axis_device/manifest.json ]; then
+            python3 .github/ci/canopennode-rtt/verify-cia402-artifacts.py \
+              examples/cia402_multi_axis_device
+          else
+            echo "CIA402_PRODUCT_ARTIFACT_PENDING: manifest.json not frozen yet"
+          fi
 
       - name: Build package in STM32F4 BSP
         run: bash .github/ci/canopennode-rtt/build-stm32f4.sh

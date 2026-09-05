@@ -12,11 +12,12 @@ This documentation is organized for RT-Thread BSP developers, firmware integrato
 4. Read [High-Resolution Time integration](high-resolution-time.md) before enabling the hardware microsecond time source.
 5. Read [Persistent LSS Node-ID and bitrate](lss-persistence.md) when using Storage-backed LSS persistence.
 6. Read [Object Dictionary guide](object-dictionary.md) before replacing the demo OD.
-7. Read [CiA 402 Pure-C Device Core and OD Binding](cia402-device-core.md) before integrating the Device core.
-8. Read [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) before wiring thread/reset lifecycle integration.
-9. Read [Testing and validation](testing.md) before running protocol validation with the Linux Host.
-10. Read [Submodule update guide](submodule-update.md) before updating CANopenNode.
-11. Use [Troubleshooting](troubleshooting.md) when build or runtime behavior is unexpected.
+7. Read [CiA 402 Device delivery and interoperability](cia402.md) for A7 diagnostics, EMCY, release artifacts, and product acceptance.
+8. Read [CiA 402 Pure-C Device Core and OD Binding](cia402-device-core.md) before integrating the Device core.
+9. Read [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) before wiring thread/reset lifecycle integration.
+10. Read [Testing and validation](testing.md) before running protocol validation with the Linux Host.
+11. Read [Submodule update guide](submodule-update.md) before updating CANopenNode.
+12. Use [Troubleshooting](troubleshooting.md) when build or runtime behavior is unexpected.
 
 ## Document map
 
@@ -30,6 +31,7 @@ This documentation is organized for RT-Thread BSP developers, firmware integrato
 | [Testing and validation](testing.md) | How do the MCU-side fixtures work with the `canopen-slave-tester` master code, and which evidence belongs to Host, target, or HIL validation? |
 | [NMT Master automatic test](nmt-master-test.md) | How does the MCU automatically drive a Linux Lely slave to validate the NMT Master command sequence? |
 | [Object Dictionary guide](object-dictionary.md) | How do I use or replace the demo OD? |
+| [CiA 402 Device delivery and interoperability](cia402.md) | How does A7 map axis faults to EMCY, validate release artifacts, and define interoperability acceptance? |
 | [CiA 402 Pure-C Device Core and OD Binding](cia402-device-core.md) | How does A3 bind multi-axis OD entries, supervise the PDS FSA, and validate DriveIF behavior? |
 | [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) | How does A4 integrate the thread, lock order, and Communication Reset? |
 | [Submodule update guide](submodule-update.md) | How do I clone, initialize, update, or pin the CANopenNode submodule? |

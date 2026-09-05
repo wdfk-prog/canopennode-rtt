@@ -354,7 +354,7 @@ CO_402_init_error_t CO_402_device_bindOD(CO_402_device_manager_t *manager, CO_40
         }
     }
 
-    /* Publish capabilities before extension installation so a write failure cannot leave a partially rebound manager. */
+    /* Publish writable profile state before extension installation so binding remains all-or-nothing on failure. */
     for (axisIndex = 0U; axisIndex < manager->axisCount; axisIndex++) {
         CO_402_device_axis_t *axis = &manager->axes[axisIndex];
 
@@ -362,6 +362,13 @@ CO_402_init_error_t CO_402_device_bindOD(CO_402_device_manager_t *manager, CO_40
             setDiag(diag, CO_402_INIT_OD_ACCESS, axis->logicalDevice, axis->od.supportedDriveModes->index, 0U);
             return CO_402_INIT_OD_ACCESS;
         }
+#if CO_402_CONFIG_DIAGNOSTICS
+        /* Rebinding restores 0x603F state and queues active-fault replay before any forwarding extension is published. */
+        if (!CO_402_device_diag_restoreAxis(axis, true)) {
+            setDiag(diag, CO_402_INIT_DIAG_OD, axis->logicalDevice, axis->od.errorCode->index, 0U);
+            return CO_402_INIT_DIAG_OD;
+        }
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
     }
 
     for (axisIndex = 0U; axisIndex < manager->axisCount; axisIndex++) {
