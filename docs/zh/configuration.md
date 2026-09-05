@@ -61,6 +61,14 @@ RX helper priority <= realtime priority < mainline priority
 
 `co_402` 复用 realtime timer，但不改变 `timerNext_us` mainline 配置。自动构造默认关闭。Package demo 内部已经实例化 `CO_402_DEVICE_RTT_AUTOSTART_DEFINE(...)`；真实产品关闭 demo，并由持久 axis/DriveIF 配置提供自己的 macro 实例。manual path 仍保持 CiA402 零 heap。详细生命周期见 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
 
+Controller 角色与 Device thread 明确分离：
+
+| 选项 | 默认值 | 用途 |
+|---|---:|---|
+| `PKG_CANOPENNODE_CIA402_CONTROLLER` | `n` | 编译 Pure-C 远端 PDS 命令序列器；不会自动选择 NMT、Heartbeat Consumer、SDO Client、PDO、SYNC、RT-Thread task 或 heap 依赖。 |
+
+远端 Node-ID 与全部 CANopen transport/network orchestration 仍由应用负责。见 [CiA 402 Controller API](cia402-controller.md)。
+
 ## 4. 应用自动初始化
 
 | 选项 | 默认值 | 说明 |

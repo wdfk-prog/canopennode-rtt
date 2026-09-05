@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
+  <title id="title">CiA 402 Controller ownership boundary</title>
+  <desc id="desc">The application owns CANopen transport while the CiA 402 Controller owns only PDS sequencing.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="currentColor"/>
+    </marker>
+  </defs>
+  <rect x="30" y="30" width="900" height="350" rx="12" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="480" y="62" text-anchor="middle" font-family="sans-serif" font-size="22">User Application</text>
+  <rect x="90" y="100" width="320" height="220" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="250" y="132" text-anchor="middle" font-family="sans-serif" font-size="20">CANopen Master / Transport</text>
+  <text x="125" y="170" font-family="monospace" font-size="17">NMT</text>
+  <text x="125" y="198" font-family="monospace" font-size="17">Heartbeat Consumer</text>
+  <text x="125" y="226" font-family="monospace" font-size="17">SDO Client</text>
+  <text x="125" y="254" font-family="monospace" font-size="17">PDO / SYNC</text>
+  <text x="125" y="282" font-family="monospace" font-size="17">Node-ID / EDS / XDD</text>
+  <rect x="550" y="100" width="320" height="220" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="710" y="132" text-anchor="middle" font-family="sans-serif" font-size="20">CO_402_controller</text>
+  <text x="585" y="170" font-family="monospace" font-size="17">Statusword decode</text>
+  <text x="585" y="198" font-family="monospace" font-size="17">Requested PDS target</text>
+  <text x="585" y="226" font-family="monospace" font-size="17">Controlword sequencing</text>
+  <text x="585" y="254" font-family="monospace" font-size="17">Fault Reset policy</text>
+  <text x="585" y="282" font-family="monospace" font-size="17">Timeout / result</text>
+  <line x1="410" y1="190" x2="550" y2="190" stroke="currentColor" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="480" y="180" text-anchor="middle" font-family="sans-serif" font-size="14">Statusword</text>
+  <line x1="550" y1="245" x2="410" y2="245" stroke="currentColor" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="480" y="235" text-anchor="middle" font-family="sans-serif" font-size="14">value + mask</text>
+  <rect x="330" y="420" width="300" height="70" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="480" y="450" text-anchor="middle" font-family="sans-serif" font-size="20">Remote CiA 402 Drive</text>
+  <text x="480" y="476" text-anchor="middle" font-family="sans-serif" font-size="15">Transport owned by application</text>
+  <line x1="480" y1="380" x2="480" y2="420" stroke="currentColor" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>

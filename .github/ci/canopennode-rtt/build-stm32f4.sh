@@ -292,6 +292,51 @@ append_canopennode_manual_multiple_od()
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_MULTIPLE_OD"
 }
 
+append_canopennode_cia402_controller()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_CONTROLLER"
+
+    # Prove the Controller core does not rely on optional remote-network transport helpers.
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_HB_CONS"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_HB_CONS_CALLBACK_NONE"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_HB_CONS_CALLBACK_CHANGE"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_HB_CONS_CALLBACK_MULTI"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_HB_CONS_QUERY_FUNCT"
+
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SDO_CLIENT"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_SEGMENTED"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_BLOCK"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_LOCAL"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_CLI_BUFFER_SIZE"
+
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SYNC"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SYNC_PRODUCER"
+
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_PDO"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RPDO"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TPDO"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RPDO_TIMERS"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_TPDO_TIMERS"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_SYNC"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_OD_IO_ACCESS"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PDO_BITWISE_MAPPING"
+
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_MASTER"
+}
+
+append_canopennode_cia402_device_controller()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_canopennode_cia402_device_rtt_autostart "$config_file" "$rtconfig_file"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_CONTROLLER"
+}
+
 append_canopennode_cia402_device_rtt_autostart()
 {
     local config_file="$1"
@@ -444,9 +489,17 @@ append_canopennode_profile()
             log "CI Kconfig profile demo-default: default demo object set"
             append_canopennode_default_objects "$config_file" "$rtconfig_file"
             ;;
+        demo-cia402-controller-only)
+            log "CI Kconfig profile demo-cia402-controller-only: transport-agnostic CiA 402 Controller only"
+            append_canopennode_cia402_controller "$config_file" "$rtconfig_file"
+            ;;
         demo-cia402-device-rtt-autostart)
             log "CI Kconfig profile demo-cia402-device-rtt-autostart: CiA 402 RT demo factory and lifecycle autostart"
             append_canopennode_cia402_device_rtt_autostart "$config_file" "$rtconfig_file"
+            ;;
+        demo-cia402-device-controller)
+            log "CI Kconfig profile demo-cia402-device-controller: Device and transport-agnostic Controller coexistence"
+            append_canopennode_cia402_device_controller "$config_file" "$rtconfig_file"
             ;;
         demo-cia402-a7-validation)
             log "CI Kconfig profile demo-cia402-a7-validation: CiA 402 diagnostics and deferred EMCY bridge"
@@ -601,8 +654,9 @@ append_canopennode_profile()
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
-                "Supported profiles: demo-minimal demo-default demo-cia402-device-rtt-autostart" \
-                "  demo-cia402-a7-validation demo-high-res-time demo-pdo-sync demo-emcy-consumer demo-gfc" \
+                "Supported profiles: demo-minimal demo-default demo-cia402-controller-only" \
+                "  demo-cia402-device-rtt-autostart demo-cia402-device-controller demo-cia402-a7-validation" \
+                "  demo-high-res-time demo-pdo-sync demo-emcy-consumer demo-gfc" \
                 "  demo-nmt-master-test demo-sdo-client-test" \
                 "  demo-sdo-block-test demo-sdo-client-gateway" \
                 "  demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" \
@@ -715,6 +769,20 @@ verify_profile_object()
     log "Profile object: ${object_path#$bsp_dir/}"
 }
 
+verify_profile_object_absent()
+{
+    local bsp_dir="$1"
+    local object_name="$2"
+    local object_path
+
+    object_path="$(find "$bsp_dir/build" -type f -name "$object_name" -print -quit)"
+    if [ -n "$object_path" ]; then
+        echo "Unexpected profile object was built: $object_name ($object_path)" >&2
+        exit 1
+    fi
+    log "Profile object absent as expected: $object_name"
+}
+
 verify_stm32_library_object()
 {
     local object_name="$1"
@@ -773,7 +841,15 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "CO_app_RTT.o"
             verify_profile_object "$bsp_dir" "OD.o"
             ;;
-        demo-cia402-device-rtt-autostart|demo-cia402-a7-validation)
+        demo-cia402-controller-only)
+            verify_profile_object "$bsp_dir" "CO_402_state.o"
+            verify_profile_object "$bsp_dir" "CO_402_controller.o"
+            verify_profile_object_absent "$bsp_dir" "CO_HBconsumer.o"
+            verify_profile_object_absent "$bsp_dir" "CO_SDOclient.o"
+            verify_profile_object_absent "$bsp_dir" "CO_SYNC.o"
+            verify_profile_object_absent "$bsp_dir" "CO_PDO.o"
+            ;;
+        demo-cia402-device-rtt-autostart|demo-cia402-device-controller|demo-cia402-a7-validation)
             verify_profile_object "$bsp_dir" "CO_402_state.o"
             verify_profile_object "$bsp_dir" "CO_402_device.o"
             verify_profile_object "$bsp_dir" "CO_402_device_fsa.o"
@@ -791,6 +867,9 @@ verify_profile_outputs()
             if [ "$CANOPENNODE_CI_PROFILE" = "demo-cia402-a7-validation" ]; then
                 verify_profile_object "$bsp_dir" "CO_402_device_diag.o"
                 verify_profile_object "$bsp_dir" "CO_Emergency.o"
+            fi
+            if [ "$CANOPENNODE_CI_PROFILE" = "demo-cia402-device-controller" ]; then
+                verify_profile_object "$bsp_dir" "CO_402_controller.o"
             fi
             ;;
         demo-storage-dfs)

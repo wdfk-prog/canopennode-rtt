@@ -36,7 +36,9 @@ jobs:
         profile:
           - demo-minimal
           - demo-default
+          - demo-cia402-controller-only
           - demo-cia402-device-rtt-autostart
+          - demo-cia402-device-controller
           - demo-cia402-a7-validation
           - demo-high-res-time
           - demo-pdo-sync
@@ -61,6 +63,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Run CiA 402 Controller Host test
+        if: matrix.profile == 'demo-cia402-controller-only'
+        run: sh .github/ci/canopennode-rtt/test-cia402-controller-host.sh
 
       - name: Install host packages
         run: |

@@ -57,6 +57,12 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         ]
         _add_required(os.path.join('profile', 'cia402', 'common', 'CO_402_state.c'))
 
+    if GetDepend('PKG_CANOPENNODE_CIA402_CONTROLLER'):
+        CPPPATH += [
+            os.path.join(cwd, 'profile', 'cia402', 'controller'),
+        ]
+        _add_required(os.path.join('profile', 'cia402', 'controller', 'CO_402_controller.c'))
+
     if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE'):
         CPPPATH += [
             os.path.join(cwd, 'profile', 'cia402', 'device'),

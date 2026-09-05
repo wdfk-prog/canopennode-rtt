@@ -15,9 +15,10 @@
 7. 阅读 [CiA 402 Device 交付、诊断与互操作](cia402.md)，了解 A7 EMCY、发布 artifact 与产品验收。
 8. 集成 CiA 402 Device core 前，阅读 [CiA 402 Pure-C Device Core 与 OD Binding](cia402-device-core.md)。
 9. 接入 RT-Thread 线程 与 Communication Reset 前，阅读 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
-10. 与 Linux Host 联合执行协议验证前，阅读[测试与验证](testing.md)。
-11. 更新 CANopenNode 前，阅读[子模块更新说明](submodule-update.md)。
-12. 遇到构建或运行异常时，参考[故障排查](troubleshooting.md)。
+10. 应用需要控制远端 CiA 402 drive 时，阅读 [CiA 402 Controller API](cia402-controller.md)。
+11. 与 Linux Host 联合执行协议验证前，阅读[测试与验证](testing.md)。
+12. 更新 CANopenNode 前，阅读[子模块更新说明](submodule-update.md)。
+13. 遇到构建或运行异常时，参考[故障排查](troubleshooting.md)。
 
 ## 文档地图
 
@@ -34,6 +35,7 @@
 | [CiA 402 Device 交付、诊断与互操作](cia402.md) | A7 如何完成 axis fault→EMCY、release artifact 校验和互操作验收？ |
 | [CiA 402 Pure-C Device Core 与 OD Binding](cia402-device-core.md) | A3 多轴 Device core 如何绑定 OD、运行 PDS FSA 并验证 DriveIF？ |
 | [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) | A4 如何安全接入 thread、锁顺序和 Communication Reset？ |
+| [CiA 402 Controller API](cia402-controller.md) | Pure-C Controller 如何在不接管 NMT/SDO/PDO/SYNC 的前提下控制远端 PDS？ |
 | [子模块更新说明](submodule-update.md) | 如何克隆、初始化、更新或锁定 CANopenNode 子模块？ |
 | [故障排查](troubleshooting.md) | 如何定位常见构建、CAN、SDO、PDO、storage 或 trace 问题？ |
 
