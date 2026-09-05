@@ -1,6 +1,6 @@
 /**
  * @file CO_401_device.c
- * @brief Pure-C Stage-1 CiA 401 Device manager.
+ * @brief Pure-C CiA 401 Device manager.
  */
 
 #include <string.h>
@@ -55,9 +55,26 @@ static CO_401_init_error_t validateConfig(const CO_401_device_config_t *config, 
     if (config->digitalInputBanks != 0U && config->io->readDigital8 == NULL) {
         return CO_401_INIT_IO_IF;
     }
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
+    if (config->digitalInputBanks != 0U) {
+        const uint16_t requestableSubIndexes = (uint16_t)OD_FLAGS_PDO_SIZE * 8U;
+
+        if (requestableSubIndexes == 0U || (uint16_t)config->digitalInputBanks >= requestableSubIndexes) {
+            return CO_401_INIT_CONFIG;
+        }
+        if (config->io->setDigitalInputFilter8 == NULL) {
+            return CO_401_INIT_IO_IF;
+        }
+    }
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
     if (config->digitalOutputBanks != 0U && config->io->writeDigital8 == NULL) {
         return CO_401_INIT_IO_IF;
     }
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
+    if (config->digitalOutputBanks != 0U && config->io->writeDigital8Masked == NULL) {
+        return CO_401_INIT_IO_IF;
+    }
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE */
     if (config->analogInputChannels != 0U && config->io->readAnalog16 == NULL) {
         return CO_401_INIT_IO_IF;
     }
@@ -97,6 +114,15 @@ CO_401_init_error_t CO_401_device_init(CO_401_device_t *device, OD_t *od,
 
     return CO_401_device_bindOD(device, diag);
 }
+
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
+void CO_401_device_setDigitalOutputFault(CO_401_device_t *device, bool active)
+{
+    if (device != NULL) {
+        device->digitalOutputFaultActive = active;
+    }
+}
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE */
 
 void CO_401_device_process(CO_401_device_t *device)
 {
