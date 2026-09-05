@@ -2,6 +2,7 @@
 
 menu "CANopen profiles"
 
+rsource "cia401/Kconfig"
 rsource "cia402/Kconfig"
 
 endmenu

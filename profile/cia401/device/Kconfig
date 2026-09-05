@@ -1,0 +1,36 @@
+# Kconfig for the Pure-C local CiA 401 Device core.
+
+config PKG_CANOPENNODE_CIA401_DEVICE
+    bool "Local CiA 401 Device core"
+    default y
+    depends on PKG_CANOPENNODE_CIA401
+    help
+        Build the Pure-C generic I/O Device core for Objects 0x6000, 0x6200,
+        0x6401 and 0x6411. Generated OD objects are validated against product
+        capability counts before any process-image exchange is enabled.
+
+if PKG_CANOPENNODE_CIA401_DEVICE
+
+config PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS
+    bool "CiA 401 digital input events and filter bridge"
+    default n
+    depends on PKG_CANOPENNODE_TPDO
+    depends on PKG_CANOPENNODE_PDO_OD_IO_ACCESS
+    help
+        Enable Objects 0x6002, 0x6003 and 0x6005..0x6008, logical edge
+        detection, OD-based TPDO event requests and the product filter-enable
+        bridge. OD_FLAGS_PDO_SIZE must cover every enabled 0x6000 sub-index.
+
+config PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE
+    bool "CiA 401 digital output profile semantics"
+    default n
+    depends on PKG_CANOPENNODE_RPDO
+    depends on PKG_CANOPENNODE_PDO_OD_IO_ACCESS
+    help
+        Enable Objects 0x6202, 0x6206, 0x6207 and 0x6208, including output
+        polarity, final physical-output filtering and fail-safe physical output
+        selection. The product IOIF must provide masked physical writes so 0x6206
+        keep bits and 0x6208 blocked bits are never overwritten. The 0x6200 command
+        image always retains the complete received value.
+
+endif

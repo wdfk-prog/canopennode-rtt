@@ -1,0 +1,16 @@
+# Kconfig entry for the CiA 401 generic I/O device profile.
+
+menuconfig PKG_CANOPENNODE_CIA401
+    bool "CiA 401 generic I/O device profile"
+    default n
+    help
+        Enable role-neutral CiA 401 definitions. Stage 1 contains only the
+        Pure-C local Device process image and generated-OD contract; it does not
+        add RT-Thread, heap, hardware-driver, event-mask, scaling or fault-safe
+        dependencies.
+
+if PKG_CANOPENNODE_CIA401
+
+rsource "device/Kconfig"
+
+endif
