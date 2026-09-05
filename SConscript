@@ -51,6 +51,20 @@ def _add_required(path):
 
 
 if GetDepend('PKG_USING_CANOPENNODE'):
+    if GetDepend('PKG_CANOPENNODE_CIA401'):
+        CPPPATH += [
+            os.path.join(cwd, 'profile', 'cia401', 'common'),
+        ]
+
+    if GetDepend('PKG_CANOPENNODE_CIA401_DEVICE'):
+        CPPPATH += [
+            os.path.join(cwd, 'profile', 'cia401', 'device'),
+        ]
+        _add_required(os.path.join('profile', 'cia401', 'device', 'CO_401_device.c'))
+        _add_required(os.path.join('profile', 'cia401', 'device', 'CO_401_device_od.c'))
+        _add_required(os.path.join('profile', 'cia401', 'device', 'CO_401_digital.c'))
+        _add_required(os.path.join('profile', 'cia401', 'device', 'CO_401_analog.c'))
+
     if GetDepend('PKG_CANOPENNODE_CIA402'):
         CPPPATH += [
             os.path.join(cwd, 'profile', 'cia402', 'common'),
