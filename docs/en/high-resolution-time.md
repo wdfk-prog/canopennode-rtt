@@ -159,8 +159,6 @@ Before enabling High-Res, verify:
 [ ] the timer counts upward
 [ ] the timer is dedicated to CANopen High-Res timing
 [ ] start/stop/count_get are available
-[ ] target measurements show elapsed values that are not limited to 1000-us multiples
-[ ] long-duration wrap/stability testing is completed
 ```
 
-Do not treat successful initialization alone as proof that the timer selection is correct; an incorrectly selected 16-bit timer is not guaranteed to be detected by the wrapper.
+Successful initialization does not establish the physical counter width; the selected timer must still be confirmed from the MCU and BSP resource definition.

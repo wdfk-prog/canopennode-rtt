@@ -24,9 +24,9 @@ examples/demo_device/
 以下场景适合使用 demo OD：
 
 - 首次 bring-up RT-Thread CAN 驱动和本软件包；
-- 验证基础 NMT、heartbeat、SDO、SYNC 或 PDO 运行路径；
+- 使用基础 NMT、heartbeat、SDO、SYNC 或 PDO 运行路径；
 - 检查目标是否发送预期 CANopen boot-up 帧；
-- 在不引入产品 OD 复杂度的情况下测试线程优先级、CAN 接收分发和日志。
+- 在不引入产品 OD 复杂度的情况下观察线程优先级、CAN 接收分发和日志。
 
 不要把 demo OD 当作最终产品数据模型。
 
@@ -104,7 +104,7 @@ SDO 访问要求 `PKG_CANOPENNODE_USING_SDO_SERVER` 开启，并且 OD access at
 
 ## 8. Demo TIME consumer 诊断
 
-生成的 demo OD 提供 manufacturer-specific 记录 `0x2300`，用于 TIME consumer 自动验证：
+生成的 demo OD 提供 manufacturer-specific 记录 `0x2300`，用于 TIME consumer 诊断：
 
 | Sub-index | 类型 | 访问 | 含义 |
 |---:|---|---|---|
@@ -114,11 +114,11 @@ SDO 访问要求 `PKG_CANOPENNODE_USING_SDO_SERVER` 开启，并且 OD access at
 
 该记录位于 RAM，不可 PDO mapping。只有开启 `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` 时运行时才会更新这些值。接收计数保存在 RT-Thread wrapper 实例中，因此 CANopen communication reset 不会清零；应用毫秒/day 字段始终来自当前 `CO_TIME_t`，并在 `CO_process()` 之后发布。
 
-该对象只是 demo/test 可观察性契约，不属于标准 CiA 301 TIME 对象。产品固件使用自定义 OD 时，应根据自身验证策略提供等价的应用结果接口。
+该对象只是 demo 可观察性契约，不属于标准 CiA 301 TIME 对象。产品固件使用自定义 OD 时，应按产品需要定义自己的应用诊断接口。
 
 ## 9. Demo EMCY consumer 诊断
 
-生成的 demo OD 提供 manufacturer-specific 记录 `0x2301`，用于 EMCY Consumer 自动验证：
+生成的 demo OD 提供 manufacturer-specific 记录 `0x2301`，用于 EMCY Consumer 诊断：
 
 | Sub-index | 类型 | 访问 | 含义 |
 |---:|---|---|---|
@@ -132,63 +132,27 @@ SDO 访问要求 `PKG_CANOPENNODE_USING_SDO_SERVER` 开启，并且 OD access at
 
 接收 callback 使用 RT-Thread atomic 字段和奇偶 sequence counter 更新快照；`CO_demo_process()` 只有在前后 sequence 一致且为偶数时才把一次完整接收侧快照发布到 OD。由于各字段属于独立 SDO sub-index，Host 组合读取多个字段时应先读一次 `remote_rx_count`、再读取其余字段、最后再次读取 `remote_rx_count`；前后计数不同则重试。接收计数和最近一次远端 EMCY 快照会在 communication reset 时保留，同时 callback 会重新绑定到重建后的 CANopenNode stack。CANopenNode 以 `ident == 0` 报告的本节点 EMCY 会被过滤；重复远端 EMCY 以及 error code 为零的恢复消息都分别计数。该记录位于 RAM，不可 PDO mapping。
 
-该对象只是 demo/test 可观察性契约，不承担产品级远端故障管理。
+该对象只是 demo 可观察性接口，不承担产品级远端故障管理。
 
 ## 10. GFC 参数与 demo 协议诊断
 
 生成的 demo OD 包含标准 GFC 参数 `0x1300:00`，类型为可读写 `UNSIGNED8`，默认值为 `1`。CANopenNode 将 `0` 解释为 GFC 无效、`1` 解释为 GFC 有效；大于 `1` 的值由 GFC OD extension 拒绝。
 
-为支持 GFC 自动协议验证，manufacturer-specific 记录 `0x2302` 只暴露测试控制和证据：
+Demo GFC 诊断通过 manufacturer-specific 记录 `0x2302` 暴露以下控制和状态：
 
 | Sub-index | 类型 | 访问 | 含义 |
 |---:|---|---|---|
 | `0x01` | `UNSIGNED32` | 只读 | 合法 GFC consumer callback 的累计次数。 |
-| `0x02` | `UNSIGNED8` | 只读 | 收到过合法 GFC 后置位的粘性协议测试标志。 |
+| `0x02` | `UNSIGNED8` | 只读 | 收到过合法 GFC 后置位的粘性状态标志。 |
 | `0x03` | `UNSIGNED32` | 读写 | Host 写入的 producer request sequence。 |
 | `0x04` | `UNSIGNED32` | 只读 | MCU mainline 已消费的最近 producer request sequence。 |
 | `0x05` | `INTEGER32` | 只读 | 最近一次 mainline `CO_GFCsend()` 调用结果。 |
 
-CAN receive callback 只更新 RT-Thread atomic 接收证据；只有 mainline 观察到新的 request sequence 后才调用 `CO_GFCsend()`。communication reset 会保留 consumer 接收证据，同时在新 GFC 对象重新绑定时同步 producer request/completion，避免旧请求在新 stack 上重放。
+CAN receive callback 只更新 RT-Thread atomic 接收状态；只有 mainline 观察到新的 request sequence 后才调用 `CO_GFCsend()`。communication reset 会保留 consumer 接收状态，同时在新 GFC 对象重新绑定时同步 producer request/completion，避免旧请求在新 stack 上重放。
 
-该记录仅用于 GFC 协议功能验证，不控制真实执行器、不实现产品安全状态，也不代表 SIL、PL 或 EN 50325-5 系统级合规。
+该记录仅暴露 GFC demo 状态，不控制真实执行器、不实现产品安全状态，也不代表 SIL、PL 或 EN 50325-5 系统级合规。
 
-## 11. MCU SDO Client 测试控制/状态
-
-MCU SDO Client 自动验证使用 manufacturer-specific 记录 `0x2303` 提供 test-only request/result contract；它不替代 CANopenNode 自带的 SDO Client 协议状态机。
-
-| Sub-index | 类型 | 访问 | 含义 |
-|---:|---|---|---|
-| `0x01` | `UNSIGNED32` | 读写 | Request sequence；Host 最后写该字段，作为完整请求的提交点。 |
-| `0x02` | `UNSIGNED8` | 读写 | Command：`1=UPLOAD`、`2=DOWNLOAD`。 |
-| `0x03` | `UNSIGNED8` | 读写 | 目标 SDO server Node-ID。 |
-| `0x04` | `UNSIGNED16` | 读写 | 目标 Object Dictionary index。 |
-| `0x05` | `UNSIGNED8` | 读写 | 目标 Object Dictionary sub-index。 |
-| `0x06` | `UNSIGNED32` | 读写 | DOWNLOAD payload size；UPLOAD 写 0。 |
-| `0x07` | `UNSIGNED32` | 读写 | U32 DOWNLOAD 值或 segmented payload 的确定性 seed。 |
-| `0x08` | `UNSIGNED8` | 读写 | Request flags；segmented/local 验证必须为 0；编译 `PKG_CANOPENNODE_SDO_CLI_BLOCK` 后，block-transfer 验证可置 bit0。 |
-| `0x09` | `UNSIGNED32` | 只读 | MCU mainline 已接受的 sequence。 |
-| `0x0A` | `UNSIGNED32` | 只读 | 已发布终态结果的 sequence。 |
-| `0x0B` | `INTEGER32` | 只读 | 归一化结果：`0=NONE`、`1=SUCCESS`、`2=ABORT`、`3=TIMEOUT`、`4=RESET_CANCELLED`、`5=SETUP_ERROR`、`6=UNSUPPORTED`、`7=INTERNAL_ERROR`。 |
-| `0x0C` | `UNSIGNED32` | 只读 | 原生 CANopen SDO abort code；communication reset 取消时保持 0。 |
-| `0x0D` | `UNSIGNED32` | 只读 | 实际处理的 payload byte 数。 |
-| `0x0E` | `UNSIGNED32` | 只读 | UPLOAD 得到的 U32 值，或成功 U32 DOWNLOAD 的 probe value。 |
-| `0x0F` | `UNSIGNED32` | 只读 | test wrapper 对 payload 计算的 FNV-1a checksum。 |
-
-Host 先写 `0x2303:02..08`，最后写新的非零 `request_seq` 提交 transaction。CANopen mainline 随后锁存请求，以非阻塞方式驱动 `CO_SDOclient_setup()`、initiate 和 process API。Local transfer 使用 CANopenNode 的 `CO_CONFIG_SDO_CLI_LOCAL` 路径，因此 CAN 总线上不会出现对应的 SDO frame；remote 测试按目标 Node-ID 使用 CiA 301 predefined SDO connection。
-
-segmented/local 验证配置保持 SDO Client FIFO 为 32 bytes，并使用 48-byte segmented payload 实际覆盖 FIFO drain/refill；这些 transaction 不修改 OD `0x1280`。communication reset 会把 active request 发布为 `RESET_CANCELLED`、消费对应 sequence，并避免 CANopenNode stack 重建后重放旧请求。segmented/local request 始终使用 `flags=0`；block-transfer 验证只有在额外启用 `PKG_CANOPENNODE_SDO_CLI_BLOCK` 时才使用 bit0，不改变原 segmented 路径。
-
-## 12. SDO Server Block Transfer 测试对象
-
-SDO Server block-transfer 验证使用 manufacturer-specific `0x2304:00`，数据类型为 `DOMAIN`、SDO 读写、不可 PDO mapping。仅当 `PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST` 启用时，demo dispatcher 才为该对象绑定 test-only OD extension。
-
-该 backend 使用固定 2048-byte RAM buffer 保存可变长度 payload，不动态分配内存、不持久化，也不实现 SDO Block/CRC 状态机；协议状态、sequence、CRC 和重传仍由 CANopenNode SDO Server 处理。生成 OD 中该 DOMAIN 保持 `dataOrig=NULL`、`dataLength=0`，实际长度由 extension 在读写过程中提供。
-
-单 buffer 设计不承诺 aborted download 的原值原子回滚：若大传输已经有部分数据写入，fixture 会保持 dirty，读取返回 no-data；下一次从 offset 0 开始的完整 download 会重新建立有效 payload。communication reset 若发生在 dirty 状态，会把 fixture 归一化为确定性的 1-byte baseline；完整 payload 则跨 communication reset 保持。
-
-目标板 block-transfer 验证配置还必须启用 `PKG_CANOPENNODE_SDO_SRV_BLOCK`。SDO Server block buffer 的实际值由 BSP/test profile 决定；当前建议配置为 1024 bytes，并用 linker map / heap 证据评估资源，不修改 package 的全局默认值。
-
-## 13. 验证清单
+## 11. 产品 OD 集成清单
 
 产品构建替换 demo OD 前，确认：
 

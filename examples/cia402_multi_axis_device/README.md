@@ -1,10 +1,10 @@
-# CiA 402 Multi-axis Product Reference
+# CiA 402 Multi-axis Product OD Reference
 
-This directory is the staging contract for a product-style CiA 402 device description. It is deliberately separate from `examples/demo_device`, which contains package bring-up and test-only manufacturer objects.
+This directory describes the expected layout for a product-oriented multi-axis CiA 402 device description. It is intentionally separate from `examples/demo_device/`, which is the package bring-up Object Dictionary.
 
-## Release artifact set
+## Generated artifact set
 
-`project.xdd` is the source of truth. For a release candidate, generate all of the following from the same XDD revision with the selected CANopenEditor version:
+`project.xdd` is the semantic source of truth. Product-generated outputs should come from the same XDD revision and generator version:
 
 ```text
 project.xdd
@@ -15,9 +15,9 @@ project.md
 manifest.json
 ```
 
-Do not hand-edit one generated output to fix a mismatch. A BSP or application integrates the generated `OD.c`/`OD.h`; the package must not enable `PKG_CANOPENNODE_USING_DEMO_OD` for a product-reference build.
+Do not hand-edit one generated output to repair a mismatch. A BSP or application integrates the generated `OD.c`/`OD.h`; product builds should keep `PKG_CANOPENNODE_USING_DEMO_OD` disabled.
 
-The product reference must not contain the demo/test-only `0x2300..0x23FF` objects. Device recognition and normal CiA 402 control must use standard identity/profile information, not a private magic index.
+The product reference should not depend on package demo-only manufacturer objects in `0x2300..0x23FF`. Device identity and normal CiA 402 operation should use the product's standard identity/profile objects and explicitly defined application objects.
 
 ## Version and identity policy
 
@@ -27,16 +27,6 @@ Keep these concepts separate:
 - OD `0x1018:03`: product/device revision;
 - OD `0x100A`: firmware software version.
 
-`manifest.json` records the description version, generator, source revision, selected normative baseline, 0x1018 identity, and SHA-256 of every generated output. Copy `manifest.example.json` to `manifest.json`, replace every placeholder, then calculate hashes only after the generated files are frozen.
+`manifest.json` may record the description version, generator, source revision, selected normative baseline, `0x1018` identity, and SHA-256 values for generated files. Copy `manifest.example.json` to `manifest.json` only when the product description and generated outputs are ready to be maintained together.
 
-## Static release check
-
-From the repository root:
-
-```sh
-python3 .github/ci/canopennode-rtt/verify-cia402-artifacts.py examples/cia402_multi_axis_device
-```
-
-The checker verifies hashes, description version, 0x1018 identity, the three logical-device object matrix, Error-code object attributes, and the absence of `0x23xx` test objects. This is static artifact evidence only; it does not prove CANopenEditor regeneration, target firmware identity, CAN timing, or master interoperability.
-
-This repository snapshot intentionally does not include fabricated product generated files. Populate this directory only after product identity, fault taxonomy, selected CiA 301/402 baseline, and the actual A7 source revision are frozen.
+This repository snapshot intentionally does not fabricate product-generated files. Populate the directory from the actual product device description and identity data.

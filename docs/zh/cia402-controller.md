@@ -110,10 +110,3 @@ CO_402_controller_axis_t axes[3];
 
 Node-ID、CAN channel、vendor 和 gateway 的映射全部由应用负责，因此 PDS helper
 不依赖网络拓扑。
-
-## 验证边界
-
-CI 内 Host test 覆盖状态序列、降低目标、transition/feedback timeout、Fault/Fault
-Reset、Quick Stop policy、未知 Statusword、Controlword mask 保留、非法请求和多
-axis 隔离。Host test 只证明 Pure-C 逻辑，不证明真实 CAN master、drive 互操作、
-总线时序或 HIL 行为。

@@ -1,44 +1,46 @@
 # CANopenNode RT-Thread Documentation Portal {#mainpage}
 
-Welcome to the CANopenNode RT-Thread documentation portal.
+This site combines the CANopenNode RT-Thread project manual with the generated API reference for the RT-Thread port, optional CiA 402 components, demo Object Dictionary, and selected CANopenNode sources.
 
-This site combines the package documentation with API reference generated from the RT-Thread port, demo Object Dictionary, and selected CANopenNode stack sources.
+## Project documentation
 
-## Online Site
+### English
 
-- [Published Documentation](https://wdfk-prog.space/canopennode-rtt/)
-
-## English Documents
-
-- [Documentation Index](en/index.md)
-- [Quick Start](en/quick-start.md)
-- [RT-Thread Integration](en/rt-thread-integration.md)
+- [Documentation index](en/index.md)
+- [Quick start](en/quick-start.md)
+- [RT-Thread integration](en/rt-thread-integration.md)
 - [Configuration](en/configuration.md)
-- [Testing and Validation](en/testing.md)
-- [High-Resolution Time](en/high-resolution-time.md)
 - [Object Dictionary](en/object-dictionary.md)
+- [High-Resolution Time](en/high-resolution-time.md)
+- [LSS persistence](en/lss-persistence.md)
+- [CiA 402 Device core](en/cia402-device-core.md)
+- [CiA 402 RT-Thread integration](en/cia402-device-rtt.md)
+- [CiA 402 diagnostics and product integration](en/cia402.md)
+- [CiA 402 Controller API](en/cia402-controller.md)
 - [Troubleshooting](en/troubleshooting.md)
 
-## 中文文档
+### 中文
 
 - [文档首页](zh/index.md)
-- [快速开始](zh/quick-start.md)
+- [快速接入](zh/quick-start.md)
 - [RT-Thread 集成](zh/rt-thread-integration.md)
 - [配置说明](zh/configuration.md)
-- [测试与验证](zh/testing.md)
-- [High-Resolution Time 集成说明](zh/high-resolution-time.md)
-- [对象字典](zh/object-dictionary.md)
+- [Object Dictionary](zh/object-dictionary.md)
+- [High-Resolution Time](zh/high-resolution-time.md)
+- [LSS 持久化](zh/lss-persistence.md)
+- [CiA 402 Device Core](zh/cia402-device-core.md)
+- [CiA 402 RT-Thread 集成](zh/cia402-device-rtt.md)
+- [CiA 402 诊断与产品集成](zh/cia402.md)
+- [CiA 402 Controller API](zh/cia402-controller.md)
 - [故障排查](zh/troubleshooting.md)
 
-## API Entry Points
+## API reference
 
-- [File List](files.html)
-- [Globals](globals.html)
-- [Data Structures](annotated.html)
+The generated Doxygen site exposes file, global-symbol, and data-structure indexes through its standard navigation. These pages are generated from the configured source tree and are not stored in the repository.
 
-## Code Layout
+## Source layout
 
-- RT-Thread integration code lives under `port/rtthread`.
-- The demo Object Dictionary lives under `examples/demo_device`.
-- CANopenNode stack sources are included from the `CANopenNode` submodule.
-- Linux Host/master-side automated protocol tests are maintained in [canopen-slave-tester](https://github.com/wdfk-prog/canopen-slave-tester).
+- RT-Thread integration code: `port/rtthread/`
+- CiA 402 profile code: `profile/cia402/`
+- Demo Object Dictionary: `examples/demo_device/`
+- CANopenNode protocol stack: `CANopenNode/` submodule

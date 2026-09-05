@@ -123,7 +123,7 @@ Node-ID 1 default SDO response COB-ID: 0x581
 | EEPROM | `PKG_USING_AT24CXX` 已启用，I2C bus name 正确，AT24CXX address input 正确，storage offset 未与其他数据重叠。 |
 | User | 应用提供 strong `co_storage_rtt_backend_get_ops()` 符号和长期有效的 ops table。 |
 
-还要确认生成 OD 提供选中的 `OD_PERSIST_*` groups，并通过 SDO 测试 OD 0x1010/0x1011 访问。
+还要确认生成 OD 提供选中的 `OD_PERSIST_*` groups，并通过 SDO 访问确认 OD 0x1010/0x1011 可用。
 
 ## 10. Trace 不能启用
 

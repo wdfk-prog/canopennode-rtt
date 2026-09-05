@@ -4,77 +4,61 @@
 
 [Online Documentation](https://wdfk-prog.space/canopennode-rtt/)
 
-CANopenNode RT-Thread is an RT-Thread integration port for [CANopenNode](https://github.com/CANopenNode/CANopenNode). It provides the RT-Thread CAN device binding, Kconfig options, SCons build integration, runtime thread model, storage backends, and a generated demo Object Dictionary for bring-up.
+CANopenNode RT-Thread integrates the upstream [CANopenNode](https://github.com/CANopenNode/CANopenNode) stack with RT-Thread. The repository provides the RT-Thread CAN target layer, runtime wrapper, Kconfig/SCons integration, storage adapters, optional CiA 402 components, and a generated demo Object Dictionary for bring-up.
 
-This repository does not reimplement the CANopen protocol stack. The CANopen protocol core is consumed from the `CANopenNode` git submodule, while this repository provides the RT-Thread target layer and package wrapper.
+The CANopen protocol core remains in the `CANopenNode` git submodule. This project owns the RT-Thread-facing integration and package-level configuration.
 
-## Features
+## Main capabilities
 
-- CANopenNode V4-oriented RT-Thread target driver under `port/rtthread/`.
-- RT-Thread CAN device binding through the device name configured in Kconfig or passed to `canopen_app_rtt_init()`.
-- SCons integration that selects CANopenNode source files according to enabled Kconfig options.
-- Runtime model with receive, mainline, and realtime processing threads.
-- Optional RT-Thread CAN HDR filter usage when supported by the BSP.
-- Optional CiA 301/303/304/305/309 feature groups through Kconfig.
-- Optional storage support through RT-Thread DFS, AT24CXX EEPROM, or a user-provided backend.
-- Optional CANopen LED mapping to RT-Thread PIN outputs.
-- Demo Object Dictionary under `examples/demo_device/` for first bring-up.
+- RT-Thread CAN device binding and CANopenNode target-driver adaptation.
+- Dedicated receive, mainline, and realtime processing paths.
+- Kconfig-controlled CANopenNode feature selection through SCons.
+- Optional RT-Thread CAN HDR filter integration with software receive fallback.
+- Optional DFS, AT24CXX, or application-provided storage backends.
+- LSS Node-ID/bitrate persistence and runtime bitrate switching support.
+- Optional CANopen LED, gateway, TIME, EMCY, PDO/SDO, and related CiA 301 feature groups.
+- Optional CiA 402 Device and Controller layers, including RT-Thread lifecycle integration and multi-axis Device support.
+- Generated demo OD under `examples/demo_device/` and a product-oriented multi-axis CiA 402 OD reference under `examples/cia402_multi_axis_device/`.
 
 ## Repository layout
 
 ```text
 canopennode-rtt/
-├── CANopenNode/                 # Upstream CANopenNode git submodule
+├── CANopenNode/                 # Upstream CANopenNode submodule
+├── port/rtthread/               # RT-Thread target driver and runtime wrapper
+├── profile/cia402/              # Optional CiA 402 Device/Controller components
 ├── examples/
-│   └── demo_device/             # Generated demo OD.c/OD.h and OD project files
-├── port/
-│   └── rtthread/                # RT-Thread driver, runtime wrapper, storage backends
+│   ├── demo_device/             # Generated package demo OD
+│   └── cia402_multi_axis_device/# Product-oriented CiA 402 OD reference
 ├── docs/
-│   ├── en/                      # English documentation
-│   └── zh/                      # Chinese documentation
-├── Kconfig                      # RT-Thread package configuration
-├── SConscript                   # RT-Thread SCons integration
-├── README.md                    # English entry page
-└── README.zh-CN.md              # Chinese entry page
+│   ├── en/                      # English project documentation
+│   └── zh/                      # Chinese project documentation
+├── Kconfig                      # Package configuration entry
+└── SConscript                   # RT-Thread SCons integration
 ```
 
-## Supported environment
+## Requirements
 
-The package requires an RT-Thread BSP or application environment with the following core features enabled:
+The target RT-Thread project must provide the CAN device framework and the RT-Thread kernel objects required by the wrapper. The core package expects:
 
 | Requirement | Purpose |
 |---|---|
-| `RT_USING_HEAP` | Dynamic allocation used by the runtime wrapper and RT-Thread objects. |
+| `RT_USING_HEAP` | Runtime and RT-Thread object allocation used by enabled features. |
 | `RT_USING_DEVICE` | RT-Thread device framework. |
-| `RT_USING_CAN` | RT-Thread CAN device driver framework. |
-| `RT_USING_MUTEX` | CAN send, Emergency, OD, and lifecycle locking. |
-| `RT_USING_SEMAPHORE` | CAN RX wakeup and realtime processing wakeup. |
+| `RT_USING_CAN` | CAN device framework. |
+| `RT_USING_MUTEX` | CAN/OD/lifecycle synchronization. |
+| `RT_USING_SEMAPHORE` | RX and realtime wakeup paths. |
 
-Optional RT-Thread features are used only when their corresponding package options are enabled: `RT_CAN_USING_HDR` for hardware CAN filters, `RT_USING_ULOG` for debug logging, `RT_USING_PIN` for CANopen LEDs, `RT_USING_DFS` for DFS storage, and `PKG_USING_AT24CXX` for EEPROM storage.
+Feature-specific dependencies are selected only when needed, including `RT_CAN_USING_HDR`, `RT_USING_ULOG`, `RT_USING_PIN`, `RT_USING_DFS`, and `PKG_USING_AT24CXX`.
 
-## Quick start with RT-Thread
+## Quick start
 
-1. Enable the CAN driver in the target RT-Thread BSP and confirm that the CAN device can be found as `can0`, `can1`, or the BSP-specific device name.
-2. Clone or update this repository with the `CANopenNode` submodule.
+1. Enable a CAN device in the target BSP and confirm its RT-Thread device name.
+2. Clone this repository with the `CANopenNode` submodule.
 3. Enable `PKG_USING_CANOPENNODE` in `menuconfig`.
-4. Configure the CAN device name, Node-ID, bitrate, thread priorities, and the required CANopen feature groups.
-5. Build the RT-Thread BSP with SCons.
-6. Flash and run the target.
-7. Verify that the node sends the CANopen boot-up frame and responds to SDO access if the SDO server is enabled.
-
-See [Quick start](docs/en/quick-start.md) for the detailed procedure.
-
-## Add this package to an RT-Thread project
-
-Use one of the following integration styles, depending on how your RT-Thread project is organized:
-
-1. **Package tree integration**: place this repository in the RT-Thread package tree and expose its `Kconfig` and `SConscript` through the parent package menu.
-2. **Application-local package integration**: add this repository to the BSP or application package directory and include it from the project package menu.
-3. **Git submodule integration**: add this repository as a submodule in your RT-Thread application repository, then include the package Kconfig/SCons entry from the parent project.
-
-The package root must remain intact because `SConscript` expects `CANopenNode/`, `port/rtthread/`, and `examples/demo_device/` relative to the package root.
-
-## Clone or update submodules
+4. Configure the CAN device name, Node-ID, bitrate, runtime threads, and required CANopen feature groups.
+5. Build and flash the BSP using the project's normal RT-Thread workflow.
+6. Start the target and confirm the node enters normal CANopen operation.
 
 Clone with submodules:
 
@@ -83,119 +67,97 @@ git clone --recursive <repo-url> canopennode-rtt
 cd canopennode-rtt
 ```
 
-If the repository has already been cloned:
+For an existing checkout:
 
 ```sh
 git submodule update --init --recursive
 ```
 
-Update the repository and its submodule checkout:
+See [Quick start](docs/en/quick-start.md) and [Submodule update](docs/en/submodule-update.md).
 
-```sh
-git pull
-git submodule update --init --recursive
-```
-
-If the build reports that `CANopenNode` or `CANopenNode/301` is missing, run the submodule update command again from the repository root. See [Submodule update guide](docs/en/submodule-update.md).
-
-## Runtime model
+## Runtime architecture
 
 ```mermaid
 flowchart TD
     App[RT-Thread application] --> Wrapper[CANopenNode RT-Thread wrapper]
     Wrapper --> Driver[RT-Thread CAN target driver]
     Driver --> CANDev[RT-Thread CAN device]
+    Driver --> Rx[co_rx receive helper]
     Wrapper --> Main[co_main mainline thread]
     Wrapper --> RealTime[co_rt realtime thread]
-    Driver --> Rx[co_rx receive helper thread]
     Wrapper --> OD[Object Dictionary]
-    Wrapper --> Core[CANopenNode submodule]
+    Wrapper --> Core[CANopenNode core]
     CANDev --> Bus[CAN bus]
 ```
 
-The receive helper dispatches CAN frames to CANopenNode callbacks. The mainline thread runs asynchronous CANopen processing such as NMT, SDO, heartbeat, storage, and reset handling. The realtime thread is woken by a periodic RT-Thread timer and runs time-sensitive SYNC, SRDO, RPDO, and TPDO processing when those objects are enabled.
+The receive helper dispatches CAN frames to CANopenNode callbacks. `co_main` processes asynchronous protocol work and reset/lifecycle handling. `co_rt` is driven by the realtime timer and executes enabled SYNC/SRDO/RPDO/TPDO work. Optional lifecycle extensions, including the CiA 402 Device adapter, are attached through the generic lifecycle registry instead of being embedded in the core wrapper.
 
 See [RT-Thread integration](docs/en/rt-thread-integration.md).
 
-## Configuration
+## Configuration entry points
 
-Most behavior is controlled through `Kconfig`. Important options include:
+Frequently used options include:
 
 | Option | Purpose |
 |---|---|
-| `PKG_CANOPENNODE_CAN_DEV_NAME` | RT-Thread CAN device name used by auto init and the CAN driver fallback path. |
-| `PKG_CANOPENNODE_APP_AUTO_INIT` | Automatically create one default instance at RT-Thread application initialization. |
-| `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | Default Node-ID for auto initialization. |
-| `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | Default bitrate for auto initialization. |
-| `PKG_CANOPENNODE_TIMER_PERIOD_US` | Realtime CANopen processing period. |
+| `PKG_CANOPENNODE_CAN_DEV_NAME` | RT-Thread CAN device used by the default path. |
+| `PKG_CANOPENNODE_APP_AUTO_INIT` | Create one default CANopenNode instance during RT-Thread application initialization. |
+| `PKG_CANOPENNODE_AUTO_INIT_NODE_ID` | Default Node-ID for automatic initialization. |
+| `PKG_CANOPENNODE_AUTO_INIT_BITRATE` | Default bitrate for automatic initialization. |
+| `PKG_CANOPENNODE_TIMER_PERIOD_US` | Realtime processing timer period. |
 | `PKG_CANOPENNODE_USING_DEMO_OD` | Compile the generated demo Object Dictionary. |
-| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | Publish demo/test TIME consumer diagnostics through OD `0x2300`. |
-| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | Publish atomic remote EMCY consumer diagnostics through OD `0x2301`. |
-| `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | Enable GFC consumer/producer and publish protocol-test receive evidence plus producer sequence/result through OD `0x2302`. |
-| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | Enable the non-blocking MCU SDO Client control/status record at OD `0x2303`; selects segmented and local client support. |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | Under the demo OD domain, waits for the remote node through Heartbeat Consumer and confirms each NMT state before advancing the automatic NMT Master validation, default Node-ID 2. |
-| `PKG_CANOPENNODE_USING_STORAGE` | Enable CANopenNode storage support. |
-| `PKG_CANOPENNODE_USING_DEBUG` | Enable RT-Thread ulog diagnostics for this port. |
+| `PKG_CANOPENNODE_USING_STORAGE` | Enable CANopenNode storage integration. |
+| `PKG_CANOPENNODE_USING_DEBUG` | Enable RT-Thread ulog integration for this port. |
+| `PKG_CANOPENNODE_CIA402` | Enable the optional CiA 402 feature group. |
 
-See [Configuration guide](docs/en/configuration.md) for the option groups and integration notes.
+See [Configuration guide](docs/en/configuration.md) for the complete option groups and dependency notes.
 
 ## Manual initialization
 
-Automatic initialization is enabled by default when `PKG_CANOPENNODE_APP_AUTO_INIT` is selected. Disable that option when your application needs to create the instance explicitly.
+Disable `PKG_CANOPENNODE_APP_AUTO_INIT` when the application owns instance creation explicitly:
 
 ```c
 #include "CO_app_RTT.h"
 
-static CANopenNodeRTT canopen_app;
+static CANopenNodeRTT canopenApp;
 
 static int app_canopen_init(void)
 {
-    return (int)canopen_app_rtt_init(&canopen_app, "can1", 1, 1000);
+    return (int)canopen_app_rtt_init(&canopenApp, "can1", 1U, 1000U);
 }
 INIT_APP_EXPORT(app_canopen_init);
 ```
 
-The `CANopenNodeRTT` instance must be zero-initialized before first use. The CAN device name string is stored by reference and must remain valid for the lifetime of the instance.
+`CANopenNodeRTT` must be zero-initialized before first use. The CAN device-name string is stored by reference and must remain valid for the instance lifetime.
 
 ## Object Dictionary
 
-The default build can compile the generated demo Object Dictionary from `examples/demo_device/` when `PKG_CANOPENNODE_USING_DEMO_OD` is enabled. Product firmware should normally replace this demo OD with a product-specific OD generated from its CANopen object model.
+`examples/demo_device/` contains the generated package demo OD. Product firmware should normally provide its own generated `OD.c`/`OD.h` and disable `PKG_CANOPENNODE_USING_DEMO_OD`.
 
-For automated TIME consumer validation, the demo OD also provides read-only diagnostic record `0x2300`. Enable `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` to publish valid DLC=6 TIME receive count and the applied `CO_TIME_t` millisecond/day values. This record is a demo/test observability contract, not a standard CANopen TIME object or product API.
+The demo OD also contains optional manufacturer-specific diagnostic/control objects used by package demo modules. They are not part of the standard CANopen application profile and should not be treated as product interfaces unless the product deliberately adopts an equivalent contract.
 
-For EMCY consumer validation, read-only record `0x2301` publishes a coherent atomic snapshot of the latest remote EMCY plus a receive counter. Enable `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC`; local EMCY callbacks (`ident == 0`) are intentionally excluded, while repeated and recovery (`errorCode == 0`) remote messages are counted.
+See [Object Dictionary](docs/en/object-dictionary.md).
 
-For automated GFC protocol validation, the demo OD provides standard valid parameter `0x1300:00` and test-only record `0x2302`. The GFC receive callback only updates atomic count/state, while producer requests call `CO_GFCsend()` from the mainline. This capability does not drive real actuators and does not establish functional-safety certification.
+## CiA 402
 
-For MCU SDO Client validation, test-only record `0x2303` publishes a request/active/completion sequence and native SDO result evidence. `request_seq` is the commit field: the Host writes it after all other request fields, and the CANopen mainline then drives the existing `CO_SDOclient` non-blocking. The segmented/local validation profile keeps block transfer disabled and the client FIFO at 32 bytes; block transfer is enabled separately when required.
+The optional CiA 402 support is split into reusable layers:
 
-See [Object Dictionary guide](docs/en/object-dictionary.md).
-
-## Companion host tester
-
-This repository owns the MCU/RT-Thread CANopenNode integration, test fixtures, and observability objects. The corresponding Linux Host/master-side automated protocol tests live in [canopen-slave-tester](https://github.com/wdfk-prog/canopen-slave-tester). That project is based on Lely CANopen and normally acts as the test master; when validating this repository's NMT Master capability, it can also act as the remote Lely `BasicSlave` test node.
-
-The two repositories interoperate through standard CANopen objects and this package's demo/test Object Dictionary; they do not share a source build. The currently enabled Host-side automatic flows are defined by the `canopen-slave-tester` configuration. See [Testing and validation](docs/en/testing.md) for scope, fixtures, and the recommended integration flow.
+- [Pure-C Device core and OD binding](docs/en/cia402-device-core.md): multi-axis PDS supervision, OD binding, DriveIF ownership, and mode interfaces.
+- [RT-Thread Device integration](docs/en/cia402-device-rtt.md): lifecycle registry, worker thread, lock order, automatic construction, and Communication Reset handling.
+- [Device diagnostics and product integration](docs/en/cia402.md): per-axis Error-code/EMCY integration and product OD guidance.
+- [Controller API](docs/en/cia402-controller.md): transport-agnostic PDS Controlword sequencing for remote drives.
 
 ## Documentation
 
-- [Documentation index](docs/en/index.md)
-- [Quick start](docs/en/quick-start.md)
-- [RT-Thread integration](docs/en/rt-thread-integration.md)
-- [Configuration guide](docs/en/configuration.md)
-- [Testing and validation](docs/en/testing.md)
-- [NMT Master automatic test](docs/en/nmt-master-test.md)
-- [Object Dictionary guide](docs/en/object-dictionary.md)
-- [Submodule update guide](docs/en/submodule-update.md)
-- [Troubleshooting](docs/en/troubleshooting.md)
+Start from the [documentation index](docs/en/index.md). The main project documents cover quick integration, runtime architecture, configuration, Object Dictionary integration, high-resolution time, LSS persistence, CiA 402, submodule maintenance, and troubleshooting.
 
-## Known limitations
+## Known constraints
 
-- The trace recorder option is intentionally unavailable by default because the current CANopenNode trace module is not ported to the SDO server and Object Dictionary APIs used by this package.
-- The built-in AT24CXX EEPROM storage backend is limited to one CANopenNode instance.
-- RT-Thread CAN HDR filters are optional. If the BSP does not provide enough hardware filter banks or filter setup fails, the driver falls back to software RX dispatch.
-- The package includes a demo OD for bring-up. Production devices should provide their own generated OD and verify PDO, SDO, identity, storage, and persistence settings.
+- CANopenNode trace support is intentionally unavailable until the trace module is adapted to the currently used SDO server and Object Dictionary APIs.
+- The built-in AT24CXX storage backend is limited to one CANopenNode instance.
+- RT-Thread CAN HDR filtering is optional; the driver can fall back to software RX dispatch when hardware filters are unavailable or cannot be configured.
+- The built-in demo OD is intended for package bring-up. Product firmware should use a product-specific generated OD and own its identity, PDO layout, storage policy, and application objects.
 
 ## License
 
-The `CANopenNode` submodule is governed by the license in `CANopenNode/LICENSE`. Keep the appropriate repository-level license information for this RT-Thread port when publishing or redistributing the package.
+The `CANopenNode` submodule is licensed according to `CANopenNode/LICENSE`. Preserve all applicable repository and upstream license information when redistributing this package.

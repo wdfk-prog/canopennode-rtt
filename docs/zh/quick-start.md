@@ -110,15 +110,15 @@ git submodule update --init --recursive
 
 如果构建报 `examples/demo_device/OD.h` 缺失，只有在 demo OD 文件存在时才保持 `PKG_CANOPENNODE_USING_DEMO_OD=y`。应用提供自定义 OD 时应关闭该选项。
 
-## 7. 运行验证
+## 7. 启动节点
 
-烧录目标板后，按以下顺序确认：
+烧录目标板后，确认基础运行状态：
 
 1. RT-Thread CAN 设备打开成功。
 2. BSP CAN 驱动接受配置的 bitrate。
 3. CANopen 节点启动后发送 boot-up 帧。
-4. 若启用 SDO server，CANopen master 或 tester 能够通过 SDO 访问 OD entry。
-5. 若启用 PDO 且使用 demo OD，TPDO/RPDO 行为符合 demo mapping。
+4. 若启用 SDO server，CANopen master 能够通过 SDO 访问预期 OD entry。
+5. 若启用 PDO 且使用 demo OD，TPDO/RPDO 流量符合已启用的 demo mapping。
 
 Node-ID 为 `1` 时，常见 boot-up 帧 COB-ID 为 `0x701`，数据为一个字节 `0x00`。
 

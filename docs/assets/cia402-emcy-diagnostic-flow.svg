@@ -6,7 +6,7 @@
     <style>.box{fill:#fff;stroke:#333;stroke-width:2}.title{font:bold 18px sans-serif}.text{font:15px sans-serif}.small{font:13px sans-serif}.arrow{stroke:#333;stroke-width:2;fill:none;marker-end:url(#arrow)}</style>
   </defs>
   <rect width="1080" height="420" fill="#fafafa"/>
-  <text x="40" y="42" class="title">CiA 402 A7 deferred diagnostic path</text>
+  <text x="40" y="42" class="title">CiA 402 deferred diagnostic path</text>
   <rect x="40" y="90" width="180" height="100" rx="8" class="box"/>
   <text x="130" y="120" text-anchor="middle" class="title">Axis fault</text>
   <text x="130" y="150" text-anchor="middle" class="text">DiagIF mapping</text>

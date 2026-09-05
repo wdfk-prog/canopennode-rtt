@@ -176,8 +176,6 @@ communication reset 只重新建立 mainline 和 realtime 的 elapsed baseline�
 [ ] Timer 为 up-counting
 [ ] Timer 为 CANopen High-Res 独占资源
 [ ] start/stop/count_get 可用
-[ ] 目标板观察到非 1000 us 整数倍的 elapsed
-[ ] 完成长时间 wrap/稳定性验证
 ```
 
-未完成目标板验证前，不应仅根据初始化成功判断 Timer 选择正确，因为错误的 16-bit Timer 不保证被代码识别。
+初始化成功不能证明物理 counter 位宽正确；Timer 位宽仍应依据 MCU 与 BSP 资源定义确认。

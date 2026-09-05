@@ -118,11 +118,3 @@ CO_402_controller_axis_t axes[3];
 
 The application maps those instances to Node-IDs, buses, vendors, or gateways.
 This keeps the PDS helper independent of network topology.
-
-## Validation boundary
-
-The CI-owned Host test exercises state sequencing, lower targets, transition and
-feedback timeouts, Fault/Fault Reset behavior, Quick Stop policy, unknown
-Statusword handling, Controlword mask preservation, invalid requests, and
-multi-axis isolation. Host tests prove Pure-C logic only; they do not prove an
-actual CAN master, drive interoperability, bus timing, or HIL behavior.

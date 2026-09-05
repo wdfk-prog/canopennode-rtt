@@ -120,7 +120,7 @@ typedef struct CO_402_device_axis {
     CO_402_drive_result_t (*pdsTransitionOperation)(void *); /**< BUSY PDS owner; stricter safety commands may replace it. */
     CO_402_state_t pdsTransitionTargetState; /**< State committed when the current PDS owner completes successfully. */
 #if CO_402_CONFIG_DIAGNOSTICS
-    /* Diagnostics are tail-appended so all A6 runtime member offsets remain unchanged when disabled. */
+    /* Diagnostics are tail-appended so existing runtime member offsets remain unchanged when disabled. */
     const CO_402_device_diag_if_t *diag; /**< Persistent product diagnostic source/mapping selected by config. */
     void *diagObject;                    /**< Product-owned DiagIF context; lifetime must cover the manager. */
     CO_402_device_diag_runtime_t diagnosis; /**< Axis fault latch and deferred report/reset event state. */

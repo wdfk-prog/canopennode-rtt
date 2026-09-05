@@ -66,7 +66,7 @@ cd ..
 git status
 ```
 
-随后应构建和测试受影响的 Kconfig 组合，再提交新的 submodule pointer。
+随后应重新构建受影响的 Kconfig 组合，再提交新的 submodule pointer。
 
 更新 CANopenNode 后建议验证：
 

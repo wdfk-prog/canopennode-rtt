@@ -11,7 +11,7 @@
         "demo-cia402-controller-only",
         "demo-cia402-device-controller",
         "demo-cia402-device-rtt-autostart",
-        "demo-cia402-a7-validation",
+        "demo-cia402-device-diagnostics",
         "demo-high-res-time",
         "demo-pdo-sync",
         "demo-emcy-consumer",

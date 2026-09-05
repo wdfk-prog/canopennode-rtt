@@ -446,7 +446,7 @@ static const CO_402_device_sync_if_t CO_402_demoSyncIf = {
 
 #if CO_402_CONFIG_DIAGNOSTICS
 /*
- * Demo-only device-specific mappings exercise the A7 transport contract without
+ * Demo-only device-specific mappings exercise the diagnostic transport contract without
  * pretending to define a product fault taxonomy. Real products must replace
  * these values with their selected CiA 301/402/product fault matrix.
  */

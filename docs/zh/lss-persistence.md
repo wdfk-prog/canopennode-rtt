@@ -150,82 +150,6 @@ IDLE
 
 这与 CANopenNode LSS 对 pending Node-ID/bitrate 的生命周期要求一致：持久值在程序启动后初始化，Communication Reset 不应覆盖已经配置的 pending 值。
 
-## 使用原始 CAN 帧验证 Node-ID configure/store
-
-对于仅验证 Node-ID 修改与持久化的测试，不需要在 MCU 侧再实现 LSS Master。可以在 Linux Host 使用 SocketCAN/can-utils 直接发送 CiA 305 LSS 帧。
-
-CAN-ID：
-
-```text
-LSS Master -> Slave : 0x7E5
-LSS Slave  -> Master: 0x7E4
-NMT                  : 0x000
-```
-
-先读取 DUT OD `0x1018:01..04`，然后按 little-endian 发送 selective 四步：
-
-```text
-7E5#40VVVVVVVV000000
-7E5#41PPPPPPPP000000
-7E5#42RRRRRRRR000000
-7E5#43SSSSSSSS000000
-```
-
-最后一帧匹配后期望：
-
-```text
-7E4#4400000000000000
-```
-
-假设测试 Node-ID 为 `0x22`：
-
-```text
-# Configure Node-ID
-7E5#1122000000000000
-# expected: 7E4#1100000000000000
-
-# Store configuration
-7E5#1700000000000000
-# expected: 7E4#1700000000000000
-```
-
-Configure 后、Communication Reset 前，`Inquire Node-ID (0x5E)` 返回的是 active Node-ID，而不是 pending Node-ID。因此此时查询仍可能返回旧 ID，这是 CANopenNode 当前语义，不表示 configure 失败。
-
-如果旧 active Node-ID 为 1，应用新的 pending Node-ID：
-
-```text
-000#8201
-```
-
-期望看到新节点的 boot-up，例如 Node-ID `0x22`：
-
-```text
-722#00
-```
-
-Node-ID 持久化验收还应继续执行：
-
-1. 对当前 Node-ID 发送 NMT Reset Node (`0x81`)；
-2. 确认复位后仍以保存的新 Node-ID 上线；
-3. 真实断电/上电；
-4. 确认仍使用保存的新 Node-ID；
-5. 最后使用 LSS configure + Store 恢复原 Node-ID，再 reset/power-cycle 复核。
-
-## Bitrate 验证要点
-
-建议先以 1000 kbit/s 启动 DUT，selective 进入 LSS configuration state 后：
-
-1. Configure Bit Timing 到 500 kbit/s，期望收到成功响应；
-2. 发送非法/不支持的 timing table 组合，期望错误响应或 no-ack，且 pending bitrate 不改变；
-3. 发送 Activate Bit Timing，并使用同一个 switch delay 同步切换 Host SocketCAN；
-4. 在 PRE_DELAY/POST_DELAY 期间确认 CANopen 层不再产生新的发送，并验证切速窗口结束前不会恢复 heartbeat/SDO 等正常发送；本项验证不把“gate 关闭前已经进入 HAL mailbox 的历史 TX 被强制 abort”作为验收条件；
-5. delay 结束后在 500 kbit/s 验证 LSS/SDO/heartbeat 通信；
-6. Store configuration，执行 Reset Node，再真实 power-cycle；
-7. Host 从 500 kbit/s 重新发现 DUT，确认持久 bitrate 生效；
-8. 最后恢复 1000 kbit/s，Store、Reset Node、power-cycle 再复核。
-
-代码实现完成不等于目标板验收通过；目标板实测仍需验证 Host 同步切速、实际 bxCAN 重配置、CANopen 软件 TX gate、Store/Reset/power-cycle 和 rescue。严格硬件 mailbox abort 可在 RT-Thread target driver 后续提供对应 API 后补充。
-
 ## 错误处理
 
 以下情况不会把未验证数据传入 `CO_CANinit()`：
@@ -243,4 +167,4 @@ Store 时，body readback、commit write、最终完整 readback 或最终 decod
 
 运行时切速失败时先尝试回退到切换前 bitrate；回退也失败时保持 CANopen TX disabled，避免在未知 bitrate/控制器状态下继续产生新的发送。
 
-除 Storage 自身初始化的致命错误外，LSS record 无效时应用保留启动参数继续初始化 CAN。目标板仍应验证 Reset Communication、Reset Node、真实 power-cycle、Storage backend failure、500/1000 kbit/s 双向切换和 rescue 场景。
+除 Storage 自身初始化的致命错误外，LSS record 无效时应用保留启动参数继续初始化 CAN。

@@ -66,7 +66,7 @@ cd ..
 git status
 ```
 
-Then build and test the affected Kconfig combinations before committing the new submodule pointer.
+Then rebuild the affected Kconfig combinations before committing the new submodule pointer.
 
 Recommended validation after updating CANopenNode:
 

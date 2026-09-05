@@ -2,7 +2,7 @@
 
 # CiA 402 RT-Thread Device Thread and Communication Reset
 
-Stage A4 integrates the A3 Pure-C `CO_402_device_manager_t` with `CANopenNodeRTT`. It does not change PDS FSA,
+The RT-Thread adapter integrates the Pure-C `CO_402_device_manager_t` with `CANopenNodeRTT`. It does not change PDS FSA,
 DriveIF, or generated-OD semantics. It owns the RT-Thread thread, generic lifecycle-extension integration, lock order, communication-init placement, and
 Communication Reset lifecycle.
 
@@ -14,11 +14,11 @@ Relevant Kconfig options:
 
 | Option | Default | Purpose |
 |---|---:|---|
-| `PKG_CANOPENNODE_CIA402` | `n` | Master CiA 402 switch. A4 adds no `CANopenNodeRTT` fields or RT resources when disabled. |
-| `PKG_CANOPENNODE_CIA402_DEVICE` | `y` | A3 Pure-C Device core. |
-| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y` | Builds the A4 adapter and selects the generic lifecycle registry; only an attached instance creates thread/semaphore resources. |
+| `PKG_CANOPENNODE_CIA402` | `n` | Master CiA 402 switch. No CiA 402 fields or RT resources are added to `CANopenNodeRTT` when disabled. |
+| `PKG_CANOPENNODE_CIA402_DEVICE` | `y` | Pure-C Device core. |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y` | Builds the RT-Thread Device adapter and selects the generic lifecycle registry; only an attached instance creates thread/semaphore resources. |
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART` | `n` | With default app auto init and RT-Thread component init, lets a registered CiA 402 factory allocate runtime/axis state and attach it automatically. |
-| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | Registers the package software-only factory and selects the generated demo OD for protocol/PDS/lifecycle validation. |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | Registers the package software-only factory and selects the generated demo OD for software bring-up. |
 | `PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT` | `3` | Number of software-only demo logical devices; intentionally limited to the generated OD range 1..3. |
 | `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` stack size. |
 | `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` priority; it must remain below `co_rt`, so its numeric value must be larger. |
@@ -73,7 +73,7 @@ The automatic allocation survives Communication Reset. Final application-init ro
 
 `CO_app_RTT.c` no longer calls any `CO_402_device_RTT_*()` API directly. Manual extensions use `CO_RTT_lifecycleRegister()`; auto factories use `CO_RTT_lifecycleRegisterEx()` with a final context-release callback. `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY` configures both the per-app extension registry and global auto-factory registry capacity (default 4, range 1..255). The registries themselves use no heap; only profile-specific auto factories may allocate their owned runtime contexts. Runtime init/start/reset remains a single generic dispatcher path for both manual and automatic attachments.
 
-A4 still reuses the existing `rtTimer`:
+The adapter reuses the existing `rtTimer`:
 
 ```text
 rtTimer -> rtSem     -> co_rt  (default priority 3)
@@ -90,7 +90,7 @@ This matches the `co_rt` lock order and avoids inversion. DriveIF callbacks exec
 must remain non-blocking, must not sleep, and must not recursively acquire the wrapper lifecycle or OD lock. The default
 priority keeps `co_rt` above `co_402`; final priority, WCET, and jitter require target measurement.
 
-A4 allows the planned one-cycle pipeline: an RPDO command received in one realtime cycle can be processed by `co_402`,
+The adapter allows a one-cycle pipeline: an RPDO command received in one realtime cycle can be processed by `co_402`,
 and the resulting Statusword/feedback can be emitted by a later TPDO cycle.
 
 ## 3. OD binding order
@@ -109,7 +109,7 @@ CO_CANinit
 -> CO_RTT_lifecycleCommunicationReady
 ```
 
-Controlword and Modes-of-operation extensions therefore exist before PDO initialization. With no registered extension, the generic no-op/empty-registry path requires no profile-specific branch and keeps existing demo behavior. If an attached OD does not satisfy the A3 contract, initialization fails
+Controlword and Modes-of-operation extensions therefore exist before PDO initialization. With no registered extension, the generic no-op/empty-registry path requires no profile-specific branch and keeps existing demo behavior. If an attached OD does not satisfy the Device-core OD contract, initialization fails
 deterministically and logs the logical-device/index/sub-index diagnostic.
 
 ## 4. Communication Reset
@@ -129,16 +129,10 @@ The thread resolves `app->canOpenStack` only after taking `lifecycleMutex`. It d
 `odMutex` pointers across reset. A thread that already consumed an old semaphore token either completes before reset owns
 the lifecycle mutex or waits and resolves the new generation afterwards.
 
-CiA 301 v4.2.0 defines Reset Communication as a reset of the communication part. A4 therefore reuses
+CiA 301 v4.2.0 defines Reset Communication as a reset of the communication part. The adapter therefore reuses
 `CO_402_device_bindOD()` instead of calling `CO_402_device_managerInit()` again, and does not invent a DriveIF power-off or
 PDS-state reset policy. Product NMT/PDS power policy remains a later normative-matrix decision.
 
 ## 5. Disable and rollback
 
-With `PKG_CANOPENNODE_CIA402=n`, `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS` is not selected, so `CANopenNodeRTT` gains no lifecycle registry state; the generic app structure never embeds CiA 402 profile state, `CO_lifecycle_RTT.c`/the CiA 402 adapter are not selected by SCons, and no thread/semaphore/timer hook is added. The original realtime sequence and timerNext mainline branch remain unchanged. Disabling only `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` retains the A3 Pure-C core without A4 RT resources. Keeping `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART=n` preserves the manual zero-CiA402-heap path.
-
-## 6. Validation boundary
-
-The A4 target matrix covers CIA402 off/on, timerNext off/on, `CO_MULTIPLE_OD`, incompatible demo OD, and the CiA 402
-multi-axis OD. This page states the implementation contract only. Build logs, target boot, three-axis SDO, repeated Reset
-Communication, CAN traces, and WCET/jitter require actual execution evidence; Host/static checks do not prove MCU/HIL behavior.
+With `PKG_CANOPENNODE_CIA402=n`, `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS` is not selected, so `CANopenNodeRTT` gains no lifecycle registry state; the generic app structure never embeds CiA 402 profile state, `CO_lifecycle_RTT.c`/the CiA 402 adapter are not selected by SCons, and no thread/semaphore/timer hook is added. The original realtime sequence and timerNext mainline branch remain unchanged. Disabling only `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` retains the Pure-C Device core without the RT-Thread Device resources. Keeping `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART=n` preserves the manual zero-CiA402-heap path.

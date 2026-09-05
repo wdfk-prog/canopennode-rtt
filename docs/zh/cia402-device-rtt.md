@@ -2,7 +2,7 @@
 
 # CiA 402 RT-Thread Device Thread 与 Communication Reset
 
-本文说明阶段 A4 如何把 A3 的 Pure-C `CO_402_device_manager_t` 接入 `CANopenNodeRTT`。A4 不改变 PDS FSA、
+本文说明 RT-Thread adapter 如何把 Pure-C `CO_402_device_manager_t` 接入 `CANopenNodeRTT`。该 adapter 不改变 PDS FSA、
 DriveIF 或生成 OD 的语义，只负责 RT-Thread thread、通用 lifecycle extension 接入、锁顺序、通信初始化顺序和 Communication Reset 生命周期。
 
 ![CiA 402 RT-Thread thread and reset](../assets/cia402-device-rtt.svg)
@@ -13,11 +13,11 @@ DriveIF 或生成 OD 的语义，只负责 RT-Thread thread、通用 lifecycle e
 
 | 选项 | 默认值 | 作用 |
 |---|---:|---|
-| `PKG_CANOPENNODE_CIA402` | `n` | CiA 402 总开关。关闭时 A4 不增加 `CANopenNodeRTT` 字段或 RT 资源。 |
-| `PKG_CANOPENNODE_CIA402_DEVICE` | `y` | A3 Pure-C Device core。 |
-| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y` | 编译 A4 RT adapter；选择通用 lifecycle registry，只有成功 attach 的实例才创建 thread/semaphore。 |
+| `PKG_CANOPENNODE_CIA402` | `n` | CiA 402 总开关。关闭时不会向 `CANopenNodeRTT` 增加 CiA 402 字段或 RT 资源。 |
+| `PKG_CANOPENNODE_CIA402_DEVICE` | `y` | Pure-C Device core。 |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y` | 编译 RT-Thread Device adapter；选择通用 lifecycle registry，只有成功 attach 的实例才创建 thread/semaphore。 |
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART` | `n` | 配合默认 app auto init 与 RT-Thread component init，由已注册的 CiA 402 factory 自动分配 runtime/axis state 并 attach。 |
-| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | 注册 package 自带的软件 DriveIF factory，并选择生成的 demo OD，用于协议/PDS/lifecycle 验证。 |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | 注册 package 自带的软件 DriveIF factory，并选择生成的 demo OD，用于软件 bring-up。 |
 | `PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT` | `3` | 软件 demo logical device 数量；按生成 OD 的范围明确限制为 1..3。 |
 | `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` 栈大小。 |
 | `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` 优先级；必须低于 `co_rt`，即数值必须大于 realtime priority。 |
@@ -70,10 +70,10 @@ CO_402_DEVICE_RTT_AUTOSTART_DEFINE(product402, axisConfigs, RT_ARRAY_SIZE(axisCo
 
 ## 2. 通用 lifecycle registry 与周期 thread
 
-`CO_app_RTT.c` 不再直接调用任何 `CO_402_device_RTT_*()` API。A4 通过 `CO_RTT_lifecycleRegister()` 注册固定容量 `ops + context`；容量由 `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY` 配置（默认 4，范围 1..255），
+`CO_app_RTT.c` 不再直接调用任何 `CO_402_device_RTT_*()` API。RT-Thread adapter 通过 `CO_RTT_lifecycleRegister()` 注册固定容量 `ops + context`；容量由 `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY` 配置（默认 4，范围 1..255），
 由通用 lifecycle dispatcher 在既定位置调用 profile hook；registry 不使用 heap，注册完成后在 runtime 期间保持只读。
 
-A4 仍复用现有 `rtTimer`：
+RT-Thread adapter 复用现有 `rtTimer`：
 
 ```text
 rtTimer -> rtSem     -> co_rt  (default priority 3)
@@ -90,7 +90,7 @@ lifecycleMutex -> CO_LOCK_OD -> Pure-C PDS supervisor -> CO_UNLOCK_OD -> lifecyc
 这与 `co_rt` 的锁顺序一致，避免反向加锁。`co_402` 的 DriveIF callback 在这段临界区内执行，因此必须非阻塞，不能 sleep，
 也不能递归获取 wrapper lifecycle/OD lock。默认 priority 保证 `co_rt` 高于 `co_402`；最终 priority、WCET 和 jitter 仍需目标板测量。
 
-A4 保持允许一周期 pipeline：本周期 RPDO 更新后的命令可以由 `co_402` 处理，新的 Statusword/feedback 最迟在后续 TPDO 周期发出。
+RT-Thread adapter 允许一周期 pipeline：本周期 RPDO 更新后的命令可以由 `co_402` 处理，新的 Statusword/feedback 最迟在后续 TPDO 周期发出。
 
 ## 3. OD binding 顺序
 
@@ -109,7 +109,7 @@ CO_CANinit
 ```
 
 因此 Controlword/Modes of operation 的 OD extension 在 PDO 初始化之前已经建立。没有注册 extension 的实例通过通用 no-op/empty registry 路径，不需要 profile 特判；现有 demo OD
-仍可按原路径运行；如果 attach 后 OD 缺少 A3 所需对象或属性不匹配，初始化返回确定性错误并记录 logical-device/index/sub-index。
+仍可按原路径运行；如果 attach 后 OD 缺少 Device core 所需对象或属性不匹配，初始化返回确定性错误并记录 logical-device/index/sub-index。
 
 ## 4. Communication Reset
 
@@ -126,17 +126,11 @@ CO_CANinit
 Thread 每次都在拿到 `lifecycleMutex` 后重新读取 `app->canOpenStack`，不保存跨 reset 的 `CO_t`、`CANmodule` 或 `odMutex` 指针。
 已经取走旧 semaphore token 的 thread 要么在 reset 获锁前完成旧 generation，要么等待 reset 结束后读取新 generation，因此不会越过对象删除边界。
 
-CiA 301 v4.2.0 将 Reset Communication 定义为通信部分复位。A4 因此只执行 `CO_402_device_bindOD()`，不会再次
+CiA 301 v4.2.0 将 Reset Communication 定义为通信部分复位。RT-Thread adapter 因此只执行 `CO_402_device_bindOD()`，不会再次
 `CO_402_device_managerInit()`，也不会隐式调用 DriveIF 断电或清空 PDS state。NMT/PDS 的产品 power policy 需要后续规范矩阵明确后再实现。
 
 ## 5. 关闭功能与回滚
 
 `PKG_CANOPENNODE_CIA402=n` 时不会选择 `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS`，因此 `CANopenNodeRTT` 不增加 lifecycle registry state，且通用 app 结构本身从不包含 CiA 402 profile state，
 `CO_lifecycle_RTT.c`/CiA 402 adapter 不进入 SCons，也不会新增 thread、semaphore 或 timer hook。原 realtime 顺序与 timerNext mainline 分支保持不变。
-也可以仅关闭 `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD`，保留 A3 Pure-C core 而不创建 A4 RT adapter。
-
-## 6. 验证边界
-
-A4 的目标验证矩阵包括 CIA402 off/on、timerNext off/on、`CO_MULTIPLE_OD`、错误 demo OD 和 CiA 402 multi-axis OD。
-本页只描述实现契约；实际 build log、目标板 boot、三轴 SDO、重复 Reset Communication、CAN trace 和 WCET/jitter 必须以真实执行证据为准。
-没有执行的 MCU/HIL 项不能由 Host/static 检查替代。
+也可以仅关闭 `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD`，保留 Pure-C Device core 而不创建 RT-Thread Device adapter。

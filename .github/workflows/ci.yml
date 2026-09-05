@@ -39,7 +39,7 @@ jobs:
           - demo-cia402-controller-only
           - demo-cia402-device-rtt-autostart
           - demo-cia402-device-controller
-          - demo-cia402-a7-validation
+          - demo-cia402-device-diagnostics
           - demo-high-res-time
           - demo-pdo-sync
           - demo-sdo-block-test
@@ -131,7 +131,7 @@ jobs:
           "$ARM_GCC_DIR/bin/arm-none-eabi-gcc" --version
 
       - name: Check CiA 402 product artifact contract
-        if: matrix.profile == 'demo-cia402-a7-validation'
+        if: matrix.profile == 'demo-cia402-device-diagnostics'
         run: |
           python3 -m py_compile .github/ci/canopennode-rtt/verify-cia402-artifacts.py
           if [ -f examples/cia402_multi_axis_device/manifest.json ]; then

@@ -48,7 +48,7 @@ RX helper priority <= realtime priority < mainline priority
 
 由于 RT-Thread 数值越小优先级越高，默认 RX helper 优先级 `2`、realtime 优先级 `3`、mainline 优先级 `10` 符合该模型。
 
-启用 A4 Device thread 后还增加：
+启用 CiA 402 Device thread 后还增加：
 
 | 选项 | 默认值 | 用途 |
 |---|---:|---|
@@ -119,7 +119,7 @@ Node guarding slave 还要求 OD 中存在 0x100C Guard Time 和 0x100D Lifetime
 | `PKG_CANOPENNODE_EM_PRODUCER` | `y` | 本地节点可以发送 EMCY 消息。 |
 | `PKG_CANOPENNODE_EM_HISTORY` | `y` | 将近期 emergency 记录存入 OD 0x1003。 |
 | `PKG_CANOPENNODE_EM_CONSUMER` | `n` | 接收远端节点 EMCY 消息。 |
-| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | 仅用于单实例 demo/test；自动选择 EMCY Consumer，并通过 `0x2301` 发布远端事件 atomic 快照。 |
+| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | 仅用于单实例 demo；自动选择 EMCY Consumer，并通过 `0x2301` 发布远端事件 atomic 快照。 |
 | `PKG_CANOPENNODE_EM_ERR_STATUS_BITS_COUNT` | `80` | 错误状态 bit 数，合法范围 48..256 且为 8 的倍数。 |
 
 ### SDO
@@ -140,7 +140,7 @@ Node guarding slave 还要求 OD 中存在 0x100C Guard Time 和 0x100D Lifetime
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_TIME` | `y` | 默认支持 TIME consumer。 |
 | `PKG_CANOPENNODE_TIME_PRODUCER` | `n` | 只有网络时间生产者节点需要开启。 |
-| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 仅用于 demo/test；依赖 demo OD，通过 `0x2300` 发布 TIME consumer 诊断，并自动选择 callback-pre 和动态 OD 支持。 |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 仅用于 demo；依赖 demo OD，通过 `0x2300` 发布 TIME consumer 诊断，并自动选择 callback-pre 和动态 OD 支持。 |
 | `PKG_CANOPENNODE_USING_SYNC` | `y` | SYNC object 支持。 |
 | `PKG_CANOPENNODE_SYNC_PRODUCER` | `y` | 本节点可以产生 SYNC。需要结合网络拓扑确认。 |
 | `PKG_CANOPENNODE_USING_PDO` | `y` | PDO object 支持。 |
@@ -192,22 +192,20 @@ Storage backend 选择：
 | `PKG_CANOPENNODE_USING_DEBUG` | `n` | 启用本移植层的 RT-Thread ulog 诊断日志。 |
 | `PKG_CANOPENNODE_USING_FRAME_TRACE` | `n` | 打印 CAN RX/TX 帧。仅建议 bring-up 诊断使用。 |
 
-## 10. Demo 与自动验证模块
+## 10. Demo 与诊断模块
 
 | 选项 | 默认值 | 说明 |
 |---|---:|---|
-| `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | 编译 `examples/demo_device/OD.c`，并添加 demo OD include path。 |
-| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 根据 TIME receive callback 和实际 `CO_TIME_t` 状态更新 demo OD `0x2300:01..03`。 |
-| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | 单实例 demo 诊断；使用 RT-Thread atomic 根据 CANopenNode EMCY Consumer callback 更新 `0x2301:01..07`。 |
-| `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | demo/test GFC 协议诊断；自动选择 GFC consumer/producer，并通过 `0x2302` 提供接收证据及 mainline producer request/result sequence。 |
-| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | MCU SDO Client 自动验证；发布 `0x2303`，自动选择 SDO Client segmented/local 支持；除非另行启用，否则 block transfer 保持关闭。 |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | 仅在 demo OD 配置域内可见；依赖 auto init，并自动选择 NMT Master、Heartbeat Consumer、query functions 与 GLOBAL_OD_DYNAMIC。 |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | 被控制的远端节点，范围 1..127；运行时拒绝与本机 Node-ID 相同。 |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | 写入 demo OD `0x1016` 的目标节点 Heartbeat consumer timeout。 |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS` | `3000` | fixture PRE-OP 归一化及每条正式 NMT 命令等待 Heartbeat/NMT 状态确认的最大时间；首次 peer discovery 本身不超时。 |
+| `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | 编译 `examples/demo_device/OD.c` 并添加 demo OD include path。 |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | 通过 OD `0x2300` 暴露 demo TIME 接收/应用状态。 |
+| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | 通过 OD `0x2301` 暴露最近一次远端 EMCY 快照和接收计数。 |
+| `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | 启用 demo GFC consumer/producer，并通过 OD `0x2302` 暴露状态。 |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | 启用 demo SDO Client 控制/状态对象 `0x2303`，并选择 segmented/local client 支持。 |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | 启用 demo NMT Master module 及其 Heartbeat Consumer 依赖。 |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | demo NMT Master 使用的远端 Node-ID，范围 1..127。 |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | demo NMT Master 使用的 Heartbeat timeout。 |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS` | `3000` | demo NMT Master 等待远端状态的最大时间。 |
 
-TIME diagnostic、EMCY Consumer diagnostic、GFC diagnostic、MCU SDO Client test 和 NMT Master validation 的实现位于 `port/rtthread/demo/`。`CO_app_RTT.c` 只调用固定的 demo dispatcher hook；`SConscript` 仅在对应 Kconfig 选项开启时加入相应 demo source。没有选择任何 demo/test 模块时，dispatcher state 和 hook call 会完全编译掉；启用 demo/test 模块但关闭 demo OD 会在编译期被拒绝。
-
-TIME diagnostic、EMCY Consumer diagnostic、GFC 协议诊断、MCU SDO Client 测试和 NMT Master 自动测试都属于内置 demo OD 的测试配置域。使用自定义 OD 的产品固件应关闭 `PKG_CANOPENNODE_USING_DEMO_OD`，按产品需求直接启用协议能力并提供自己的测试/可观察接口。完整 NMT 流程见 [NMT Master 自动测试](nmt-master-test.md)。
+这些选项属于 `port/rtthread/demo/` 下的内置 demo-OD 功能域。`CO_app_RTT.c` 只使用固定 dispatcher 接口，SConscript 按 Kconfig 选择真正启用的 demo source。产品固件使用自定义 OD 时，通常应关闭 `PKG_CANOPENNODE_USING_DEMO_OD`，只保留产品明确需要的诊断或控制对象。
 
 当 BSP 或应用通过自己的 SConscript 和 include path 提供自定义生成的 `OD.c` 与 `OD.h` 时，应关闭 `PKG_CANOPENNODE_USING_DEMO_OD`。

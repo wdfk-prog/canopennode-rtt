@@ -2,11 +2,11 @@
 
 # CiA 402 Pure-C Device Core and OD Binding
 
-This page documents the Stage A3 implementation boundary and runtime contract. A3 builds the multi-axis Device PDS core in pure C without adding RT-Thread, STM32/BSP, or runtime OD-generation dependencies.
+This page documents the implementation boundary and runtime contract of the multi-axis Pure-C Device core. The core adds no RT-Thread, STM32/BSP, or runtime OD-generation dependency.
 
-## 1. What A3 provides
+## 1. Device core responsibilities
 
-A3 binds XDD-generated CiA 402 objects to a local multi-axis runtime and runs an independent PDS supervisor for each axis:
+The Device core binds XDD-generated CiA 402 objects to a local multi-axis runtime and runs an independent PDS supervisor for each axis:
 
 - `CO_402_device_manager_t` owns references to caller-owned axis/config/runtime arrays;
 - each `logicalDevice` maps to its profile OD base;
@@ -16,11 +16,11 @@ A3 binds XDD-generated CiA 402 objects to a local multi-axis runtime and runs an
 - Controlword is decoded, the PDS state is supervised, and Statusword is encoded;
 - `CO_402_drive_if_t` isolates the protocol state machine from product motor/power-stage code;
 - `BUSY/DONE/ERROR` allows DriveIF transitions to span multiple supervisor cycles;
-- manager, axis, config, and DriveIF storage is application-owned; A3 allocates no heap memory.
+- manager, axis, config, and DriveIF storage is application-owned; the Device core allocates no heap memory.
 
 ![CiA 402 Pure-C Device core](../assets/cia402-device-core.svg)
 
-A3 does not implement an RT-Thread worker, STM32 HAL, PWM/ADC/FOC, PP/PV/HM/CSP/CSV/CST mode runtimes, or changes under `CANopenNode/` core.
+The Device core does not implement an RT-Thread worker, STM32 HAL, PWM/ADC/FOC, PP/PV/HM/CSP/CSV/CST mode runtimes, or changes under `CANopenNode/` core.
 
 ## 2. Multi-axis logical-device to OD base mapping
 
@@ -41,11 +41,11 @@ Configured logical devices do not have to be contiguous; for example, logical de
 
 ## 3. OD binding contract
 
-The XDD and generated `OD.c`/`OD.h` remain the source of truth for object existence and semantic data types. A3 never creates hidden OD entries; it validates only structure and attributes visible through the CANopenNode runtime OD.
+The XDD and generated `OD.c`/`OD.h` remain the source of truth for object existence and semantic data types. The Device core never creates hidden OD entries; it validates only structure and attributes visible through the CANopenNode runtime OD.
 
 Each configured axis currently requires:
 
-| Axis0 index | Meaning | Length | A3 access/mapping contract |
+| Axis0 index | Meaning | Length | Device-core access/mapping contract |
 |---:|---|---:|---|
 | `0x603F` | Error code | 2 | SDO-R, MB |
 | `0x6040` | Controlword | 2 | SDO-RW, RPDO, MB |
@@ -63,12 +63,12 @@ Initialization checks that:
 1. the object exists;
 2. the OD entry is a scalar `VAR` with only sub-index zero;
 3. byte length matches the contract;
-4. all runtime-visible attributes match the A3 contract, including rejection of undeclared SRDO mapping and `ODA_STR`;
+4. all runtime-visible attributes match the Device-core contract, including rejection of undeclared SRDO mapping and `ODA_STR`;
 5. Controlword/Modes-of-operation extensions are not owned by another subsystem.
 
 Forwarding extensions are installed only after all axes and required objects pass validation, so a validation failure does not leave a manager with newly installed partial extensions.
 
-> The current CANopenNode runtime OD metadata does not retain the complete semantic XDD data type, such as the signed/unsigned type name. A3 can therefore validate object code, sub-index structure, byte width, and access/mapping at runtime; semantic INTEGER/UNSIGNED typing remains an XDD/generated-artifact responsibility. This is not a CiA 402 conformance claim.
+> The current CANopenNode runtime OD metadata does not retain the complete semantic XDD data type, such as the signed/unsigned type name. The Device core can therefore validate object code, sub-index structure, byte width, and access/mapping at runtime; semantic INTEGER/UNSIGNED typing remains an XDD/generated-artifact responsibility. This is not a CiA 402 conformance claim.
 
 ## 4. PDS supervisor and DriveIF
 
@@ -93,7 +93,7 @@ Result semantics are:
 - `CO_402_DRIVE_DONE`: commit the target PDS state;
 - `CO_402_DRIVE_ERROR`: normal transitions enter Fault reaction active; completion or failure of fault reaction enters Fault.
 
-A3 does not treat Controlword `0x000F` as an automatic multi-state shortcut from Switch on disabled or Ready to switch on; the host/controller must sequence states explicitly. Quick stop active also does not use `0x000F` to resume Operation enabled because A3 does not yet bind the Quick stop option code and its policy. No recovery policy is invented before the corresponding normative matrix and OD contract are available.
+The Device core does not treat Controlword `0x000F` as an automatic multi-state shortcut from Switch on disabled or Ready to switch on; the host/controller must sequence states explicitly. Quick stop active also does not use `0x000F` to resume Operation enabled because the Device core does not yet bind the Quick stop option code and its policy. No recovery policy is invented before the corresponding normative matrix and OD contract are available.
 
 Fault Reset uses a separate edge-triggered transaction. The supervisor records Controlword bit 7 after every successful snapshot, and only a newly observed `0 -> 1` while the axis is in Fault starts `faultReset`. A `BUSY` result latches that accepted transaction and continues it across later cycles until `DONE` or `ERROR`; normal Controlword state commands do not preempt an accepted Fault Reset. A Controlword read failure does preempt it into fault reaction. Holding bit 7 high cannot automatically reset a later Fault. Normal PDS command decoding ignores bit 7, so a stale high Fault Reset level does not suppress Shutdown, Enable operation, or other normal state commands.
 
@@ -107,7 +107,7 @@ CO_402_device_axis_t axes[AXIS_COUNT];
 CO_402_device_axis_config_t configs[AXIS_COUNT];
 ```
 
-`configs[*].drive` and `configs[*].driveObject` must remain valid as well. A3 does not call `malloc/calloc/realloc/free` and owns no RT-Thread object.
+`configs[*].drive` and `configs[*].driveObject` must remain valid as well. The Device core does not call `malloc/calloc/realloc/free` and owns no RT-Thread object.
 
 ## 6. Optional logging hook
 

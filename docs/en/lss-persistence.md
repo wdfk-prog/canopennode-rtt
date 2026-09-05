@@ -150,76 +150,6 @@ An interrupted write is not accepted as valid on the next startup. The single-sl
 
 This follows the CANopenNode LSS pending-value lifecycle: persistent values are initialized on program startup and must not overwrite pending values during Communication Reset.
 
-## Raw CAN verification for Node-ID configure/store
-
-For tests that only verify Node-ID configuration and persistence, the MCU does not need a second LSS Master implementation. A Linux host can send the CiA 305 LSS frames directly with SocketCAN/can-utils.
-
-CAN identifiers:
-
-```text
-LSS Master -> Slave : 0x7E5
-LSS Slave  -> Master: 0x7E4
-NMT                  : 0x000
-```
-
-Read OD `0x1018:01..04` first and send the four selective values little-endian:
-
-```text
-7E5#40VVVVVVVV000000
-7E5#41PPPPPPPP000000
-7E5#42RRRRRRRR000000
-7E5#43SSSSSSSS000000
-```
-
-After the final match, expect:
-
-```text
-7E4#4400000000000000
-```
-
-For example, configure Node-ID `0x22` and Store it:
-
-```text
-# Configure Node-ID
-7E5#1122000000000000
-# expected: 7E4#1100000000000000
-
-# Store configuration
-7E5#1700000000000000
-# expected: 7E4#1700000000000000
-```
-
-Before Communication Reset, `Inquire Node-ID (0x5E)` reports the active Node-ID, not the pending Node-ID, so it can still return the old ID after a successful Configure Node-ID command.
-
-If the old active Node-ID is 1, apply the pending Node-ID with:
-
-```text
-000#8201
-```
-
-For Node-ID `0x22`, the new boot-up frame should be:
-
-```text
-722#00
-```
-
-For persistence acceptance, continue with an NMT Reset Node (`0x81`) to the current Node-ID, verify that the saved Node-ID returns, perform a real power cycle and verify it again, then configure + Store the original Node-ID and repeat reset/power-cycle cleanup.
-
-## Bitrate verification
-
-A practical target flow is:
-
-1. Start the DUT at 1000 kbit/s and enter LSS configuration state selectively.
-2. Configure Bit Timing to 500 kbit/s and expect a successful response.
-3. Send an invalid or unsupported timing-table combination and verify an error/no-ack without changing the pending bitrate.
-4. Send Activate Bit Timing and switch the Host SocketCAN interface with the same delay.
-5. Verify that the CANopen layer does not generate new traffic during PRE_DELAY/POST_DELAY and that normal heartbeat/SDO transmission does not resume before the window ends. Aborting a historical TX that already entered a HAL mailbox before the gate closed is not an acceptance requirement for this validation.
-6. After the delay, verify LSS/SDO/heartbeat communication at 500 kbit/s.
-7. Store configuration, perform Reset Node and a real power cycle, and rediscover the DUT at 500 kbit/s.
-8. Restore 1000 kbit/s, Store, Reset Node, power-cycle, and verify cleanup.
-
-Completing the implementation is not the same as passing target-board acceptance. Target validation must still cover synchronized Host switching, real bxCAN reconfiguration, the CANopen software TX gate, Store/Reset/power-cycle persistence, and rescue. Strict hardware-mailbox abort can be added when the RT-Thread target driver exposes the required API.
-
 ## Recovery behavior
 
 Invalid format, CRC, commit marker, Node-ID, bitrate, missing auxiliary data, or backend I/O errors never replace the application startup values.
@@ -230,4 +160,3 @@ A syntactically valid standard LSS bitrate can still be rejected by a specific R
 
 A runtime switch failure first attempts to restore the previous bitrate. If rollback also fails, the wrapper keeps new CANopen transmission disabled instead of continuing from an unknown bitrate/controller state.
 
-Target hardware must still validate Communication Reset, Reset Node, a real power cycle, media-failure behavior, 500/1000 kbit/s switching in both directions, and the rescue procedure.

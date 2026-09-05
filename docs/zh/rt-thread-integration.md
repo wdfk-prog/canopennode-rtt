@@ -24,7 +24,7 @@ flowchart TD
 
 1. `CO_driver_rtthread.c` 基于 RT-Thread `dev_can` 实现 CANopenNode target driver hooks。
 2. `CO_app_RTT.c` 持有应用运行实例，创建 CANopenNode 对象，启动 worker threads，处理 communication reset，并可选初始化 storage 和 LED 输出。
-3. `port/rtthread/demo/` 持有 demo/test 功能实现；运行封装只调用固定的 `CO_demo_init()`、`CO_demo_bind()`、`CO_demo_process()`、`CO_demo_reset()`，以及仅用于初始化回滚的 `CO_demo_deinit()` 接点。
+3. `port/rtthread/demo/` 持有可选 demo 功能实现；运行封装只调用固定的 `CO_demo_init()`、`CO_demo_bind()`、`CO_demo_process()`、`CO_demo_reset()`，以及仅用于初始化回滚的 `CO_demo_deinit()` 接点。
 
 ## 2. 运行实例
 
@@ -39,7 +39,7 @@ flowchart TD
 | `activeNodeID` | CANopen 通信初始化后的实际 Node-ID。 |
 | `baudrate` | CAN bitrate，单位 kbit/s。 |
 | `canOpenStack` | 当前实例持有的 `CO_t` 对象。 |
-| `demo` | 可选 demo/test dispatcher 状态，具体功能状态由 `CO_demo_*` 模块维护。 |
+| `demo` | 可选 demo dispatcher 状态，具体功能状态由 `CO_demo_*` 模块维护。 |
 | `mainThread` | mainline CANopen worker thread。 |
 | `rtThread` | realtime CANopen worker thread。 |
 | `rtTimer` | 周期性唤醒 realtime 处理的 RT-Thread timer。 |
@@ -85,9 +85,9 @@ mainline 线程最后启动，因为它可能处理 `CO_RESET_COMM` 并重建 CA
 
 启用 lifecycle autostart 时，各 profile factory 在 RT-Thread component init 阶段先注册；唯一的默认 app `INIT_APP_EXPORT` 入口随后在 `canopen_app_rtt_init()` 前调用 `CO_RTT_lifecycleAutoAttachAll()`。Auto factory 只负责创建/注册 owned context；真正创建 RT 资源和启动 extension 的入口仍只有 `CO_RTT_lifecycleRuntimeInit()` 与 `CO_RTT_lifecycleRuntimeStart()`。任一 factory 失败时，仅逆序回滚本次新增的 auto slot，不影响此前已注册的 manual prefix。
 
-### Demo/test 扩展边界
+### Demo 扩展边界
 
-`CO_app_RTT.c` 不直接实现 TIME diagnostic、EMCY Consumer diagnostic、NMT Master test 等具体功能。通信对象初始化成功后调用 `CO_demo_bind()` 重新绑定 callback；每轮 `CO_process()` 后调用 `CO_demo_process()`；本机 communication/application reset 前调用 `CO_demo_reset()`；仅在初始化失败且 CAN RX 已停止后调用 `CO_demo_deinit()` 回收 callback owner。SConscript 仅在 demo OD 开启且至少一个 demo/test 模块被选择时加入 dispatcher，并根据各 demo 的 Kconfig 选项选择对应实现源文件；未选择任何 demo/test 模块时，dispatcher state 与 hook 调用会整体编译掉，不再使用 dummy/no-op 状态。因此后续新增 demo/test 只扩展 `port/rtthread/demo/`、Kconfig 和 SConscript 选择，不需要继续修改主运行封装。
+`CO_app_RTT.c` 不直接实现 具体可选 demo module 功能。通信对象初始化成功后调用 `CO_demo_bind()` 重新绑定 callback；每轮 `CO_process()` 后调用 `CO_demo_process()`；本机 communication/application reset 前调用 `CO_demo_reset()`；仅在初始化失败且 CAN RX 已停止后调用 `CO_demo_deinit()` 回收 callback owner。SConscript 仅在 demo OD 开启且至少一个 demo module被选择时加入 dispatcher，并根据各 demo 的 Kconfig 选项选择对应实现源文件；未选择任何 demo module时，dispatcher state 与 hook 调用会整体编译掉，不再使用 dummy/no-op 状态。因此后续新增 demo module 只扩展 `port/rtthread/demo/`、Kconfig 和 SConscript 选择，不需要继续修改主运行封装。
 
 ## 4. 线程和定时器
 
@@ -97,12 +97,12 @@ mainline 线程最后启动，因为它可能处理 `CO_RESET_COMM` 并重建 CA
 | Mainline thread | `co_main` | 执行 `CO_process()`，处理 NMT、SDO、heartbeat、storage auto processing、LED 状态和 reset 命令。 |
 | Realtime thread | `co_rt` | 在对应对象启用时处理 SYNC、SRDO、RPDO 和 TPDO 实时路径。 |
 | Realtime timer | `co_tmr` | 周期性先释放 `rtSem`，再调用通用 lifecycle realtime hook；CiA 402 hook 释放 `cia402Sem`。 |
-| CiA 402 thread | `co_402` | A4 开启且实例已 attach 时运行一次 Pure-C PDS supervisor；默认 priority 5。 |
+| CiA 402 thread | `co_402` | CiA 402 Device attach 后运行一次 Pure-C PDS supervisor；默认 priority 5。 |
 | Mainline event | `co_evt` | 开启 `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` 后，合并 callback-pre 与 runtime 的 mainline 唤醒通知。 |
 
 realtime 请求周期由 `PKG_CANOPENNODE_TIMER_PERIOD_US` 配置。封装层会将周期换算为 RT-Thread tick，因此过小的值会受到 BSP tick rate 限制。
 
-`PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n` 时，`co_main` 保留原有 1 ms polling，SCons 也不会编译 `CO_mainline_RTT.c`。开启后由 `CO_mainline_RTT.c` 负责 Event 生命周期、callback-pre 唤醒、等待策略和 wrapper deadline 聚合，`CO_app_RTT.c` 只在明确的功能宏调用点接入调度器。`CO_process()` 与 wrapper 自有逻辑共同给出最近 deadline，callback-pre 和 Gateway 输入则通过 mainline event 提前唤醒线程。Event bit 只表达“有工作需要重新处理”，协议状态和接收数据仍由 CANopenNode 自身维护。402 关闭时不会选择 lifecycle registry，realtime 路径继续严格保持 `co_tmr -> rtSem -> co_rt`。A4 attach 后，同一 timer 调用通用 realtime hook，
+`PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n` 时，`co_main` 保留原有 1 ms polling，SCons 也不会编译 `CO_mainline_RTT.c`。开启后由 `CO_mainline_RTT.c` 负责 Event 生命周期、callback-pre 唤醒、等待策略和 wrapper deadline 聚合，`CO_app_RTT.c` 只在明确的功能宏调用点接入调度器。`CO_process()` 与 wrapper 自有逻辑共同给出最近 deadline，callback-pre 和 Gateway 输入则通过 mainline event 提前唤醒线程。Event bit 只表达“有工作需要重新处理”，协议状态和接收数据仍由 CANopenNode 自身维护。402 关闭时不会选择 lifecycle registry，realtime 路径继续严格保持 `co_tmr -> rtSem -> co_rt`。CiA 402 Device attach 后，同一 timer 调用通用 realtime hook，
 CiA 402 hook 再唤醒 `cia402Sem -> co_402`；该 hook 与 timerNext mainline 配置无关，也不把 PDS supervisor 插入 `co_rt` 的 SYNC/RPDO/TPDO/SRDO 顺序。
 
 ## 5. CAN 接收路径
@@ -151,7 +151,7 @@ RT-Thread target 层提供以下 locking macros：
 
 mainline 线程检查 `CO_process()` 返回值。当 CANopenNode 请求 communication reset 时，封装层先停止 `rtTimer`、drain `rtSem`，并调用通用 `CO_RTT_lifecycleResetWakeups()`。随后获取 `lifecycleMutex`，registry 先以逆注册顺序执行 communication-stop hook；旧 CAN module 禁用并等待 RX thread 退出后，再以逆注册顺序执行 communication-quiesced hook。删除旧 stack 后，新 stack 在 `CO_CANopenInit()` 完成后、SRDO/PDO 初始化前按注册顺序执行 bind hook，进入 CAN normal mode 后执行 ready hook。Auto-owned context 在 Communication Reset 中不会释放；只有最终 teardown 才先执行 `runtimeDeinit()`，再执行 slot release callback。CiA 402 只是其中一个 extension，`CO_app_RTT.c` 不再包含 profile 专属调用。
 
-`co_rt` 与 `co_402` 都按 `lifecycleMutex -> OD lock` 获取锁，并且只在持有 lifecycle mutex 后读取当前 `app->canOpenStack`。因此 reset 不允许 thread 保存或继续使用旧 `CO_t`、`CANmodule` 或 `odMutex` 指针。完整 A4 时序见 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
+`co_rt` 与 `co_402` 都按 `lifecycleMutex -> OD lock` 获取锁，并且只在持有 lifecycle mutex 后读取当前 `app->canOpenStack`。因此 reset 不允许 thread 保存或继续使用旧 `CO_t`、`CANmodule` 或 `odMutex` 指针。完整 CiA 402 Device 时序见 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
 
 ## 9. Storage 集成
 

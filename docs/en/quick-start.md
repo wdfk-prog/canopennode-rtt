@@ -110,15 +110,15 @@ git submodule update --init --recursive
 
 If the build reports a missing `examples/demo_device/OD.h`, keep `PKG_CANOPENNODE_USING_DEMO_OD=y` only when the demo OD files are present. Disable it when the application supplies its own OD.
 
-## 7. Run and verify
+## 7. Start the node
 
-After flashing the target, verify the following behavior:
+After flashing the target, confirm the basic runtime state:
 
 1. The RT-Thread CAN device is opened successfully.
 2. The configured bitrate is accepted by the BSP CAN driver.
 3. The CANopen node sends a boot-up frame on startup.
-4. If SDO server is enabled, a CANopen master or tester can access OD entries through SDO.
-5. If PDO is enabled and the demo OD is used, TPDO/RPDO behavior matches the demo mapping.
+4. If SDO server is enabled, a CANopen master can access the intended OD entries through SDO.
+5. If PDO is enabled and the demo OD is used, TPDO/RPDO traffic follows the enabled demo mapping.
 
 A common boot-up frame for Node-ID `1` uses COB-ID `0x701` and one data byte `0x00`.
 

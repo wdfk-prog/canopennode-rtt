@@ -48,7 +48,7 @@ RX helper priority <= realtime priority < mainline priority
 
 Because RT-Thread uses lower numeric values as higher priorities, the default RX helper priority `2`, realtime priority `3`, and mainline priority `10` follow this model.
 
-A4 Device thread adds these options when enabled:
+The CiA 402 Device thread adds these options when enabled:
 
 | Option | Default | Purpose |
 |---|---:|---|
@@ -119,7 +119,7 @@ Node guarding slave additionally requires OD entries 0x100C Guard Time and 0x100
 | `PKG_CANOPENNODE_EM_PRODUCER` | `y` | Local node can transmit EMCY messages. |
 | `PKG_CANOPENNODE_EM_HISTORY` | `y` | Stores recent emergency history in OD 0x1003. |
 | `PKG_CANOPENNODE_EM_CONSUMER` | `n` | Receive EMCY messages from remote nodes. |
-| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | Demo/test only; single-instance. Selects EMCY Consumer and publishes an atomic remote-event snapshot through `0x2301`. |
+| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | Demo-only; single-instance. Selects EMCY Consumer and publishes an atomic remote-event snapshot through `0x2301`. |
 | `PKG_CANOPENNODE_EM_ERR_STATUS_BITS_COUNT` | `80` | Error status bit count, valid range 48..256 and multiple of 8. |
 
 ### SDO
@@ -140,7 +140,7 @@ Node guarding slave additionally requires OD entries 0x100C Guard Time and 0x100
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_TIME` | `y` | TIME consumer support by default. |
 | `PKG_CANOPENNODE_TIME_PRODUCER` | `n` | Enable only for the network time producer. |
-| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Demo/test only. Requires the demo OD and publishes TIME consumer diagnostics at `0x2300`; selects callback-pre and dynamic OD support. |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Demo-only. Requires the demo OD and publishes TIME consumer diagnostics at `0x2300`; selects callback-pre and dynamic OD support. |
 | `PKG_CANOPENNODE_USING_SYNC` | `y` | SYNC object support. |
 | `PKG_CANOPENNODE_SYNC_PRODUCER` | `y` | Local node can produce SYNC. Validate this against network topology. |
 | `PKG_CANOPENNODE_USING_PDO` | `y` | PDO object support. |
@@ -192,22 +192,20 @@ Exactly one storage backend must be selected when storage is enabled.
 | `PKG_CANOPENNODE_USING_DEBUG` | `n` | Enables RT-Thread ulog diagnostics for this port. |
 | `PKG_CANOPENNODE_USING_FRAME_TRACE` | `n` | Logs CAN RX/TX frames. Use only for bring-up diagnostics. |
 
-## 10. Demo and automatic validation modules
+## 10. Demo and diagnostic modules
 
 | Option | Default | Notes |
 |---|---:|---|
 | `PKG_CANOPENNODE_USING_DEMO_OD` | `y` | Compiles `examples/demo_device/OD.c` and adds the demo OD include path. |
-| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Updates demo OD `0x2300:01..03` from the TIME receive callback and applied `CO_TIME_t` state. |
-| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | Single-instance demo diagnostic; updates `0x2301:01..07` from the CANopenNode EMCY Consumer callback using RT-Thread atomics. |
-| `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | Demo/test GFC protocol diagnostic; selects GFC consumer/producer and uses `0x2302` for receive evidence and a mainline producer request/result sequence. |
-| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | MCU SDO Client automated validation; publishes `0x2303`, selects SDO Client segmented/local support, and leaves block transfer disabled unless separately enabled. |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | Available only under the demo OD domain; depends on auto init and selects NMT Master, Heartbeat Consumer, query functions, and GLOBAL_OD_DYNAMIC. |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | Controlled remote node, range 1..127; runtime rejects the active local Node-ID. |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | Target-node Heartbeat Consumer timeout temporarily written to demo OD `0x1016`; the previous value is restored on completion, failure, or before local reset. |
-| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS` | `3000` | Maximum wait for fixture PRE-OP normalization and heartbeat/NMT state confirmation after each formal command; initial peer discovery itself does not time out. |
+| `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` | `n` | Publishes demo TIME receive/application state through OD `0x2300`. |
+| `PKG_CANOPENNODE_DEMO_EMCY_CONSUMER_DIAGNOSTIC` | `n` | Publishes the latest remote EMCY snapshot and receive count through OD `0x2301`. |
+| `PKG_CANOPENNODE_DEMO_GFC_DIAGNOSTIC` | `n` | Enables the demo GFC consumer/producer path and exposes its state through OD `0x2302`. |
+| `PKG_CANOPENNODE_DEMO_SDO_CLIENT_TEST` | `n` | Enables the demo SDO Client control/status object `0x2303` and selects segmented/local client support. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST` | `n` | Enables the demo NMT Master module together with its Heartbeat Consumer dependencies. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_TARGET_NODE_ID` | `2` | Remote Node-ID used by the demo NMT Master module, range 1..127. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_HB_TIMEOUT_MS` | `1500` | Heartbeat timeout used by the demo NMT Master module. |
+| `PKG_CANOPENNODE_DEMO_NMT_MASTER_TEST_STATE_TIMEOUT_MS` | `3000` | Maximum state-wait interval used by the demo NMT Master module. |
 
-TIME diagnostics, EMCY Consumer diagnostics, GFC diagnostics, the MCU SDO Client test, and NMT Master validation are implemented under `port/rtthread/demo/`. `CO_app_RTT.c` only invokes the fixed demo dispatcher hooks. With the demo OD enabled, SConscript builds the dispatcher only when at least one demo/test module is selected, then adds each demo source only for its matching Kconfig option. When no demo/test module is selected, the dispatcher state and hook calls are compiled out entirely; an enabled demo/test module without the demo OD is rejected at compile time.
-
-The TIME diagnostic, EMCY Consumer diagnostic, GFC protocol diagnostic, MCU SDO Client test, and NMT Master automatic test belong to the built-in demo-OD test configuration domain. Product firmware with a custom OD should disable `PKG_CANOPENNODE_USING_DEMO_OD`, enable protocol capabilities as needed, and provide its own test or observability interface. See [NMT Master automatic test](nmt-master-test.md).
+These options belong to the built-in demo-OD domain under `port/rtthread/demo/`. `CO_app_RTT.c` uses one fixed dispatcher interface, while SConscript selects only the enabled demo sources. Product firmware with a custom OD should normally disable `PKG_CANOPENNODE_USING_DEMO_OD` and provide product-owned diagnostics or control objects only when required.
 
 Disable `PKG_CANOPENNODE_USING_DEMO_OD` when the BSP or application provides a custom generated `OD.c` and `OD.h` through its own SConscript and include path.

@@ -24,9 +24,9 @@ When `PKG_CANOPENNODE_USING_DEMO_OD` is enabled, `SConscript` compiles `examples
 Use the demo OD when:
 
 - bringing up the RT-Thread CAN driver and this package for the first time;
-- validating basic NMT, heartbeat, SDO, SYNC, or PDO runtime paths;
+- using basic NMT, heartbeat, SDO, SYNC, or PDO runtime paths;
 - checking whether the target sends the expected CANopen boot-up frame;
-- testing thread priorities, CAN receive dispatch, and logging without product-specific OD complexity.
+- inspecting thread priorities, CAN receive dispatch, and logging without product-specific OD complexity.
 
 Do not treat the demo OD as the final product data model.
 
@@ -104,7 +104,7 @@ These values are often used by CANopen masters, commissioning tools, and field d
 
 ## 8. Demo TIME consumer diagnostics
 
-The generated demo OD contains manufacturer-specific record `0x2300` for automated TIME consumer validation:
+The generated demo OD contains manufacturer-specific record `0x2300` for TIME consumer diagnostics:
 
 | Sub-index | Type | Access | Meaning |
 |---:|---|---|---|
@@ -114,11 +114,11 @@ The generated demo OD contains manufacturer-specific record `0x2300` for automat
 
 The record is RAM-only and not PDO-mappable. The values are updated only when `PKG_CANOPENNODE_DEMO_TIME_DIAGNOSTIC` is enabled. The receive count is maintained in the RT-Thread wrapper instance and survives CANopen communication reset; the applied millisecond/day fields always come from the current `CO_TIME_t` after `CO_process()`.
 
-This is a demo/test observability contract, not a standard CiA 301 TIME object. Product firmware with a custom OD should expose equivalent application evidence only when its validation strategy requires it.
+This is a demo-only observability contract, not a standard CiA 301 TIME object. Product firmware with a custom OD should define its own application diagnostic interface when needed.
 
 ## 9. Demo EMCY consumer diagnostics
 
-The generated demo OD contains manufacturer-specific record `0x2301` for automated EMCY Consumer validation:
+The generated demo OD contains manufacturer-specific record `0x2301` for EMCY Consumer diagnostics:
 
 | Sub-index | Type | Access | Meaning |
 |---:|---|---|---|
@@ -132,65 +132,29 @@ The generated demo OD contains manufacturer-specific record `0x2301` for automat
 
 The receive callback updates RT-Thread atomic fields and an odd/even sequence counter. `CO_demo_process()` publishes each OD update only after reading one stable receive-side snapshot. Because the fields are separate SDO sub-indices, a Host that combines several reads should read `remote_rx_count` before and after the other fields and retry if the two counts differ. The receive count and latest remote EMCY snapshot intentionally survive communication reset while the callback is rebound to the recreated CANopenNode stack. Local EMCY callbacks identified by CANopenNode with `ident == 0` are ignored; duplicate remote EMCY messages and recovery messages with error code zero are each counted. The record is RAM-only and not PDO-mappable.
 
-This is a demo/test observability contract, not a product-level remote fault manager.
+This is a demo-only observability contract, not a product-level remote fault manager.
 
 ## 10. GFC parameter and demo protocol diagnostics
 
 The generated demo OD includes the standard GFC parameter `0x1300:00` as an `UNSIGNED8` read/write value with default `1`. CANopenNode interprets `0` as GFC disabled and `1` as GFC enabled; values greater than `1` are rejected by the GFC OD extension.
 
-For automated GFC protocol validation, manufacturer-specific record `0x2302` exposes only test control and evidence:
+For the demo GFC diagnostic path, manufacturer-specific record `0x2302` exposes the following control and state:
 
 | Sub-index | Type | Access | Meaning |
 |---:|---|---|---|
 | `0x01` | `UNSIGNED32` | read-only | Count of accepted valid GFC consumer callbacks. |
-| `0x02` | `UNSIGNED8` | read-only | Sticky protocol-test flag set after an accepted GFC callback. |
+| `0x02` | `UNSIGNED8` | read-only | Sticky GFC-received flag set after an accepted GFC callback. |
 | `0x03` | `UNSIGNED32` | read/write | Producer request sequence written by the Host. |
 | `0x04` | `UNSIGNED32` | read-only | Last producer request sequence consumed by the MCU mainline. |
 | `0x05` | `INTEGER32` | read-only | Result of the latest mainline `CO_GFCsend()` call. |
 
-The CAN receive callback only updates RT-Thread atomic receive evidence. `CO_GFCsend()` is invoked from the CANopenNode mainline when a new request sequence is observed. Receive evidence survives communication reset, while producer request/completion state is synchronized on rebind so an old request is not replayed on the recreated stack.
+The CAN receive callback only updates RT-Thread atomic receive state. `CO_GFCsend()` is invoked from the CANopenNode mainline when a new request sequence is observed. Receive state survives communication reset, while producer request/completion state is synchronized on rebind so an old request is not replayed on the recreated stack.
 
-This record validates GFC protocol behavior only. It does not drive an actuator, implement a product safe state, or establish SIL/PL/EN 50325-5 compliance.
+This record exposes GFC demo state only. It does not drive an actuator, implement a product safe state, or establish SIL/PL/EN 50325-5 compliance.
 
-## 11. MCU SDO Client test control/status
+## 11. Product OD integration checklist
 
-For automated MCU SDO Client validation, manufacturer-specific record `0x2303` exposes a test-only request and result contract. It does not replace CANopenNode's SDO Client protocol state machine.
-
-| Sub-index | Type | Access | Meaning |
-|---:|---|---|---|
-| `0x01` | `UNSIGNED32` | read/write | Request sequence. The Host writes this field last to commit a complete request. |
-| `0x02` | `UNSIGNED8` | read/write | Command: `1=UPLOAD`, `2=DOWNLOAD`. |
-| `0x03` | `UNSIGNED8` | read/write | Target SDO server Node-ID. |
-| `0x04` | `UNSIGNED16` | read/write | Target Object Dictionary index. |
-| `0x05` | `UNSIGNED8` | read/write | Target Object Dictionary sub-index. |
-| `0x06` | `UNSIGNED32` | read/write | DOWNLOAD payload size in bytes; UPLOAD uses zero. |
-| `0x07` | `UNSIGNED32` | read/write | U32 DOWNLOAD value or deterministic segmented-payload seed. |
-| `0x08` | `UNSIGNED8` | read/write | Request flags. Segmented/local validation requires zero; block-transfer validation may set bit 0 when `PKG_CANOPENNODE_SDO_CLI_BLOCK` is compiled. |
-| `0x09` | `UNSIGNED32` | read-only | Sequence accepted by the MCU mainline. |
-| `0x0A` | `UNSIGNED32` | read-only | Sequence with a published terminal result. |
-| `0x0B` | `INTEGER32` | read-only | Normalized result: `0=NONE`, `1=SUCCESS`, `2=ABORT`, `3=TIMEOUT`, `4=RESET_CANCELLED`, `5=SETUP_ERROR`, `6=UNSUPPORTED`, `7=INTERNAL_ERROR`. |
-| `0x0C` | `UNSIGNED32` | read-only | Native CANopen SDO abort code; reset cancellation leaves this zero. |
-| `0x0D` | `UNSIGNED32` | read-only | Number of payload bytes transferred. |
-| `0x0E` | `UNSIGNED32` | read-only | Uploaded U32 value, or the successful U32 DOWNLOAD probe value. |
-| `0x0F` | `UNSIGNED32` | read-only | FNV-1a checksum over payload bytes handled by the test wrapper. |
-
-The Host writes `0x2303:02..08` first and commits the transaction by writing a new nonzero `request_seq`. The CANopen mainline latches the request and drives `CO_SDOclient_setup()`, initiate, and process calls without blocking. Local transfers use CANopenNode's `CO_CONFIG_SDO_CLI_LOCAL` path and therefore do not produce SDO frames on the CAN bus. Remote tests use the CiA 301 predefined SDO connection for the selected Node-ID.
-
-The segmented/local validation profile keeps the SDO Client FIFO at 32 bytes and uses a 48-byte segmented payload to exercise FIFO drain/refill. OD `0x1280` is not modified for these transactions. A communication reset cancels an active request as `RESET_CANCELLED`, consumes its sequence, and prevents replay after the CANopenNode stack is recreated. Segmented/local requests use `flags=0`; block-transfer validation uses bit 0 only when `PKG_CANOPENNODE_SDO_CLI_BLOCK` is additionally enabled, so the original segmented path is unchanged.
-
-## 12. SDO Server Block Transfer test object
-
-SDO Server block-transfer validation uses manufacturer-specific `0x2304:00` as an SDO read/write, non-PDO-mappable `DOMAIN`. The demo dispatcher binds its test-only OD extension only when `PKG_CANOPENNODE_DEMO_SDO_BLOCK_TEST` is enabled.
-
-The backend uses a fixed 2048-byte RAM buffer for variable-length payloads. It performs no dynamic allocation or persistence and does not implement the SDO Block/CRC state machine; block sequencing, CRC handling and retransmission remain owned by the CANopenNode SDO Server. The generated OD keeps this DOMAIN at `dataOrig=NULL` and `dataLength=0`; the extension publishes the active length while reading or writing.
-
-The single-buffer fixture does not promise atomic rollback of the old payload after an aborted download. If a large transfer already wrote partial data, the fixture remains dirty and reads return no-data; the next complete download starting at offset zero re-establishes a valid payload. A communication reset while dirty normalizes the fixture to a deterministic one-byte baseline, while a complete payload survives communication reset.
-
-The target block-transfer validation profile must also enable `PKG_CANOPENNODE_SDO_SRV_BLOCK`. The SDO Server block buffer value belongs to the BSP/test profile; the current recommendation is 1024 bytes and must be evaluated against linker-map/heap evidence instead of changing the package-wide default.
-
-## 13. Validation checklist
-
-Before replacing the demo OD in a product build, verify:
+Before replacing the demo OD in a product build, confirm:
 
 - `PKG_CANOPENNODE_USING_DEMO_OD` is disabled.
 - The product `OD.c` is compiled exactly once.

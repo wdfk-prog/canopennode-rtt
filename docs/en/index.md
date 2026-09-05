@@ -2,45 +2,41 @@
 
 # CANopenNode RT-Thread Documentation
 
-This documentation is organized for RT-Thread BSP developers, firmware integrators, and CANopen device developers.
+This documentation is organized as a project manual for RT-Thread BSP developers, firmware integrators, and CANopen device developers.
 
-## Start here
+## Recommended reading
 
-1. Read [Quick start](quick-start.md) to build and run the package in an RT-Thread BSP.
-2. Read [RT-Thread integration](rt-thread-integration.md) to understand runtime ownership, threads, locks, and CAN device interaction.
-3. Read [Configuration guide](configuration.md) before changing Kconfig feature groups.
-4. Read [High-Resolution Time integration](high-resolution-time.md) before enabling the hardware microsecond time source.
-5. Read [Persistent LSS Node-ID and bitrate](lss-persistence.md) when using Storage-backed LSS persistence.
-6. Read [Object Dictionary guide](object-dictionary.md) before replacing the demo OD.
-7. Read [CiA 402 Device delivery and interoperability](cia402.md) for A7 diagnostics, EMCY, release artifacts, and product acceptance.
-8. Read [CiA 402 Pure-C Device Core and OD Binding](cia402-device-core.md) before integrating the Device core.
-9. Read [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) before wiring thread/reset lifecycle integration.
-10. Read [CiA 402 Controller API](cia402-controller.md) when an application controls remote CiA 402 drives.
-11. Read [Testing and validation](testing.md) before running protocol validation with the Linux Host.
-12. Read [Submodule update guide](submodule-update.md) before updating CANopenNode.
-13. Use [Troubleshooting](troubleshooting.md) when build or runtime behavior is unexpected.
+1. [Quick start](quick-start.md) — add the package to an RT-Thread BSP and start the first node.
+2. [RT-Thread integration](rt-thread-integration.md) — runtime ownership, threads, locks, reset lifecycle, and CAN device interaction.
+3. [Configuration guide](configuration.md) — Kconfig feature groups and dependency rules.
+4. [Object Dictionary](object-dictionary.md) — demo OD usage and product OD replacement.
+5. [High-Resolution Time](high-resolution-time.md) — optional hardware microsecond time source.
+6. [LSS persistence](lss-persistence.md) — persistent Node-ID/bitrate and runtime bitrate switching.
+7. [CiA 402 Device core](cia402-device-core.md) — Pure-C multi-axis PDS and OD binding.
+8. [CiA 402 RT-Thread integration](cia402-device-rtt.md) — lifecycle, thread, and Communication Reset integration.
+9. [CiA 402 diagnostics and product integration](cia402.md) — per-axis diagnostics and product OD guidance.
+10. [CiA 402 Controller API](cia402-controller.md) — remote-drive PDS Controlword sequencing.
+11. [Submodule update](submodule-update.md) — initialize, update, and pin CANopenNode.
+12. [Troubleshooting](troubleshooting.md) — common build, CAN, OD, storage, and runtime issues.
 
 ## Document map
 
-| Document | Reader question |
+| Document | Scope |
 |---|---|
-| [Quick start](quick-start.md) | How do I add, configure, build, and verify the package quickly? |
-| [RT-Thread integration](rt-thread-integration.md) | How does the RT-Thread runtime wrapper interact with CANopenNode and the CAN driver? |
-| [Configuration guide](configuration.md) | Which Kconfig options matter for runtime, protocol objects, storage, logging, and debug? |
-| [High-Resolution Time integration](high-resolution-time.md) | What are the 1 MHz, 32-bit, single-instance timer requirements and the current API width-detection limitation? |
-| [Persistent LSS Node-ID and bitrate](lss-persistence.md) | How is LSS configuration loaded from the selected Storage backend before the first CAN initialization? |
-| [Testing and validation](testing.md) | How do the MCU-side fixtures work with the `canopen-slave-tester` master code, and which evidence belongs to Host, target, or HIL validation? |
-| [NMT Master automatic test](nmt-master-test.md) | How does the MCU automatically drive a Linux Lely slave to validate the NMT Master command sequence? |
-| [Object Dictionary guide](object-dictionary.md) | How do I use or replace the demo OD? |
-| [CiA 402 Device delivery and interoperability](cia402.md) | How does A7 map axis faults to EMCY, validate release artifacts, and define interoperability acceptance? |
-| [CiA 402 Pure-C Device Core and OD Binding](cia402-device-core.md) | How does A3 bind multi-axis OD entries, supervise the PDS FSA, and validate DriveIF behavior? |
-| [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) | How does A4 integrate the thread, lock order, and Communication Reset? |
-| [CiA 402 Controller API](cia402-controller.md) | How does the Pure-C Controller sequence a remote PDS without owning NMT/SDO/PDO/SYNC? |
-| [Submodule update guide](submodule-update.md) | How do I clone, initialize, update, or pin the CANopenNode submodule? |
-| [Troubleshooting](troubleshooting.md) | How do I diagnose common build, CAN, SDO, PDO, storage, or trace issues? |
+| [Quick start](quick-start.md) | Package integration, initial configuration, build entry, and node startup. |
+| [RT-Thread integration](rt-thread-integration.md) | Runtime structure, scheduling, ownership, lifecycle, and reset behavior. |
+| [Configuration guide](configuration.md) | Kconfig groups, dependencies, defaults, and integration choices. |
+| [Object Dictionary](object-dictionary.md) | Generated demo OD, custom OD integration, and demo-only objects. |
+| [High-Resolution Time](high-resolution-time.md) | Timer source contract and time-width limitations. |
+| [LSS persistence](lss-persistence.md) | Persistent LSS record format, startup loading, bitrate switching, and recovery. |
+| [CiA 402 Device core](cia402-device-core.md) | Multi-axis Device runtime, PDS supervision, OD binding, and DriveIF contract. |
+| [CiA 402 RT-Thread integration](cia402-device-rtt.md) | Device lifecycle attachment, worker thread, lock order, and reset/rebind behavior. |
+| [CiA 402 diagnostics and product integration](cia402.md) | Error-code/EMCY bridge and product-generated OD guidance. |
+| [CiA 402 Controller API](cia402-controller.md) | Transport-independent remote PDS target sequencing. |
+| [Submodule update](submodule-update.md) | CANopenNode submodule maintenance. |
+| [Troubleshooting](troubleshooting.md) | Diagnostic paths for common integration failures. |
 
 ## Repository entry pages
 
 - [English README](../../README.md)
 - [中文 README](../../README.zh-CN.md)
-- [Companion Linux Host/master test repository](https://github.com/wdfk-prog/canopen-slave-tester)
