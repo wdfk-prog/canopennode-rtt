@@ -323,6 +323,19 @@ append_canopennode_cia402_device_rtt_autostart()
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT" "3"
 }
 
+append_canopennode_cia402_a7_validation()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_canopennode_cia402_device_rtt_autostart "$config_file" "$rtconfig_file"
+
+    # CI patches .config/rtconfig.h after Kconfig resolution. Mirror the A7
+    # diagnostic symbols explicitly so the source-selection path is deterministic.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_DIAGNOSTICS"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE"
+}
+
 append_canopennode_full_feature_profile()
 {
     local config_file="$1"
@@ -434,6 +447,10 @@ append_canopennode_profile()
         demo-cia402-device-rtt-autostart)
             log "CI Kconfig profile demo-cia402-device-rtt-autostart: CiA 402 RT demo factory and lifecycle autostart"
             append_canopennode_cia402_device_rtt_autostart "$config_file" "$rtconfig_file"
+            ;;
+        demo-cia402-a7-validation)
+            log "CI Kconfig profile demo-cia402-a7-validation: CiA 402 diagnostics and deferred EMCY bridge"
+            append_canopennode_cia402_a7_validation "$config_file" "$rtconfig_file"
             ;;
         demo-high-res-time)
             log "CI Kconfig profile demo-high-res-time: 1 MHz timer backend for High-Res compile coverage"
@@ -584,8 +601,9 @@ append_canopennode_profile()
         *)
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
-                "Supported profiles: demo-minimal demo-default demo-cia402-device-rtt-autostart demo-high-res-time" \
-                "  demo-pdo-sync demo-emcy-consumer demo-gfc demo-nmt-master-test demo-sdo-client-test" \
+                "Supported profiles: demo-minimal demo-default demo-cia402-device-rtt-autostart" \
+                "  demo-cia402-a7-validation demo-high-res-time demo-pdo-sync demo-emcy-consumer demo-gfc" \
+                "  demo-nmt-master-test demo-sdo-client-test" \
                 "  demo-sdo-block-test demo-sdo-client-gateway" \
                 "  demo-manual-multiple-od demo-storage-dfs demo-storage-eeprom-at24c demo-safety-debug" \
                 "  demo-full-feature" >&2
@@ -755,7 +773,7 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "CO_app_RTT.o"
             verify_profile_object "$bsp_dir" "OD.o"
             ;;
-        demo-cia402-device-rtt-autostart)
+        demo-cia402-device-rtt-autostart|demo-cia402-a7-validation)
             verify_profile_object "$bsp_dir" "CO_402_state.o"
             verify_profile_object "$bsp_dir" "CO_402_device.o"
             verify_profile_object "$bsp_dir" "CO_402_device_fsa.o"
@@ -770,6 +788,10 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "CO_lifecycle_RTT.o"
             verify_profile_object "$bsp_dir" "CO_402_device_RTT.o"
             verify_profile_object "$bsp_dir" "CO_402_device_RTT_demo.o"
+            if [ "$CANOPENNODE_CI_PROFILE" = "demo-cia402-a7-validation" ]; then
+                verify_profile_object "$bsp_dir" "CO_402_device_diag.o"
+                verify_profile_object "$bsp_dir" "CO_Emergency.o"
+            fi
             ;;
         demo-storage-dfs)
             verify_profile_object "$bsp_dir" "CO_lss_persist_RTT.o"

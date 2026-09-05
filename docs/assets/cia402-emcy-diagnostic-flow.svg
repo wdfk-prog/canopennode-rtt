@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="420" viewBox="0 0 1080 420" role="img" aria-labelledby="title desc">
+  <title id="title">CiA 402 axis fault to node EMCY flow</title>
+  <desc id="desc">Fault is latched under the OD lock, then a deferred event is flushed to CANopen Emergency after the OD lock is released.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#333"/></marker>
+    <style>.box{fill:#fff;stroke:#333;stroke-width:2}.title{font:bold 18px sans-serif}.text{font:15px sans-serif}.small{font:13px sans-serif}.arrow{stroke:#333;stroke-width:2;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1080" height="420" fill="#fafafa"/>
+  <text x="40" y="42" class="title">CiA 402 A7 deferred diagnostic path</text>
+  <rect x="40" y="90" width="180" height="100" rx="8" class="box"/>
+  <text x="130" y="120" text-anchor="middle" class="title">Axis fault</text>
+  <text x="130" y="150" text-anchor="middle" class="text">DiagIF mapping</text>
+  <text x="130" y="174" text-anchor="middle" class="small">PDS / EMCY / info</text>
+  <rect x="280" y="90" width="220" height="100" rx="8" class="box"/>
+  <text x="390" y="120" text-anchor="middle" class="title">OD lock held</text>
+  <text x="390" y="150" text-anchor="middle" class="text">latch fault + 0x603F</text>
+  <text x="390" y="174" text-anchor="middle" class="small">queue pending event</text>
+  <rect x="560" y="90" width="220" height="100" rx="8" class="box"/>
+  <text x="670" y="120" text-anchor="middle" class="title">OD unlocked</text>
+  <text x="670" y="150" text-anchor="middle" class="text">lifecycle mutex held</text>
+  <text x="670" y="174" text-anchor="middle" class="small">stable CO_t / CO_EM_t</text>
+  <rect x="840" y="90" width="200" height="100" rx="8" class="box"/>
+  <text x="940" y="120" text-anchor="middle" class="title">Node EMCY</text>
+  <text x="940" y="150" text-anchor="middle" class="text">CO_errorReport()</text>
+  <text x="940" y="174" text-anchor="middle" class="small">errorBit = 0x40 + axis</text>
+  <path d="M220 140 H270" class="arrow"/><path d="M500 140 H550" class="arrow"/><path d="M780 140 H830" class="arrow"/>
+  <rect x="280" y="260" width="500" height="105" rx="8" class="box"/>
+  <text x="530" y="292" text-anchor="middle" class="title">Communication Reset</text>
+  <text x="530" y="321" text-anchor="middle" class="text">rebind OD -> restore active Error code -> queue replay</text>
+  <text x="530" y="346" text-anchor="middle" class="small">no DriveIF power transition; no EMCY operation in co_rt fast path</text>
+  <path d="M840 190 C820 245 785 270 770 285" class="arrow"/>
+  <path d="M280 312 C225 300 205 250 205 200" class="arrow"/>
+</svg>

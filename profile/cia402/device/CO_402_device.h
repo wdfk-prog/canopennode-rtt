@@ -16,6 +16,7 @@
 #include "301/CO_ODinterface.h"
 #include "CO_402_defs.h"
 #include "CO_402_device_od.h"
+#include "CO_402_device_diag.h"
 #include "CO_402_drive.h"
 #include "CO_402_mode.h"
 #include "CO_402_objects.h"
@@ -49,7 +50,9 @@ typedef enum {
     CO_402_INIT_OD_EXTENSION_CONFLICT,  /**< Another subsystem already owns a required OD extension. */
     CO_402_INIT_MODE_OD_MISMATCH,       /**< Enabled/supported mode is missing one of its required OD objects. */
     CO_402_INIT_CONFIG_MISMATCH,        /**< Manager storage or axis-count configuration is inconsistent. */
-    CO_402_INIT_OD_TYPE                 /**< Required OD entry has an unexpected VAR/RECORD object type. */
+    CO_402_INIT_OD_TYPE,                /**< Required OD entry has an unexpected VAR/RECORD object type. */
+    CO_402_INIT_DIAG_IF,                /**< Diagnostics are enabled but this axis has no complete DiagIF. */
+    CO_402_INIT_DIAG_OD                 /**< Diagnostics could not initialize the generated axis Error code. */
 } CO_402_init_error_t;
 
 /** Detailed location associated with an initialization error. */
@@ -69,6 +72,10 @@ typedef struct {
     const CO_402_device_sync_if_t *sync; /**< Optional bounded cyclic command/feedback transport for CSP/CSV/CST. */
     void *syncObject;                    /**< Product-owned object passed unchanged to every SyncIF callback. */
 #endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
+#if CO_402_CONFIG_DIAGNOSTICS
+    const CO_402_device_diag_if_t *diag; /**< Product diagnostic source and internal fault-code mapper. */
+    void *diagObject;                    /**< Product-owned object passed unchanged to DiagIF. */
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 } CO_402_device_axis_config_t;
 
 /** Runtime state for one local logical-device axis. */
@@ -112,6 +119,12 @@ typedef struct CO_402_device_axis {
     /* Tail-appended ownership state preserves all previously published member offsets. */
     CO_402_drive_result_t (*pdsTransitionOperation)(void *); /**< BUSY PDS owner; stricter safety commands may replace it. */
     CO_402_state_t pdsTransitionTargetState; /**< State committed when the current PDS owner completes successfully. */
+#if CO_402_CONFIG_DIAGNOSTICS
+    /* Diagnostics are tail-appended so all A6 runtime member offsets remain unchanged when disabled. */
+    const CO_402_device_diag_if_t *diag; /**< Persistent product diagnostic source/mapping selected by config. */
+    void *diagObject;                    /**< Product-owned DiagIF context; lifetime must cover the manager. */
+    CO_402_device_diag_runtime_t diagnosis; /**< Axis fault latch and deferred report/reset event state. */
+#endif /* CO_402_CONFIG_DIAGNOSTICS */
 } CO_402_device_axis_t;
 
 /** Multi-axis Device manager. */

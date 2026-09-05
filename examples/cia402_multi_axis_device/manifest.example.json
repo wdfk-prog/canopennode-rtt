@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "description_version": "<XDD fileVersion>",
+  "generator": "CANopenEditor 4.2.3",
+  "source_revision": "<git commit SHA>",
+  "normative_baseline": [
+    "<selected CiA 301 revision>",
+    "<selected CiA 402-1 revision>",
+    "<selected CiA 402-2 revision>",
+    "<selected CiA 402-3 revision>"
+  ],
+  "identity": {
+    "vendor_id": "<0x1018:01 Vendor-ID>",
+    "product_code": "<0x1018:02 Product code>",
+    "revision_number": "<0x1018:03 Revision number>"
+  },
+  "files": {
+    "project.xdd": "sha256:<64 hex>",
+    "project.eds": "sha256:<64 hex>",
+    "OD.c": "sha256:<64 hex>",
+    "OD.h": "sha256:<64 hex>",
+    "project.md": "sha256:<64 hex>"
+  }
+}

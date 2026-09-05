@@ -13,6 +13,38 @@
 
 #include <string.h>
 
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE)
+#if CO_CONFIG_EM_ERR_STATUS_BITS_COUNT \
+    < (CO_402_DEVICE_DIAG_ERROR_BIT_BASE + CO_402_LOGICAL_DEVICE_COUNT_MAX)
+#error "CiA 402 EMCY bridge requires error status bits 0x40..0x47 (at least 72 status bits)"
+#endif /* CO_CONFIG_EM_ERR_STATUS_BITS_COUNT < (CO_402_DEVICE_DIAG_ERROR_BIT_BASE + CO_402_LOGICAL_DEVICE_COUNT_MAX) */
+
+/** Flush deferred axis diagnostics only after the caller has released the CANopen OD lock. */
+static void CO_402_device_RTT_flushDiagnostics(CO_402_device_RTT_t *runtime, CO_t *co)
+{
+    uint8_t axisIndex;
+
+    if (runtime == NULL || co == NULL || co->em == NULL || runtime->manager.axes == NULL) {
+        return;
+    }
+
+    for (axisIndex = 0U; axisIndex < runtime->manager.axisCount; axisIndex++) {
+        CO_402_device_diag_event_t event;
+
+        if (!CO_402_device_diag_takePendingEvent(&runtime->manager.axes[axisIndex], &event)) {
+            continue;
+        }
+
+        if (event.type == CO_402_DIAG_EVENT_REPORT) {
+            CO_errorReport(co->em, event.errorBit, event.fault.emcyCode, event.fault.infoCode);
+        } else if (event.type == CO_402_DIAG_EVENT_RESET) {
+            CO_errorReset(co->em, event.errorBit, event.fault.infoCode);
+        }
+    }
+}
+
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE) */
+
 #if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART)
 /** Heap owner used only by the optional automatic factory; runtime is first for release casting. */
 typedef struct {
@@ -139,6 +171,10 @@ static void CO_402_device_RTT_threadEntry(void *parameter)
                 runtime, syncLogs, (uint8_t)CO_402_LOGICAL_DEVICE_COUNT_MAX);
 #endif /* defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG) */
             CO_UNLOCK_OD(co->CANmodule);
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE)
+            /* lifecycleMutex still pins this CO_t while EMCY takes only its own internal lock. */
+            CO_402_device_RTT_flushDiagnostics(runtime, co);
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE) */
         }
 
         (void)rt_mutex_release(&app->lifecycleMutex);
@@ -172,10 +208,18 @@ static rt_err_t CO_402_device_RTT_onCommunicationBind(CANopenNodeRTT *app, CO_t 
     CO_402_device_RTT_t *runtime = (CO_402_device_RTT_t *)context;
     CO_402_init_diag_t diag;
     CO_402_init_error_t result;
+    const bool rebind = runtime->managerInitialized == RT_TRUE;
 
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE)
+    if (co == NULL || co->em == NULL) {
+        CO_RTT_LOG_E("CiA402 EMCY bridge requires the current CANopen Emergency object");
+        return -RT_ERROR;
+    }
+#else
     (void)co;
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE) */
     memset(&diag, 0, sizeof(diag));
-    if (runtime->managerInitialized != RT_TRUE) {
+    if (!rebind) {
         result = CO_402_device_managerInit(&runtime->manager, od, runtime->config.axes,
                                            runtime->config.configs, runtime->config.axisCount, &diag);
         if (result == CO_402_INIT_OK) {
@@ -212,7 +256,13 @@ static rt_err_t CO_402_device_RTT_onCommunicationBind(CANopenNodeRTT *app, CO_t 
 /** Enable Device processing only after the current CAN module reached normal mode. */
 static void CO_402_device_RTT_onCommunicationReady(CANopenNodeRTT *app, void *context)
 {
-    ((CO_402_device_RTT_t *)context)->communicationReady = RT_TRUE;
+    CO_402_device_RTT_t *runtime = (CO_402_device_RTT_t *)context;
+
+    runtime->communicationReady = RT_TRUE;
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE)
+    /* CAN is normal now; replay any active diagnostic onto this communication generation. */
+    CO_402_device_RTT_flushDiagnostics(runtime, app != NULL ? app->canOpenStack : NULL);
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_EMCY_BRIDGE) */
     CO_RTT_LOG_D("CiA402 communication ready: dev=%s",
                  app != NULL && app->canName != NULL ? app->canName : "?");
 }

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="430" viewBox="0 0 1080 430" role="img" aria-labelledby="title desc">
+  <title id="title">CiA 402 product validation topology</title>
+  <desc id="desc">Release artifacts are checked statically and imported by independent host and target master tools which communicate with the target over CAN.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#333"/></marker>
+    <style>.box{fill:#fff;stroke:#333;stroke-width:2}.title{font:bold 18px sans-serif}.text{font:15px sans-serif}.small{font:13px sans-serif}.arrow{stroke:#333;stroke-width:2;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1080" height="430" fill="#fafafa"/>
+  <text x="40" y="42" class="title">A7 product delivery and interoperability evidence</text>
+  <rect x="40" y="90" width="230" height="120" rx="8" class="box"/>
+  <text x="155" y="122" text-anchor="middle" class="title">Release artifacts</text>
+  <text x="155" y="151" text-anchor="middle" class="text">XDD / EDS / OD.c / OD.h</text>
+  <text x="155" y="176" text-anchor="middle" class="text">manifest + SHA-256</text>
+  <rect x="340" y="75" width="250" height="120" rx="8" class="box"/>
+  <text x="465" y="107" text-anchor="middle" class="title">Static verifier / CI</text>
+  <text x="465" y="136" text-anchor="middle" class="text">identity + version + matrix</text>
+  <text x="465" y="161" text-anchor="middle" class="small">artifact consistency only</text>
+  <rect x="340" y="245" width="250" height="120" rx="8" class="box"/>
+  <text x="465" y="277" text-anchor="middle" class="title">Linux Lely Host</text>
+  <text x="465" y="306" text-anchor="middle" class="text">EDS-driven SDO/PDO/EMCY</text>
+  <text x="465" y="331" text-anchor="middle" class="small">multi-axis protocol automation</text>
+  <rect x="660" y="75" width="200" height="120" rx="8" class="box"/>
+  <text x="760" y="107" text-anchor="middle" class="title">Target master</text>
+  <text x="760" y="136" text-anchor="middle" class="text">direct EDS/XDD import</text>
+  <text x="760" y="161" text-anchor="middle" class="small">no private identity workaround</text>
+  <rect x="660" y="245" width="200" height="120" rx="8" class="box"/>
+  <text x="760" y="277" text-anchor="middle" class="title">Analyzer / HIL</text>
+  <text x="760" y="306" text-anchor="middle" class="text">CAN trace + reset/bus-off</text>
+  <text x="760" y="331" text-anchor="middle" class="small">timing and recovery evidence</text>
+  <rect x="920" y="160" width="130" height="120" rx="8" class="box"/>
+  <text x="985" y="192" text-anchor="middle" class="title">Target</text>
+  <text x="985" y="221" text-anchor="middle" class="text">3-axis</text>
+  <text x="985" y="246" text-anchor="middle" class="text">CiA 402</text>
+  <path d="M270 135 H330" class="arrow"/><path d="M270 165 C300 225 315 278 330 295" class="arrow"/>
+  <path d="M590 305 H650" class="arrow"/><path d="M860 305 C900 295 915 270 920 255" class="arrow"/>
+  <path d="M860 135 C900 145 915 170 920 185" class="arrow"/>
+  <path d="M590 135 H650" class="arrow"/>
+  <text x="875" y="222" class="small">CAN</text>
+</svg>

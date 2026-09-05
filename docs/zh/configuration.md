@@ -92,8 +92,7 @@ RX helper priority <= realtime priority < mainline priority
 
 | 选项 | 默认值 | 说明 |
 |---|---:|---|
-| `PKG_CANOPENNODE_NMT_CALLBACK_CHANGE` | `n` | 启用 CANopenNode 本地 NMT 状态变化回调能力；`PKG_CANOPENNODE_NMT_STATE_LOG` 开启时会自动选择该项。 |
-| `PKG_CANOPENNODE_NMT_STATE_LOG` | debug 开启时为 `y` | RT-Thread wrapper 打印本地 NMT 状态变化，并在 Communication Reset 后重新注册回调；依赖 `PKG_CANOPENNODE_USING_DEBUG`，产品需要独占单一 callback 槽位时应关闭。 |
+| `PKG_CANOPENNODE_NMT_CALLBACK_CHANGE` | `n` | 本地 NMT 状态变化时触发应用回调。 |
 | `PKG_CANOPENNODE_NMT_MASTER` | `n` | 允许本节点发送简单 NMT master 命令。 |
 | `PKG_CANOPENNODE_USING_HB_CONS` | `y` | heartbeat consumer 支持。 |
 

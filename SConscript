@@ -65,6 +65,9 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device.c'))
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_fsa.c'))
         _add_required(os.path.join('profile', 'cia402', 'device', 'CO_402_device_od.c'))
+        _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_DIAGNOSTICS'),
+                          'CiA 402 per-axis diagnostics',
+                          [os.path.join('profile', 'cia402', 'device', 'CO_402_device_diag.c')])
         _add_required_any(GetDepend('PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH'),
                           'CiA 402 cyclic synchronous bridge',
                           [os.path.join('profile', 'cia402', 'device', 'CO_402_device_sync.c')])
