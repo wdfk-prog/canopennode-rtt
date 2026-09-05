@@ -1,0 +1,10 @@
+# Kconfig for the Pure-C local CiA 401 Device core.
+
+config PKG_CANOPENNODE_CIA401_DEVICE
+    bool "Local CiA 401 Device core"
+    default y
+    depends on PKG_CANOPENNODE_CIA401
+    help
+        Build the Pure-C Stage-1 generic I/O Device core for Objects 0x6000,
+        0x6200, 0x6401 and 0x6411. Generated OD objects are validated against
+        product capability counts before any process-image exchange is enabled.
