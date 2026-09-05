@@ -15,9 +15,10 @@ This documentation is organized for RT-Thread BSP developers, firmware integrato
 7. Read [CiA 402 Device delivery and interoperability](cia402.md) for A7 diagnostics, EMCY, release artifacts, and product acceptance.
 8. Read [CiA 402 Pure-C Device Core and OD Binding](cia402-device-core.md) before integrating the Device core.
 9. Read [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) before wiring thread/reset lifecycle integration.
-10. Read [Testing and validation](testing.md) before running protocol validation with the Linux Host.
-11. Read [Submodule update guide](submodule-update.md) before updating CANopenNode.
-12. Use [Troubleshooting](troubleshooting.md) when build or runtime behavior is unexpected.
+10. Read [CiA 402 Controller API](cia402-controller.md) when an application controls remote CiA 402 drives.
+11. Read [Testing and validation](testing.md) before running protocol validation with the Linux Host.
+12. Read [Submodule update guide](submodule-update.md) before updating CANopenNode.
+13. Use [Troubleshooting](troubleshooting.md) when build or runtime behavior is unexpected.
 
 ## Document map
 
@@ -34,6 +35,7 @@ This documentation is organized for RT-Thread BSP developers, firmware integrato
 | [CiA 402 Device delivery and interoperability](cia402.md) | How does A7 map axis faults to EMCY, validate release artifacts, and define interoperability acceptance? |
 | [CiA 402 Pure-C Device Core and OD Binding](cia402-device-core.md) | How does A3 bind multi-axis OD entries, supervise the PDS FSA, and validate DriveIF behavior? |
 | [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) | How does A4 integrate the thread, lock order, and Communication Reset? |
+| [CiA 402 Controller API](cia402-controller.md) | How does the Pure-C Controller sequence a remote PDS without owning NMT/SDO/PDO/SYNC? |
 | [Submodule update guide](submodule-update.md) | How do I clone, initialize, update, or pin the CANopenNode submodule? |
 | [Troubleshooting](troubleshooting.md) | How do I diagnose common build, CAN, SDO, PDO, storage, or trace issues? |
 

@@ -8,6 +8,8 @@
       "values": [
         "demo-minimal",
         "demo-default",
+        "demo-cia402-controller-only",
+        "demo-cia402-device-controller",
         "demo-cia402-device-rtt-autostart",
         "demo-cia402-a7-validation",
         "demo-high-res-time",

@@ -61,6 +61,14 @@ A4 Device thread adds these options when enabled:
 
 `co_402` reuses the realtime timer without changing timerNext mainline selection. Automatic construction is opt-in. The package demo supplies its own `CO_402_DEVICE_RTT_AUTOSTART_DEFINE(...)` instance; real products keep the demo disabled and provide the macro from persistent product axis/DriveIF configuration. The manual path remains heap-free. See [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) for lifecycle details.
 
+The Controller role is deliberately separate from the Device thread:
+
+| Option | Default | Purpose |
+|---|---:|---|
+| `PKG_CANOPENNODE_CIA402_CONTROLLER` | `n` | Builds the Pure-C remote PDS command sequencer. It selects no NMT, Heartbeat Consumer, SDO Client, PDO, SYNC, RT-Thread task, or heap dependency. |
+
+The application owns remote Node-IDs and all CANopen transport/orchestration. See [CiA 402 Controller API](cia402-controller.md).
+
 ## 4. Application auto initialization
 
 | Option | Default | Notes |
