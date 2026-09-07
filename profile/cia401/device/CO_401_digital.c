@@ -125,7 +125,17 @@ void CO_401_digital_applyOutputs(CO_401_device_t *device)
         uint8_t value;
         const uint8_t subIndex = (uint8_t)(bank + 1U);
 
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
+        const bool failSafeActive =
+            device->digitalOutputFaultActive || device->nmtStopped || device->communicationFaultActive;
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE */
+
         if (OD_get_u8(device->bound.digitalOutput8, subIndex, &value, true) != ODR_OK) {
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
+            if (failSafeActive) {
+                device->failSafeOutputApplyComplete = false;
+            }
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE */
             continue;
         }
 
@@ -135,27 +145,34 @@ void CO_401_digital_applyOutputs(CO_401_device_t *device)
 
         if (OD_get_u8(device->bound.digitalOutputPolarity8, subIndex, &polarity, true) != ODR_OK
             || OD_get_u8(device->bound.digitalOutputFilter8, subIndex, &filterMask, true) != ODR_OK) {
+            if (failSafeActive) {
+                device->failSafeOutputApplyComplete = false;
+            }
             continue;
         }
 
-        if (device->digitalOutputFaultActive) {
+        if (failSafeActive) {
             uint8_t errorMode;
             uint8_t errorValue;
             uint8_t updateMask;
 
             if (OD_get_u8(device->bound.digitalOutputErrorMode8, subIndex, &errorMode, true) != ODR_OK
                 || OD_get_u8(device->bound.digitalOutputErrorValue8, subIndex, &errorValue, true) != ODR_OK) {
+                device->failSafeOutputApplyComplete = false;
                 continue;
             }
             updateMask = (uint8_t)(errorMode & filterMask);
             if (updateMask == 0U) {
-                /* 0x6206 keep bits and 0x6208 blocked bits both retain their current physical state. */
+                /* 0x6206 keep/0x6208 blocked bits need no physical write, so fail-safe completion stays satisfied. */
                 continue;
             }
 
             /* CiA 401 applies fault selection before polarity and the final 0x6208 physical-output filter. */
             value = (uint8_t)(errorValue ^ polarity);
-            (void)device->config.io->writeDigital8Masked(device->config.ioObject, bank, value, updateMask);
+            if (device->config.io->writeDigital8Masked(device->config.ioObject, bank, value, updateMask)
+                != CO_401_IO_OK) {
+                device->failSafeOutputApplyComplete = false;
+            }
             continue;
         }
 

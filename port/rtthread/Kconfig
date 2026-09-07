@@ -349,6 +349,15 @@ endif
 
 endmenu
 
+config PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER
+    bool
+    default n
+    help
+        Internal successful-transmit observer for RT-Thread CAN extensions.
+        Consumers register through the generic RT-Thread CAN API and select
+        this capability from their own Kconfig. The CAN driver does not depend
+        on any device-profile feature symbol.
+
 config PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS
     bool
     default n

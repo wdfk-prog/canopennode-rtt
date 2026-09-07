@@ -68,6 +68,8 @@ typedef struct {
     /* New lifecycle callbacks remain append-only so established member offsets do not move. */
     /** Run bounded synchronous work after RPDO and before TPDO while the caller owns lifecycle/OD locks. */
     void (*synchronousProcess)(CANopenNodeRTT *app, void *context, uint32_t dtUs);
+    /** Observe one local NMT state transition from the mainline thread after CO_process(). */
+    void (*nmtStateChanged)(CANopenNodeRTT *app, void *context, CO_NMT_internalState_t state);
 } CO_RTT_lifecycle_ops_t;
 
 /** Release function for a lifecycle-owned extension context at final teardown. */
@@ -251,6 +253,19 @@ rt_err_t CO_RTT_lifecycleBindCommunication(CANopenNodeRTT *app, CO_t *co, OD_t *
 void CO_RTT_lifecycleCommunicationReady(CANopenNodeRTT *app);
 
 /**
+ * @brief Dispatch one local NMT state transition to current-generation extensions.
+ *
+ * The mainline thread calls this immediately after CO_process() changes the local
+ * NMT state. The callback is transition-oriented: a later steady-state sample
+ * cannot reconstruct an intermediate Operational or Stopped edge. Callbacks may
+ * acquire their own bounded synchronization but must not call back into CO_process().
+ *
+ * @param app CANopenNode RT-Thread application instance.
+ * @param state Newly observed local NMT state.
+ */
+void CO_RTT_lifecycleNmtStateChanged(CANopenNodeRTT *app, CO_NMT_internalState_t state);
+
+/**
  * @brief Dispatch synchronous extension work between RPDO and TPDO processing.
  *
  * The caller must already hold the application lifecycle mutex and CANopenNode
@@ -322,6 +337,7 @@ static inline rt_err_t CO_RTT_lifecycleRegister(CANopenNodeRTT *app, const CO_RT
 #define CO_RTT_lifecycleCommunicationQuiesced(app)      do { (void)(app); } while (0)
 #define CO_RTT_lifecycleBindCommunication(app, co, od)  (RT_EOK)
 #define CO_RTT_lifecycleCommunicationReady(app)         do { (void)(app); } while (0)
+#define CO_RTT_lifecycleNmtStateChanged(app, state)      do { (void)(app); (void)(state); } while (0)
 #define CO_RTT_lifecycleSynchronousProcess(app, dtUs)   do { (void)(app); (void)(dtUs); } while (0)
 #define CO_RTT_lifecycleRealtimeTick(app)               do { (void)(app); } while (0)
 #define CO_RTT_lifecycleResetWakeups(app)               do { (void)(app); } while (0)

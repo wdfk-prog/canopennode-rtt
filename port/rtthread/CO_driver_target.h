@@ -121,6 +121,11 @@ typedef struct {
     volatile bool_t syncFlag;     /**< True for synchronous PDO frames. */
 } CO_CANtx_t;
 
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+/** Callback invoked synchronously after RT-Thread accepts one CANopen transmit frame. */
+typedef void (*CO_RTT_CANtxSuccessCallback_t)(void *object, CO_CANtx_t *buffer);
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
+
 /**
  * @brief RT-Thread CAN module state used by CANopenNode.
  */
@@ -158,6 +163,10 @@ typedef struct {
     volatile bool_t bufferInhibitFlag; /**< Reserved for CANopenNode-compatible synchronous TPDO inhibit state. */
     volatile bool_t firstCANtxMessage; /**< True while the first CANopen transmit message is pending. */
     volatile uint16_t CANtxCount;    /**< Number of CANopenNode software-pending transmit buffers. */
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+    void *txSuccessObject;           /**< Optional owner of the successful-transmit callback. */
+    CO_RTT_CANtxSuccessCallback_t txSuccessCallback; /**< Optional post-submit notification callback. */
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
     uint32_t rxDropOld;              /**< Previous RT-Thread dropped-RX-frame counter. */
     uint32_t txDropOld;              /**< Previous RT-Thread dropped-TX-frame counter. */
     uint32_t errOld;                 /**< Previous raw RT-Thread CAN error/drop snapshot. */
@@ -307,6 +316,25 @@ void CO_RTT_CANsetTxEnabled(CO_CANmodule_t *CANmodule, bool_t enabled);
 
 /** @brief Return the current atomic CANopen transmit-gate state. */
 bool_t CO_RTT_CANisTxEnabled(CO_CANmodule_t *CANmodule);
+
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+/**
+ * @brief Install or clear the one successful-transmit observer owned by a runtime extension.
+ *
+ * The callback runs synchronously after a real RT-Thread CAN write succeeds and after
+ * the CAN-send mutex is released. LSS transmit-gate suppression and failed writes do not
+ * invoke it. Registration and callback capture are serialized by the CAN-send mutex.
+ * Clearing or replacing the observer prevents future captures but does not wait for a callback
+ * already captured by CO_CANsend(); the consumer must quiesce transmit contexts before
+ * releasing or reusing @p object.
+ *
+ * @param CANmodule Initialized RT-Thread CAN module.
+ * @param object Callback object; may be NULL when clearing.
+ * @param callback Successful-transmit callback, or NULL to clear.
+ */
+void CO_RTT_CANsetTxSuccessCallback(CO_CANmodule_t *CANmodule, void *object,
+                                    CO_RTT_CANtxSuccessCallback_t callback);
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
 
 #ifdef __cplusplus
 }

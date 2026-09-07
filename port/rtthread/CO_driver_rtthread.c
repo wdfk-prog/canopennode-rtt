@@ -829,6 +829,9 @@ void CO_CANmodule_disable(CO_CANmodule_t *CANmodule)
         return;
     }
 
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+    CO_RTT_CANsetTxSuccessCallback(CANmodule, NULL, NULL);
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
     co_rtt_rx_stop(CANmodule);
     (void)rt_device_close(CANmodule->dev);
 #if ((CO_CONFIG_GTW) & CO_CONFIG_GTW_ASCII) != 0
@@ -939,6 +942,21 @@ CO_CANtx_t *CO_CANtxBufferInit(CO_CANmodule_t *CANmodule, uint16_t index, uint16
     return buffer;
 }
 
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+void CO_RTT_CANsetTxSuccessCallback(CO_CANmodule_t *CANmodule, void *object,
+                                    CO_RTT_CANtxSuccessCallback_t callback)
+{
+    if (CANmodule == NULL) {
+        return;
+    }
+
+    CO_LOCK_CAN_SEND(CANmodule);
+    CANmodule->txSuccessObject = callback != NULL ? object : NULL;
+    CANmodule->txSuccessCallback = callback;
+    CO_UNLOCK_CAN_SEND(CANmodule);
+}
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
+
 /**
  * @brief Send a CANopenNode CAN frame through RT-Thread INT_TX blocking path.
  *
@@ -961,6 +979,10 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
 {
     CO_ReturnError_t ret;
     bool_t overflow;
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+    CO_RTT_CANtxSuccessCallback_t txSuccessCallback = NULL;
+    void *txSuccessObject = NULL;
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
 
     if ((CANmodule == NULL) || (buffer == NULL)) {
         return CO_ERROR_ILLEGAL_ARGUMENT;
@@ -991,8 +1013,20 @@ CO_ReturnError_t CO_CANsend(CO_CANmodule_t *CANmodule, CO_CANtx_t *buffer)
     CANmodule->firstCANtxMessage = false;
     CANmodule->bufferInhibitFlag = false;
     CANmodule->CANtxCount = 0U;
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+    if (ret == CO_ERROR_NO) {
+        txSuccessCallback = CANmodule->txSuccessCallback;
+        txSuccessObject = CANmodule->txSuccessObject;
+    }
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
     CO_UNLOCK_CAN_SEND(CANmodule);
 
+#if defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
+    /* Notify only for a real successful RT-Thread write, never for LSS transmit suppression or failed submission. */
+    if (txSuccessCallback != NULL) {
+        txSuccessCallback(txSuccessObject, buffer);
+    }
+#endif /* PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
     return ret;
 }
 

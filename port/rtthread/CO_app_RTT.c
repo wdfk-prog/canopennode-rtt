@@ -857,6 +857,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
     uint32_t time_current_ms;
     uint32_t time_current_us;
     uint32_t time_old_us = CO_RTT_timeNowUs();
+    CO_NMT_internalState_t last_nmt_state = CO_NMT_UNKNOWN;
 #if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
     uint32_t deadline_base_us = time_old_us;
     uint32_t timer_next_us = 0U;
@@ -866,6 +867,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
         CO_RTT_LOG_E("mainline thread started without CANopen stack: dev=%s", app->canName);
         return;
     }
+    last_nmt_state = co->NMT != NULL ? CO_NMT_getInternalState(co->NMT) : CO_NMT_UNKNOWN;
 
     while (1) {
         CO_NMT_reset_cmd_t reset_status;
@@ -902,6 +904,15 @@ static void co_app_rtt_main_thread_entry(void *parameter)
                                   NULL
 #endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
         );
+        if (reset_status == CO_RESET_NOT && co->NMT != NULL) {
+            const CO_NMT_internalState_t nmt_state = CO_NMT_getInternalState(co->NMT);
+
+            if (nmt_state != last_nmt_state) {
+                /* Preserve transition facts before a later mainline pass can overwrite the steady state. */
+                CO_RTT_lifecycleNmtStateChanged(app, nmt_state);
+                last_nmt_state = nmt_state;
+            }
+        }
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) && defined(PKG_CANOPENNODE_LSS_PERSIST)
         if (reset_status == CO_RESET_NOT) {
             co_app_rtt_lss_bitrate_process(app, time_current_ms);
@@ -979,6 +990,7 @@ static void co_app_rtt_main_thread_entry(void *parameter)
             }
 
             co = app->canOpenStack;
+            last_nmt_state = co->NMT != NULL ? CO_NMT_getInternalState(co->NMT) : CO_NMT_UNKNOWN;
             time_old_us = CO_RTT_timeNowUs();
 #if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
             deadline_base_us = time_old_us;

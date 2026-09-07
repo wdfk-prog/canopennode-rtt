@@ -147,18 +147,34 @@ static CO_401_init_error_t validateArray(OD_t *od, uint16_t index, uint8_t expec
 }
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) \
-    || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
+    || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
+static CO_401_init_error_t validateOptionalMappingArraySized(OD_t *od, uint16_t index, uint8_t expectedCount,
+                                                              OD_size_t elementLength, OD_attr_t required,
+                                                              OD_attr_t allowed, OD_entry_t **cache,
+                                                              CO_401_init_diag_t *diag)
+{
+    return validateArrayContract(od, index, expectedCount, elementLength, required, allowed, cache, diag);
+}
+
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) \
+    || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
 static CO_401_init_error_t validateOptionalMappingArray(OD_t *od, uint16_t index, uint8_t expectedCount,
                                                          OD_entry_t **cache, CO_401_init_diag_t *diag)
 {
-    return validateArrayContract(od, index, expectedCount, 1U, ODA_SDO_RW,
-                                 ODA_SDO_RW | ODA_TRPDO, cache, diag);
+    return validateOptionalMappingArraySized(od, index, expectedCount, 1U, ODA_SDO_RW,
+                                              ODA_SDO_RW | ODA_TRPDO, cache, diag);
 }
-#endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) */
+#endif /* optional 8-bit mapping arrays */
+#endif /* optional mapping-array validators */
 
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
-static CO_401_init_error_t validateVariable8(OD_t *od, uint16_t index, OD_attr_t expectedAttributes,
-                                              OD_entry_t **cache, CO_401_init_diag_t *diag)
+static CO_401_init_error_t validateVariable8(OD_t *od, uint16_t index, OD_attr_t requiredAttributes,
+                                              OD_attr_t allowedAttributes, OD_entry_t **cache,
+                                              CO_401_init_diag_t *diag)
 {
     OD_entry_t *entry = OD_find(od, index);
     OD_IO_t io;
@@ -180,7 +196,7 @@ static CO_401_init_error_t validateVariable8(OD_t *od, uint16_t index, OD_attr_t
         setDiag(diag, CO_401_INIT_OD_LENGTH, index, 0U);
         return CO_401_INIT_OD_LENGTH;
     }
-    if (!attributesMatch(io.stream.attribute, expectedAttributes, expectedAttributes)) {
+    if (!attributesMatch(io.stream.attribute, requiredAttributes, allowedAttributes)) {
         setDiag(diag, CO_401_INIT_OD_ACCESS, index, 0U);
         return CO_401_INIT_OD_ACCESS;
     }
@@ -188,7 +204,6 @@ static CO_401_init_error_t validateVariable8(OD_t *od, uint16_t index, OD_attr_t
     *cache = entry;
     return CO_401_INIT_OK;
 }
-#endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) */
 
 static CO_401_init_error_t validateCapabilityObject(OD_t *od, bool enabled, uint16_t index,
                                                      uint8_t expectedCount, OD_size_t elementLength,
@@ -208,7 +223,9 @@ static CO_401_init_error_t validateCapabilityObject(OD_t *od, bool enabled, uint
 }
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) \
-    || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
+    || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
 static CO_401_init_error_t validateOptionalArray(OD_t *od, bool enabled, uint16_t index,
                                                   uint8_t expectedCount, OD_entry_t **cache,
                                                   CO_401_init_diag_t *diag)
@@ -224,7 +241,51 @@ static CO_401_init_error_t validateOptionalArray(OD_t *od, bool enabled, uint16_
 
     return validateOptionalMappingArray(od, index, expectedCount, cache, diag);
 }
-#endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) */
+#endif /* optional 8-bit arrays */
+
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
+static CO_401_init_error_t validateOptionalArraySized(OD_t *od, bool enabled, uint16_t index,
+                                                       uint8_t expectedCount, OD_size_t elementLength,
+                                                       OD_attr_t required, OD_attr_t allowed,
+                                                       OD_entry_t **cache, CO_401_init_diag_t *diag)
+{
+    if (!enabled) {
+        if (OD_find(od, index) != NULL) {
+            setDiag(diag, CO_401_INIT_OD_UNEXPECTED, index, 0U);
+            return CO_401_INIT_OD_UNEXPECTED;
+        }
+        *cache = NULL;
+        return CO_401_INIT_OK;
+    }
+    return validateOptionalMappingArraySized(od, index, expectedCount, elementLength, required, allowed,
+                                              cache, diag);
+}
+
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
+static CO_401_init_error_t validatePresentOptionalArraySized(OD_t *od, bool enabled, uint16_t index,
+                                                              uint8_t expectedCount, OD_size_t elementLength,
+                                                              OD_attr_t required, OD_attr_t allowed,
+                                                              OD_entry_t **cache, CO_401_init_diag_t *diag)
+{
+    if (!enabled) {
+        if (OD_find(od, index) != NULL) {
+            setDiag(diag, CO_401_INIT_OD_UNEXPECTED, index, 0U);
+            return CO_401_INIT_OD_UNEXPECTED;
+        }
+        *cache = NULL;
+        return CO_401_INIT_OK;
+    }
+    if (OD_find(od, index) == NULL) {
+        *cache = NULL;
+        return CO_401_INIT_OK;
+    }
+    return validateOptionalMappingArraySized(od, index, expectedCount, elementLength, required, allowed,
+                                              cache, diag);
+}
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING */
+#endif /* analogue optional objects */
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
 static ODR_t writeDigitalInputFilter(OD_stream_t *stream, const void *buf, OD_size_t count,
@@ -250,8 +311,75 @@ static ODR_t writeDigitalInputFilter(OD_stream_t *stream, const void *buf, OD_si
 }
 #endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) */
 
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) \
-    || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
+
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+static bool isSdoRead(const CO_401_device_t *device, const OD_stream_t *stream)
+{
+    return device != NULL && stream != NULL && device->sdoReadMatch != NULL
+        && device->sdoReadMatch(device->sdoReadMatchObject, stream);
+}
+
+static ODR_t readAnalogInput16(OD_stream_t *stream, void *buf, OD_size_t count, OD_size_t *countRead)
+{
+    CO_401_device_t *device = stream != NULL ? stream->object : NULL;
+    ODR_t result = OD_readOriginal(stream, buf, count, countRead);
+
+    if (result == ODR_OK && stream != NULL && stream->subIndex != 0U && countRead != NULL
+        && *countRead == sizeof(int16_t) && isSdoRead(device, stream)) {
+        int16_t communicated;
+
+        /* OD_readOriginal() still exposes native OD byte order here; SDO endian conversion happens afterwards. */
+        (void)memcpy(&communicated, buf, sizeof(communicated));
+        CO_401_device_commitAnalogInputCommunication(device, stream->subIndex, communicated);
+    }
+    return result;
+}
+
+static ODR_t readAnalogInterruptSource(OD_stream_t *stream, void *buf, OD_size_t count, OD_size_t *countRead)
+{
+    CO_401_device_t *device = stream != NULL ? stream->object : NULL;
+    ODR_t result = OD_readOriginal(stream, buf, count, countRead);
+
+    if (result == ODR_OK && stream != NULL && stream->subIndex != 0U && countRead != NULL
+        && *countRead == sizeof(uint32_t) && isSdoRead(device, stream)) {
+        uint32_t communicatedBits;
+
+        /* SDO consumes the 0x6422 snapshot at OD-read completion, independent of later CAN transmission success. */
+        (void)memcpy(&communicatedBits, buf, sizeof(communicatedBits));
+        CO_401_device_commitAnalogSourceCommunication(device, stream->subIndex, communicatedBits);
+    }
+    return result;
+}
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+
+static ODR_t writeOutputCommand(OD_stream_t *stream, const void *buf, OD_size_t count, OD_size_t *countWritten)
+{
+    CO_401_device_t *device;
+
+    if (stream == NULL || (device = stream->object) == NULL) {
+        return ODR_DEV_INCOMPAT;
+    }
+    if (stream->subIndex != 0U && !device->outputSupervisionReady) {
+        /*
+         * Close the scheduler window between the qualifying Heartbeat/guard event and
+         * this network write. The probe runs under the caller's OD serialization and
+         * may only publish the monotonic ready latch; it must not acquire locks itself.
+         */
+        if (device->outputSupervisionProbe != NULL
+            && device->outputSupervisionProbe(device->outputSupervisionProbeObject)) {
+            CO_401_device_notifyOutputSupervision(device);
+        }
+        if (!device->outputSupervisionReady) {
+            if (countWritten != NULL) {
+                *countWritten = 0U;
+            }
+            /* SDO gets the standard present-device-state abort; RPDO ignores the rejected write result. */
+            return ODR_DATA_DEV_STATE;
+        }
+    }
+    return OD_writeOriginal(stream, buf, count, countWritten);
+}
+
 static CO_401_init_error_t validateExtensionSlot(OD_entry_t *entry, OD_extension_t *ownedExtension,
                                                   uint16_t index, CO_401_init_diag_t *diag)
 {
@@ -263,11 +391,12 @@ static CO_401_init_error_t validateExtensionSlot(OD_entry_t *entry, OD_extension
 }
 
 static void initializeExtension(OD_extension_t *extension, void *object,
+                                ODR_t (*read)(OD_stream_t *, void *, OD_size_t, OD_size_t *),
                                 ODR_t (*write)(OD_stream_t *, const void *, OD_size_t, OD_size_t *))
 {
     (void)memset(extension, 0, sizeof(*extension));
     extension->object = object;
-    extension->read = OD_readOriginal;
+    extension->read = read;
     extension->write = write;
 #if OD_FLAGS_PDO_SIZE > 0
     /* OD_requestTPDO() requests transmission by clearing a bit, so start with no pending requests. */
@@ -277,6 +406,14 @@ static void initializeExtension(OD_extension_t *extension, void *object,
 
 static void detachOwnedExtensions(CO_401_device_t *device)
 {
+    if (device->bound.digitalOutput8 != NULL
+        && device->bound.digitalOutput8->extension == &device->digitalOutput8Extension) {
+        (void)OD_extension_init(device->bound.digitalOutput8, NULL);
+    }
+    if (device->bound.analogOutput16 != NULL
+        && device->bound.analogOutput16->extension == &device->analogOutput16Extension) {
+        (void)OD_extension_init(device->bound.analogOutput16, NULL);
+    }
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
     if (device->bound.digitalInput8 != NULL
         && device->bound.digitalInput8->extension == &device->digitalInput8Extension) {
@@ -288,14 +425,20 @@ static void detachOwnedExtensions(CO_401_device_t *device)
     }
     device->digitalInputFilterDirty = false;
 #endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
-    if (device->bound.digitalOutput8 != NULL
-        && device->bound.digitalOutput8->extension == &device->digitalOutput8Extension) {
-        (void)OD_extension_init(device->bound.digitalOutput8, NULL);
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+    if (device->bound.analogInput16 != NULL
+        && device->bound.analogInput16->extension == &device->analogInput16Extension) {
+        (void)OD_extension_init(device->bound.analogInput16, NULL);
     }
-#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE */
+    if (device->bound.analogInterruptSource != NULL
+        && device->bound.analogInterruptSource->extension == &device->analogInterruptSourceExtension) {
+        (void)OD_extension_init(device->bound.analogInterruptSource, NULL);
+    }
+    /* Communication-generation-local delta references and unsent event retries never cross an OD rebind. */
+    (void)memset(device->analogLastCommunicatedValid, 0, sizeof(device->analogLastCommunicatedValid));
+    (void)memset(device->analogInputEventTpdoPending, 0, sizeof(device->analogInputEventTpdoPending));
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 }
-#endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) */
 
 CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_diag_t *diag)
 {
@@ -303,17 +446,15 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     CO_401_init_error_t result;
     const bool digitalInputEnabled = device != NULL && device->config.digitalInputBanks != 0U;
     const bool digitalOutputEnabled = device != NULL && device->config.digitalOutputBanks != 0U;
+    const bool analogInputEnabled = device != NULL && device->config.analogInputChannels != 0U;
 
     if (device == NULL) {
         setDiag(diag, CO_401_INIT_BAD_ARGUMENT, 0U, 0U);
         return CO_401_INIT_BAD_ARGUMENT;
     }
 
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) \
-    || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
     /* A failed rebind must not leave forwarding hooks from the previous communication generation reachable. */
     detachOwnedExtensions(device);
-#endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) */
     device->odBound = false;
     if (device->od == NULL) {
         setDiag(diag, CO_401_INIT_BAD_ARGUMENT, 0U, 0U);
@@ -338,12 +479,29 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateCapabilityObject(device->od, device->config.analogInputChannels != 0U,
+    result = validateCapabilityObject(device->od, analogInputEnabled,
                                       CO_401_INDEX_ANALOG_INPUT_16, device->config.analogInputChannels,
                                       2U, ODA_SDO_R | ODA_TPDO | ODA_MB, &candidate.analogInput16, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
+
+    /* CiA 401 0x6423 is Conditional: Device with analogue input, not an optional comparator feature. */
+    if (analogInputEnabled) {
+        result = validateVariable8(device->od, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE, ODA_SDO_RW,
+                                   ODA_SDO_RW | ODA_TRPDO, &candidate.analogInterruptEnable, diag);
+    } else {
+        if (OD_find(device->od, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE) != NULL) {
+            setDiag(diag, CO_401_INIT_OD_UNEXPECTED, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE, 0U);
+            return CO_401_INIT_OD_UNEXPECTED;
+        }
+        candidate.analogInterruptEnable = NULL;
+        result = CO_401_INIT_OK;
+    }
+    if (result != CO_401_INIT_OK) {
+        return result;
+    }
+
     result = validateCapabilityObject(device->od, device->config.analogOutputChannels != 0U,
                                       CO_401_INDEX_ANALOG_OUTPUT_16, device->config.analogOutputChannels,
                                       2U, ODA_SDO_RW | ODA_RPDO | ODA_MB, &candidate.analogOutput16, diag);
@@ -364,7 +522,7 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     }
     if (digitalInputEnabled) {
         result = validateVariable8(device->od, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE,
-                                   ODA_SDO_RW, &candidate.digitalInterruptEnable, diag);
+                                   ODA_SDO_RW, ODA_SDO_RW, &candidate.digitalInterruptEnable, diag);
     } else if (OD_find(device->od, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE) != NULL) {
         setDiag(diag, CO_401_INIT_OD_UNEXPECTED, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE, 0U);
         return CO_401_INIT_OD_UNEXPECTED;
@@ -412,6 +570,88 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     }
 #endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) */
 
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+    {
+        const uint8_t sourceBanks = (uint8_t)((device->config.analogInputChannels + 31U) / 32U);
+
+        result = validateOptionalArray(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_TRIGGER,
+                                       device->config.analogInputChannels, &candidate.analogInterruptTrigger, diag);
+        if (result != CO_401_INIT_OK) return result;
+        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_SOURCE,
+                                            sourceBanks, 4U, ODA_SDO_R, ODA_SDO_R | ODA_TPDO | ODA_MB,
+                                            &candidate.analogInterruptSource, diag);
+        if (result != CO_401_INIT_OK) return result;
+        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_UPPER_32,
+                                            device->config.analogInputChannels, 4U, ODA_SDO_RW,
+                                            ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptUpper32, diag);
+        if (result != CO_401_INIT_OK) return result;
+        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_LOWER_32,
+                                            device->config.analogInputChannels, 4U, ODA_SDO_RW,
+                                            ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptLower32, diag);
+        if (result != CO_401_INIT_OK) return result;
+        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_DELTA_U32,
+                                            device->config.analogInputChannels, 4U, ODA_SDO_RW,
+                                            ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptDeltaU32, diag);
+        if (result != CO_401_INIT_OK) return result;
+        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_NEG_DELTA_U32,
+                                            device->config.analogInputChannels, 4U, ODA_SDO_RW,
+                                            ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptNegDeltaU32, diag);
+        if (result != CO_401_INIT_OK) return result;
+        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_POS_DELTA_U32,
+                                            device->config.analogInputChannels, 4U, ODA_SDO_RW,
+                                            ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptPosDeltaU32, diag);
+        if (result != CO_401_INIT_OK) return result;
+    }
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
+    result = validateOptionalArray(device->od, device->config.analogOutputChannels != 0U,
+                                   CO_401_INDEX_ANALOG_OUTPUT_ERROR_MODE, device->config.analogOutputChannels,
+                                   &candidate.analogOutputErrorMode, diag);
+    if (result != CO_401_INIT_OK) return result;
+    result = validateOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+                                        CO_401_INDEX_ANALOG_OUTPUT_ERROR_VALUE_32, device->config.analogOutputChannels,
+                                        4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                        &candidate.analogOutputErrorValue32, diag);
+    if (result != CO_401_INIT_OK) return result;
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
+    /* 0x6430/0x6450 are Optional in CiA 401; validate their OD contract only when the object is present. */
+    result = validatePresentOptionalArraySized(device->od, device->config.analogInputChannels != 0U,
+                                               CO_401_INDEX_ANALOG_INPUT_SI_UNIT,
+                                               device->config.analogInputChannels, 4U, ODA_SDO_RW,
+                                               ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                               &candidate.analogInputSiUnit, diag);
+    if (result != CO_401_INIT_OK) return result;
+    result = validateOptionalArraySized(device->od, device->config.analogInputChannels != 0U,
+                                        CO_401_INDEX_ANALOG_INPUT_OFFSET_32, device->config.analogInputChannels,
+                                        4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                        &candidate.analogInputOffset32, diag);
+    if (result != CO_401_INIT_OK) return result;
+    result = validateOptionalArraySized(device->od, device->config.analogInputChannels != 0U,
+                                        CO_401_INDEX_ANALOG_INPUT_PRESCALING_32, device->config.analogInputChannels,
+                                        4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                        &candidate.analogInputPrescaling32, diag);
+    if (result != CO_401_INIT_OK) return result;
+    result = validateOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+                                        CO_401_INDEX_ANALOG_OUTPUT_OFFSET_32, device->config.analogOutputChannels,
+                                        4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                        &candidate.analogOutputOffset32, diag);
+    if (result != CO_401_INIT_OK) return result;
+    result = validateOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+                                        CO_401_INDEX_ANALOG_OUTPUT_SCALING_32, device->config.analogOutputChannels,
+                                        4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                        &candidate.analogOutputScaling32, diag);
+    if (result != CO_401_INIT_OK) return result;
+    result = validatePresentOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+                                               CO_401_INDEX_ANALOG_OUTPUT_SI_UNIT,
+                                               device->config.analogOutputChannels, 4U, ODA_SDO_RW,
+                                               ODA_SDO_RW | ODA_TRPDO | ODA_MB,
+                                               &candidate.analogOutputSiUnit, diag);
+    if (result != CO_401_INIT_OK) return result;
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING */
+
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
     if (digitalInputEnabled) {
         result = validateExtensionSlot(candidate.digitalInput8, &device->digitalInput8Extension,
@@ -426,7 +666,6 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
         }
     }
 #endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) */
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
     if (digitalOutputEnabled) {
         result = validateExtensionSlot(candidate.digitalOutput8, &device->digitalOutput8Extension,
                                        CO_401_INDEX_DIGITAL_OUTPUT_8, diag);
@@ -434,25 +673,57 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
             return result;
         }
     }
-#endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) */
+    if (device->config.analogOutputChannels != 0U) {
+        result = validateExtensionSlot(candidate.analogOutput16, &device->analogOutput16Extension,
+                                       CO_401_INDEX_ANALOG_OUTPUT_16, diag);
+        if (result != CO_401_INIT_OK) {
+            return result;
+        }
+    }
+
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+    if (analogInputEnabled) {
+        result = validateExtensionSlot(candidate.analogInput16, &device->analogInput16Extension,
+                                       CO_401_INDEX_ANALOG_INPUT_16, diag);
+        if (result != CO_401_INIT_OK) return result;
+        result = validateExtensionSlot(candidate.analogInterruptSource, &device->analogInterruptSourceExtension,
+                                       CO_401_INDEX_ANALOG_INTERRUPT_SOURCE, diag);
+        if (result != CO_401_INIT_OK) return result;
+    }
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 
     device->bound = candidate;
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
     if (digitalInputEnabled) {
-        initializeExtension(&device->digitalInput8Extension, device, OD_writeOriginal);
-        initializeExtension(&device->digitalInputFilter8Extension, device, writeDigitalInputFilter);
+        initializeExtension(&device->digitalInput8Extension, device, OD_readOriginal, OD_writeOriginal);
+        initializeExtension(&device->digitalInputFilter8Extension, device, OD_readOriginal, writeDigitalInputFilter);
         (void)OD_extension_init(candidate.digitalInput8, &device->digitalInput8Extension);
         (void)OD_extension_init(candidate.digitalInputFilter8, &device->digitalInputFilter8Extension);
         device->digitalInputFilterDirty = true;
     }
 #endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) */
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
     if (digitalOutputEnabled) {
-        initializeExtension(&device->digitalOutput8Extension, device, OD_writeOriginal);
+        initializeExtension(&device->digitalOutput8Extension, device, OD_readOriginal, writeOutputCommand);
         (void)OD_extension_init(candidate.digitalOutput8, &device->digitalOutput8Extension);
     }
-#endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) */
+    if (device->config.analogOutputChannels != 0U) {
+        initializeExtension(&device->analogOutput16Extension, device, OD_readOriginal, writeOutputCommand);
+        (void)OD_extension_init(candidate.analogOutput16, &device->analogOutput16Extension);
+    }
+
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+    if (analogInputEnabled) {
+        initializeExtension(&device->analogInput16Extension, device, readAnalogInput16, OD_writeOriginal);
+        initializeExtension(&device->analogInterruptSourceExtension, device, readAnalogInterruptSource,
+                            OD_writeOriginal);
+        (void)OD_extension_init(candidate.analogInput16, &device->analogInput16Extension);
+        (void)OD_extension_init(candidate.analogInterruptSource, &device->analogInterruptSourceExtension);
+        /* Publish the new OD generation with no communication baseline or inherited retry state. */
+        (void)memset(device->analogLastCommunicatedValid, 0, sizeof(device->analogLastCommunicatedValid));
+        (void)memset(device->analogInputEventTpdoPending, 0, sizeof(device->analogInputEventTpdoPending));
+    }
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 
     device->odBound = true;
     setDiag(diag, CO_401_INIT_OK, 0U, 0U);

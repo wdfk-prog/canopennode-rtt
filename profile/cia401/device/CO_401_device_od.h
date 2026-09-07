@@ -19,6 +19,28 @@ typedef struct {
     OD_entry_t *digitalOutput8;   /**< Object 0x6200 when digital outputs are enabled. */
     OD_entry_t *analogInput16;    /**< Object 0x6401 when analogue inputs are enabled. */
     OD_entry_t *analogOutput16;   /**< Object 0x6411 when analogue outputs are enabled. */
+    OD_entry_t *analogInterruptEnable; /**< Conditional-mandatory Object 0x6423 for analogue-input devices. */
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+    OD_entry_t *analogInterruptTrigger; /**< Object 0x6421. */
+    OD_entry_t *analogInterruptSource;  /**< Object 0x6422. */
+    OD_entry_t *analogInterruptUpper32; /**< Object 0x6424. */
+    OD_entry_t *analogInterruptLower32; /**< Object 0x6425. */
+    OD_entry_t *analogInterruptDeltaU32; /**< Object 0x6426. */
+    OD_entry_t *analogInterruptNegDeltaU32; /**< Object 0x6427. */
+    OD_entry_t *analogInterruptPosDeltaU32; /**< Object 0x6428. */
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
+    OD_entry_t *analogOutputErrorMode; /**< Object 0x6443. */
+    OD_entry_t *analogOutputErrorValue32; /**< Object 0x6444. */
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
+    OD_entry_t *analogInputSiUnit; /**< Object 0x6430. */
+    OD_entry_t *analogInputOffset32; /**< Object 0x6431. */
+    OD_entry_t *analogInputPrescaling32; /**< Object 0x6432. */
+    OD_entry_t *analogOutputOffset32; /**< Object 0x6446. */
+    OD_entry_t *analogOutputScaling32; /**< Object 0x6447. */
+    OD_entry_t *analogOutputSiUnit; /**< Object 0x6450. */
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING */
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
     OD_entry_t *digitalInputPolarity8;   /**< Object 0x6002. */
     OD_entry_t *digitalInputFilter8;     /**< Object 0x6003. */
