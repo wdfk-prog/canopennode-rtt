@@ -315,6 +315,11 @@ append_canopennode_cia401_device_rtt()
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_THREAD_STACK_SIZE" "1536"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_THREAD_PRIORITY" "6"
 
+    append_config_define "$config_file" "$rtconfig_file" "RT_USING_COMPONENTS_INIT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_AUTOSTART"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_DEVICE_RTT_AUTOSTART"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEMO"
+
     # CI patches .config/rtconfig.h after Kconfig resolution, so mirror hidden symbols selected by this profile.
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS"
@@ -881,6 +886,7 @@ verify_profile_outputs()
             verify_profile_object "$bsp_dir" "CO_401_analog.o"
             verify_profile_object "$bsp_dir" "CO_lifecycle_RTT.o"
             verify_profile_object "$bsp_dir" "CO_401_device_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_401_device_RTT_demo.o"
             ;;
         demo-cia402-controller-only)
             verify_profile_object "$bsp_dir" "CO_402_state.o"

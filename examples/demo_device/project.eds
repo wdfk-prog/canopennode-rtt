@@ -32,8 +32,8 @@ Granularity=8
 DynamicChannelsSupported=0
 CompactPDO=0
 GroupMessaging=0
-NrOfRXPDO=4
-NrOfTXPDO=5
+NrOfRXPDO=6
+NrOfTXPDO=7
 LSS_Supported=1
 NG_Slave=0
 
@@ -61,7 +61,7 @@ ObjectType=0x7
 ;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x00000000
+DefaultValue=0xFFFF0192
 PDOMapping=0
 
 [1001]
@@ -125,7 +125,7 @@ DefaultValue=0x00000001
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=107
+SupportedObjects=147
 1=0x1002
 2=0x1003
 3=0x1005
@@ -156,83 +156,124 @@ SupportedObjects=107
 28=0x1401
 29=0x1402
 30=0x1403
-31=0x1600
-32=0x1601
-33=0x1602
-34=0x1603
-35=0x1800
-36=0x1801
-37=0x1802
-38=0x1803
-39=0x1804
-40=0x1A00
-41=0x1A01
-42=0x1A02
-43=0x1A03
-44=0x1A04
-45=0x603F
-46=0x6040
-47=0x6041
-48=0x6060
-49=0x6061
-50=0x6064
-51=0x606C
-52=0x6071
-53=0x6077
-54=0x607A
-55=0x607C
-56=0x6081
-57=0x6083
-58=0x6084
-59=0x6085
-60=0x6086
-61=0x6098
-62=0x6099
-63=0x609A
-64=0x60FF
-65=0x6502
-66=0x683F
-67=0x6840
-68=0x6841
-69=0x6860
-70=0x6861
-71=0x6864
-72=0x686C
-73=0x6871
-74=0x6877
-75=0x687A
-76=0x687C
-77=0x6881
-78=0x6883
-79=0x6884
-80=0x6885
-81=0x6886
-82=0x6898
-83=0x6899
-84=0x689A
-85=0x68FF
-86=0x6D02
-87=0x703F
-88=0x7040
-89=0x7041
-90=0x7060
-91=0x7061
-92=0x7064
-93=0x706C
-94=0x7071
-95=0x7077
-96=0x707A
-97=0x707C
-98=0x7081
-99=0x7083
-100=0x7084
-101=0x7085
-102=0x7086
-103=0x7098
-104=0x7099
-105=0x709A
-106=0x70FF
-107=0x7502
+31=0x14C0
+32=0x14C1
+33=0x1600
+34=0x1601
+35=0x1602
+36=0x1603
+37=0x16C0
+38=0x16C1
+39=0x1800
+40=0x1801
+41=0x1802
+42=0x1803
+43=0x1804
+44=0x18C0
+45=0x18C1
+46=0x1A00
+47=0x1A01
+48=0x1A02
+49=0x1A03
+50=0x1A04
+51=0x1AC0
+52=0x1AC1
+53=0x603F
+54=0x6040
+55=0x6041
+56=0x6060
+57=0x6061
+58=0x6064
+59=0x606C
+60=0x6071
+61=0x6077
+62=0x607A
+63=0x607C
+64=0x6081
+65=0x6083
+66=0x6084
+67=0x6085
+68=0x6086
+69=0x6098
+70=0x6099
+71=0x609A
+72=0x60FF
+73=0x6502
+74=0x67FF
+75=0x683F
+76=0x6840
+77=0x6841
+78=0x6860
+79=0x6861
+80=0x6864
+81=0x686C
+82=0x6871
+83=0x6877
+84=0x687A
+85=0x687C
+86=0x6881
+87=0x6883
+88=0x6884
+89=0x6885
+90=0x6886
+91=0x6898
+92=0x6899
+93=0x689A
+94=0x68FF
+95=0x6D02
+96=0x6FFF
+97=0x703F
+98=0x7040
+99=0x7041
+100=0x7060
+101=0x7061
+102=0x7064
+103=0x706C
+104=0x7071
+105=0x7077
+106=0x707A
+107=0x707C
+108=0x7081
+109=0x7083
+110=0x7084
+111=0x7085
+112=0x7086
+113=0x7098
+114=0x7099
+115=0x709A
+116=0x70FF
+117=0x7502
+118=0x77FF
+119=0x7800
+120=0x7802
+121=0x7803
+122=0x7805
+123=0x7806
+124=0x7807
+125=0x7808
+126=0x7A00
+127=0x7A02
+128=0x7A06
+129=0x7A07
+130=0x7A08
+131=0x7C01
+132=0x7C11
+133=0x7C21
+134=0x7C22
+135=0x7C23
+136=0x7C24
+137=0x7C25
+138=0x7C26
+139=0x7C27
+140=0x7C28
+141=0x7C31
+142=0x7C32
+143=0x7C43
+144=0x7C44
+145=0x7C46
+146=0x7C47
+147=0x7FFF
+
 
 [1002]
 ParameterName=Manufacturer status register
@@ -3661,3 +3702,1457 @@ AccessType=ro
 DefaultValue=0
 PDOMapping=0
 
+[14C0]
+ParameterName=RPDO communication parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x4
+
+[14C0sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x05
+PDOMapping=0
+
+[14C0sub1]
+ParameterName=COB-ID used by RPDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x80000000
+PDOMapping=0
+
+[14C0sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=255
+PDOMapping=0
+
+[14C0sub5]
+ParameterName=Event timer
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[14C1]
+ParameterName=RPDO communication parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x4
+
+[14C1sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x05
+PDOMapping=0
+
+[14C1sub1]
+ParameterName=COB-ID used by RPDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x80000000
+PDOMapping=0
+
+[14C1sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=255
+PDOMapping=0
+
+[14C1sub5]
+ParameterName=Event timer
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[16C0]
+ParameterName=RPDO mapping parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x9
+
+[16C0sub0]
+ParameterName=Number of mapped application objects in PDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=2
+PDOMapping=0
+
+[16C0sub1]
+ParameterName=Application object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x7A000108
+PDOMapping=0
+
+[16C0sub2]
+ParameterName=Application object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x7A000208
+PDOMapping=0
+
+[16C0sub3]
+ParameterName=Application object 3
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C0sub4]
+ParameterName=Application object 4
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C0sub5]
+ParameterName=Application object 5
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C0sub6]
+ParameterName=Application object 6
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C0sub7]
+ParameterName=Application object 7
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C0sub8]
+ParameterName=Application object 8
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C1]
+ParameterName=RPDO mapping parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x9
+
+[16C1sub0]
+ParameterName=Number of mapped application objects in PDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=2
+PDOMapping=0
+
+[16C1sub1]
+ParameterName=Application object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x7C110110
+PDOMapping=0
+
+[16C1sub2]
+ParameterName=Application object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x7C110210
+PDOMapping=0
+
+[16C1sub3]
+ParameterName=Application object 3
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C1sub4]
+ParameterName=Application object 4
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C1sub5]
+ParameterName=Application object 5
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C1sub6]
+ParameterName=Application object 6
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C1sub7]
+ParameterName=Application object 7
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[16C1sub8]
+ParameterName=Application object 8
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[18C0]
+ParameterName=TPDO communication parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x6
+
+[18C0sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+PDOMapping=0
+
+[18C0sub1]
+ParameterName=COB-ID used by TPDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x80000000
+PDOMapping=0
+
+[18C0sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=255
+PDOMapping=0
+
+[18C0sub3]
+ParameterName=Inhibit time
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[18C0sub5]
+ParameterName=Event timer
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[18C0sub6]
+ParameterName=SYNC start value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[18C1]
+ParameterName=TPDO communication parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x6
+
+[18C1sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+PDOMapping=0
+
+[18C1sub1]
+ParameterName=COB-ID used by TPDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x80000000
+PDOMapping=0
+
+[18C1sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=255
+PDOMapping=0
+
+[18C1sub3]
+ParameterName=Inhibit time
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[18C1sub5]
+ParameterName=Event timer
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[18C1sub6]
+ParameterName=SYNC start value
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[1AC0]
+ParameterName=TPDO mapping parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x9
+
+[1AC0sub0]
+ParameterName=Number of mapped application objects in PDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=2
+PDOMapping=0
+
+[1AC0sub1]
+ParameterName=Application object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x78000108
+PDOMapping=0
+
+[1AC0sub2]
+ParameterName=Application object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x78000208
+PDOMapping=0
+
+[1AC0sub3]
+ParameterName=Application object 3
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC0sub4]
+ParameterName=Application object 4
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC0sub5]
+ParameterName=Application object 5
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC0sub6]
+ParameterName=Application object 6
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC0sub7]
+ParameterName=Application object 7
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC0sub8]
+ParameterName=Application object 8
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC1]
+ParameterName=TPDO mapping parameter
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x9
+
+[1AC1sub0]
+ParameterName=Number of mapped application objects in PDO
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=2
+PDOMapping=0
+
+[1AC1sub1]
+ParameterName=Application object 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x7C010110
+PDOMapping=0
+
+[1AC1sub2]
+ParameterName=Application object 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x7C010210
+PDOMapping=0
+
+[1AC1sub3]
+ParameterName=Application object 3
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC1sub4]
+ParameterName=Application object 4
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC1sub5]
+ParameterName=Application object 5
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC1sub6]
+ParameterName=Application object 6
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC1sub7]
+ParameterName=Application object 7
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1AC1sub8]
+ParameterName=Application object 8
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[67FF]
+ParameterName=Axis0 Device type
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000192
+PDOMapping=0
+
+[6FFF]
+ParameterName=Axis1 Device type
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000192
+PDOMapping=0
+
+[77FF]
+ParameterName=Axis2 Device type
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000192
+PDOMapping=0
+
+[7800]
+ParameterName=CiA401 Digital input 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7800sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7800sub1]
+ParameterName=CiA401 Digital input 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x00
+PDOMapping=1
+
+[7800sub2]
+ParameterName=CiA401 Digital input 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x00
+PDOMapping=1
+
+[7802]
+ParameterName=CiA401 Digital input polarity 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7802sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7802sub1]
+ParameterName=CiA401 Digital input polarity 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7802sub2]
+ParameterName=CiA401 Digital input polarity 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7803]
+ParameterName=CiA401 Digital input filter 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7803sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7803sub1]
+ParameterName=CiA401 Digital input filter 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7803sub2]
+ParameterName=CiA401 Digital input filter 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7805]
+ParameterName=CiA401 Digital interrupt enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7806]
+ParameterName=CiA401 Digital interrupt any-change 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7806sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7806sub1]
+ParameterName=CiA401 Digital interrupt any-change 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7806sub2]
+ParameterName=CiA401 Digital interrupt any-change 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7807]
+ParameterName=CiA401 Digital interrupt rising 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7807sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7807sub1]
+ParameterName=CiA401 Digital interrupt rising 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7807sub2]
+ParameterName=CiA401 Digital interrupt rising 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7808]
+ParameterName=CiA401 Digital interrupt falling 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7808sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7808sub1]
+ParameterName=CiA401 Digital interrupt falling 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7808sub2]
+ParameterName=CiA401 Digital interrupt falling 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7A00]
+ParameterName=CiA401 Digital output 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7A00sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7A00sub1]
+ParameterName=CiA401 Digital output 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rww
+DefaultValue=0x00
+PDOMapping=1
+
+[7A00sub2]
+ParameterName=CiA401 Digital output 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rww
+DefaultValue=0x00
+PDOMapping=1
+
+[7A02]
+ParameterName=CiA401 Digital output polarity 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7A02sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7A02sub1]
+ParameterName=CiA401 Digital output polarity 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7A02sub2]
+ParameterName=CiA401 Digital output polarity 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7A06]
+ParameterName=CiA401 Digital output error mode 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7A06sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7A06sub1]
+ParameterName=CiA401 Digital output error mode 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[7A06sub2]
+ParameterName=CiA401 Digital output error mode 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[7A07]
+ParameterName=CiA401 Digital output error value 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7A07sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7A07sub1]
+ParameterName=CiA401 Digital output error value 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7A07sub2]
+ParameterName=CiA401 Digital output error value 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7A08]
+ParameterName=CiA401 Digital output filter 8-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7A08sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7A08sub1]
+ParameterName=CiA401 Digital output filter 8-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[7A08sub2]
+ParameterName=CiA401 Digital output filter 8-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[7C01]
+ParameterName=CiA401 Analogue input 16-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C01sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C01sub1]
+ParameterName=CiA401 Analogue input 16-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[7C01sub2]
+ParameterName=CiA401 Analogue input 16-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=ro
+DefaultValue=0
+PDOMapping=1
+
+[7C11]
+ParameterName=CiA401 Analogue output 16-bit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C11sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C11sub1]
+ParameterName=CiA401 Analogue output 16-bit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[7C11sub2]
+ParameterName=CiA401 Analogue output 16-bit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rww
+DefaultValue=0
+PDOMapping=1
+
+[7C21]
+ParameterName=CiA401 Analogue interrupt trigger
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C21sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C21sub1]
+ParameterName=CiA401 Analogue interrupt trigger 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7C21sub2]
+ParameterName=CiA401 Analogue interrupt trigger 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7C22]
+ParameterName=CiA401 Analogue interrupt source
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x2
+
+[7C22sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x01
+PDOMapping=0
+
+[7C22sub1]
+ParameterName=CiA401 Analogue interrupt source 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=1
+
+[7C23]
+ParameterName=CiA401 Analogue interrupt enable
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[7C24]
+ParameterName=CiA401 Analogue interrupt upper limit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C24sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C24sub1]
+ParameterName=CiA401 Analogue interrupt upper limit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C24sub2]
+ParameterName=CiA401 Analogue interrupt upper limit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C25]
+ParameterName=CiA401 Analogue interrupt lower limit
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C25sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C25sub1]
+ParameterName=CiA401 Analogue interrupt lower limit 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C25sub2]
+ParameterName=CiA401 Analogue interrupt lower limit 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C26]
+ParameterName=CiA401 Analogue interrupt delta
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C26sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C26sub1]
+ParameterName=CiA401 Analogue interrupt delta 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C26sub2]
+ParameterName=CiA401 Analogue interrupt delta 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C27]
+ParameterName=CiA401 Analogue interrupt negative delta
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C27sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C27sub1]
+ParameterName=CiA401 Analogue interrupt negative delta 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C27sub2]
+ParameterName=CiA401 Analogue interrupt negative delta 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C28]
+ParameterName=CiA401 Analogue interrupt positive delta
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C28sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C28sub1]
+ParameterName=CiA401 Analogue interrupt positive delta 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C28sub2]
+ParameterName=CiA401 Analogue interrupt positive delta 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C31]
+ParameterName=CiA401 Analogue input offset
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C31sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C31sub1]
+ParameterName=CiA401 Analogue input offset 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C31sub2]
+ParameterName=CiA401 Analogue input offset 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C32]
+ParameterName=CiA401 Analogue input pre-scaling
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C32sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C32sub1]
+ParameterName=CiA401 Analogue input pre-scaling 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=1
+PDOMapping=0
+
+[7C32sub2]
+ParameterName=CiA401 Analogue input pre-scaling 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=1
+PDOMapping=0
+
+[7C43]
+ParameterName=CiA401 Analogue output error mode
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C43sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C43sub1]
+ParameterName=CiA401 Analogue output error mode 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x01
+PDOMapping=0
+
+[7C43sub2]
+ParameterName=CiA401 Analogue output error mode 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x01
+PDOMapping=0
+
+[7C44]
+ParameterName=CiA401 Analogue output error value
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C44sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C44sub1]
+ParameterName=CiA401 Analogue output error value 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C44sub2]
+ParameterName=CiA401 Analogue output error value 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C46]
+ParameterName=CiA401 Analogue output offset
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C46sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C46sub1]
+ParameterName=CiA401 Analogue output offset 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C46sub2]
+ParameterName=CiA401 Analogue output offset 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=0
+PDOMapping=0
+
+[7C47]
+ParameterName=CiA401 Analogue output scaling
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x3
+
+[7C47sub0]
+ParameterName=Highest sub-index supported
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[7C47sub1]
+ParameterName=CiA401 Analogue output scaling 1
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=1
+PDOMapping=0
+
+[7C47sub2]
+ParameterName=CiA401 Analogue output scaling 2
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0004
+AccessType=rw
+DefaultValue=1
+PDOMapping=0
+
+[7FFF]
+ParameterName=CiA401 Device type
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x000F0191
+PDOMapping=0

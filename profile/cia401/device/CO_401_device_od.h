@@ -12,13 +12,16 @@
 extern "C" {
 #endif
 
-/** Cached generated-OD entries required by the enabled CiA 401 capabilities. */
+/** Cached generated-OD entries required by the enabled CiA 401 capabilities.
+ * CiA 401 profile object numbers below are canonical logical-device-0 indices and are translated
+ * to the selected logical device during binding.
+ */
 typedef struct {
-    OD_entry_t *deviceType;       /**< Mandatory Object 0x1000. */
-    OD_entry_t *digitalInput8;    /**< Object 0x6000 when digital inputs are enabled. */
-    OD_entry_t *digitalOutput8;   /**< Object 0x6200 when digital outputs are enabled. */
-    OD_entry_t *analogInput16;    /**< Object 0x6401 when analogue inputs are enabled. */
-    OD_entry_t *analogOutput16;   /**< Object 0x6411 when analogue outputs are enabled. */
+    OD_entry_t *deviceType;       /**< Standalone 0x1000 or the selected multiple-device slot type. */
+    OD_entry_t *digitalInput8;    /**< Canonical Object 0x6000 when digital inputs are enabled. */
+    OD_entry_t *digitalOutput8;   /**< Canonical Object 0x6200 when digital outputs are enabled. */
+    OD_entry_t *analogInput16;    /**< Canonical Object 0x6401 when analogue inputs are enabled. */
+    OD_entry_t *analogOutput16;   /**< Canonical Object 0x6411 when analogue outputs are enabled. */
     OD_entry_t *analogInterruptEnable; /**< Conditional-mandatory Object 0x6423 for analogue-input devices. */
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
     OD_entry_t *analogInterruptTrigger; /**< Object 0x6421. */

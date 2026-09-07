@@ -70,7 +70,7 @@ rt_device_t rt_device_find(const char *name);
 rt_err_t rt_device_open(rt_device_t dev, unsigned oflag);
 rt_err_t rt_device_close(rt_device_t dev);
 rt_err_t rt_device_control(rt_device_t dev, int cmd, void *arg);
-rt_size_t rt_device_read(rt_device_t dev, rt_size_t pos, void *buffer, rt_size_t size);
+rt_ssize_t rt_device_read(rt_device_t dev, rt_size_t pos, void *buffer, rt_size_t size);
 rt_ssize_t rt_device_write(rt_device_t dev, rt_size_t pos, const void *buffer, rt_size_t size);
 rt_err_t rt_device_set_rx_indicate(rt_device_t dev, rt_err_t (*rx_ind)(rt_device_t dev, rt_size_t size));
 

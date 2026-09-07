@@ -9,12 +9,13 @@
 #include "CO_401_device.h"
 #include "CO_401_digital.h"
 
-static void setDiag(CO_401_init_diag_t *diag, CO_401_init_error_t error)
+static void setDiag(CO_401_init_diag_t *diag, CO_401_init_error_t error, uint8_t logicalDevice)
 {
     if (diag != NULL) {
         diag->error = error;
         diag->index = 0U;
         diag->subIndex = 0U;
+        diag->logicalDevice = logicalDevice;
     }
 }
 
@@ -45,7 +46,8 @@ static CO_401_capabilities_t capabilitiesFromConfig(const CO_401_device_config_t
 
 static CO_401_init_error_t validateConfig(const CO_401_device_config_t *config, CO_401_capabilities_t capabilities)
 {
-    if (config == NULL || config->io == NULL || capabilities == 0U) {
+    if (config == NULL || config->io == NULL || capabilities == 0U
+        || config->logicalDevice >= CO_401_LOGICAL_DEVICE_COUNT_MAX) {
         return CO_401_INIT_CONFIG;
     }
     if (!validCount(config->digitalInputBanks) || !validCount(config->digitalOutputBanks)
@@ -103,7 +105,7 @@ CO_401_init_error_t CO_401_device_init(CO_401_device_t *device, OD_t *od,
         if (device != NULL) {
             (void)memset(device, 0, sizeof(*device));
         }
-        setDiag(diag, CO_401_INIT_BAD_ARGUMENT);
+        setDiag(diag, CO_401_INIT_BAD_ARGUMENT, config != NULL ? config->logicalDevice : 0U);
         return CO_401_INIT_BAD_ARGUMENT;
     }
 
@@ -111,7 +113,7 @@ CO_401_init_error_t CO_401_device_init(CO_401_device_t *device, OD_t *od,
     result = validateConfig(config, capabilities);
     if (result != CO_401_INIT_OK) {
         (void)memset(device, 0, sizeof(*device));
-        setDiag(diag, result);
+        setDiag(diag, result, config->logicalDevice);
         return result;
     }
 
@@ -119,6 +121,8 @@ CO_401_init_error_t CO_401_device_init(CO_401_device_t *device, OD_t *od,
     device->od = od;
     device->config = *config;
     device->capabilities = capabilities;
+    device->logicalDevice = config->logicalDevice;
+    device->odBase = CO_401_objectIndex(config->logicalDevice, CO_401_PROFILE_INDEX_BASE);
 
     return CO_401_device_bindOD(device, diag);
 }
@@ -209,6 +213,22 @@ void CO_401_device_resetCommunicationState(CO_401_device_t *device)
     device->pendingErrorCode = 0U;
     device->errorEventPending = false;
 }
+
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
+void CO_401_device_retireDigitalInputTpdoEvent(CO_401_device_t *device, uint8_t subIndex)
+{
+    uint8_t bank;
+    uint8_t mask;
+
+    if (device == NULL || subIndex == 0U || subIndex > device->config.digitalInputBanks) {
+        return;
+    }
+
+    bank = (uint8_t)(subIndex - 1U);
+    mask = (uint8_t)(1U << (bank & 0x07U));
+    device->digitalInputEventTpdoPending[bank >> 3] &= (uint8_t)(~mask);
+}
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
 
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
 void CO_401_device_setSdoReadMatcher(CO_401_device_t *device, void *object,

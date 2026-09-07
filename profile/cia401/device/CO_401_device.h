@@ -44,23 +44,31 @@ typedef enum {
 /** Location associated with a CiA 401 initialization failure. */
 typedef struct {
     CO_401_init_error_t error;
-    uint16_t index;
-    uint8_t subIndex;
+    uint16_t index; /**< Absolute OD index associated with the failure, after logical-device translation. */
+    uint8_t subIndex; /**< OD sub-index associated with the failure. */
+    uint8_t logicalDevice; /**< Zero-based logical-device slot associated with the failure. */
 } CO_401_init_diag_t;
 
 /** Immutable product configuration copied into the Device runtime during initialization. */
 typedef struct {
     const CO_401_io_if_t *io; /**< Persistent callback table for the enabled capabilities. */
     void *ioObject;           /**< Product-owned callback context. */
-    uint8_t digitalInputBanks;   /**< Number of 0x6000 8-bit banks; zero disables the capability.
+    uint8_t digitalInputBanks;   /**< Number of canonical 0x6000 8-bit banks; zero disables the capability.
                                    *   With digital events enabled, the highest sub-index must fit
                                    *   in CANopenNode's OD_FLAGS_PDO_SIZE request bitmap. */
-    uint8_t digitalOutputBanks;  /**< Number of 0x6200 8-bit banks; zero disables the capability. */
-    uint8_t analogInputChannels; /**< Number of 0x6401 INTEGER16 channels; zero disables the capability. */
-    uint8_t analogOutputChannels; /**< Number of 0x6411 INTEGER16 channels; zero disables the capability. */
+    uint8_t digitalOutputBanks;  /**< Number of canonical 0x6200 8-bit banks; zero disables the capability. */
+    uint8_t analogInputChannels; /**< Number of canonical 0x6401 INTEGER16 channels; zero disables the capability. */
+    uint8_t analogOutputChannels; /**< Number of canonical 0x6411 INTEGER16 channels; zero disables the capability. */
+    uint8_t logicalDevice; /**< Zero-based CiA 301 slot selecting the 0x6000 + slot*0x800 profile block. */
 } CO_401_device_config_t;
 
-/** Caller-owned CiA 401 runtime state. */
+/**
+ * @brief Caller-owned CiA 401 runtime state.
+ *
+ * @warning This structure is source-level runtime storage, not a stable cross-version binary ABI.
+ *          All allocators and users must be rebuilt with the same header and feature macros when
+ *          the package version or CiA 401 configuration changes.
+ */
 typedef struct {
     OD_t *od;                    /**< Generated Object Dictionary supplied by the application. */
     CO_401_device_config_t config; /**< Copied immutable process-image/I/O configuration. */
@@ -71,6 +79,8 @@ typedef struct {
     OD_extension_t digitalInput8Extension; /**< TPDO request flags for Object 0x6000. */
     OD_extension_t digitalInputFilter8Extension; /**< Forwarding hook for Object 0x6003 writes. */
     bool digitalInputFilterDirty; /**< Product filter bridge must be refreshed on the next process pass. */
+    /** Event-triggered 0x6000 retry bits, retained until a matching TPDO is accepted by transport. */
+    uint8_t digitalInputEventTpdoPending[(OD_FLAGS_PDO_SIZE > 0U) ? OD_FLAGS_PDO_SIZE : 1U];
 #endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
     OD_extension_t digitalOutput8Extension; /**< OD I/O hook retained for Object 0x6200 mapped writes. */
@@ -108,6 +118,8 @@ typedef struct {
     bool communicationFaultActive; /**< Adapter-owned bus-off / Heartbeat / life-guard output-fault source. */
     bool failSafeOutputApplyComplete; /**< True when every required fail-safe backend write completed this pass. */
 #endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+    uint8_t logicalDevice; /**< Zero-based logical-device slot owning this CiA 401 runtime. */
+    uint16_t odBase; /**< Resolved base of this logical device's standardized application-profile block. */
 } CO_401_device_t;
 
 /**
@@ -126,9 +138,11 @@ CO_401_init_error_t CO_401_device_init(CO_401_device_t *device, OD_t *od,
  * @brief Validate and cache the complete enabled generated-OD contract.
  *
  * Validation is transactional: the public cache is replaced only after every
- * enabled/disabled capability, Object 0x1000 and required ARRAY/VAR contract
- * has passed. Enabled digital/analogue event options also install OD extensions
- * used for mapped-write handling, SDO-read classification and TPDO requests. Analogue
+ * enabled/disabled capability, the selected standalone/multi-device Device type
+ * contract and every required ARRAY/VAR contract has passed. Logical-device slots translate
+ * canonical 0x6000..0x67FF indices by 0x800 per slot; the global 0x1000 object is never translated.
+ * Enabled digital/analogue event options also install OD extensions used for mapped-write handling,
+ * SDO-read classification and TPDO requests. Analogue
  * SDO state commits when the SDO server completes its OD read; TPDO state commits only
  * after successful transport submission. Binding must therefore complete
  * before PDO initialization caches OD extension I/O and TPDO flags.
@@ -275,6 +289,24 @@ bool CO_401_device_takeErrorEvent(CO_401_device_t *device, CO_401_error_event_t 
  * @param device Device runtime; NULL is ignored.
  */
 void CO_401_device_resetCommunicationState(CO_401_device_t *device);
+
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
+/**
+ * @brief Retire one successfully submitted event-driven 0x6000 TPDO retry.
+ *
+ * Failed submissions leave the retry marker set so the next process pass reasserts
+ * OD_requestTPDO(). Call this only after transport accepts a TPDO that maps the
+ * corresponding digital-input sub-index.
+ *
+ * The caller must serialize this operation with CO_401_digital_refreshInputs(),
+ * CO_401_device_process(), and any other access to this Device runtime. A TX ISR or
+ * asynchronous transport callback must not retire the marker concurrently with input refresh.
+ *
+ * @param device Device runtime; NULL is ignored.
+ * @param subIndex Object 0x6000 sub-index in range 1..digitalInputBanks.
+ */
+void CO_401_device_retireDigitalInputTpdoEvent(CO_401_device_t *device, uint8_t subIndex);
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
 
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
 /**
