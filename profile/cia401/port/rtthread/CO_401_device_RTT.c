@@ -6,14 +6,14 @@
 
 #include "CO_401_device_RTT.h"
 #include "CO_app_RTT.h"
-#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
+#if (defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)) \
     && !defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
-#error "CiA 401 analogue events require PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER"
-#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS && !PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
+#error "CiA 401 input events require PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER"
+#endif /* input events && !PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER */
 
-#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
 #include "OD.h"
-#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS || PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 
 #if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_EMCY_BRIDGE) \
     || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
@@ -120,6 +120,7 @@ static bool outputSupervisionEstablishedProbe(void *object)
     return runtime->config.outputSupervisionEstablished(runtime->config.outputSupervisionObject, co);
 }
 
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
 static uint16_t sdoServerCount(const CO_t *co)
 {
@@ -128,16 +129,6 @@ static uint16_t sdoServerCount(const CO_t *co)
 #else
     (void)co;
     return (uint16_t)OD_CNT_SDO_SRV;
-#endif /* CO_MULTIPLE_OD */
-}
-
-static uint16_t tpdoCount(const CO_t *co)
-{
-#ifdef CO_MULTIPLE_OD
-    return (co != NULL && co->config != NULL) ? co->config->CNT_TPDO : 0U;
-#else
-    (void)co;
-    return (uint16_t)OD_CNT_TPDO;
 #endif /* CO_MULTIPLE_OD */
 }
 
@@ -168,6 +159,17 @@ static bool isSdoReadStream(void *object, const OD_stream_t *stream)
     }
     return false;
 }
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+
+static uint16_t tpdoCount(const CO_t *co)
+{
+#ifdef CO_MULTIPLE_OD
+    return (co != NULL && co->config != NULL) ? co->config->CNT_TPDO : 0U;
+#else
+    (void)co;
+    return (uint16_t)OD_CNT_TPDO;
+#endif /* CO_MULTIPLE_OD */
+}
 
 static CO_TPDO_t *findTpdoByTxBuffer(CO_t *co, const CO_CANtx_t *buffer)
 {
@@ -194,6 +196,7 @@ static uint16_t tpdoMappedLengthBits(const OD_IO_t *io)
 #endif /* ((CO_CONFIG_PDO)&CO_CONFIG_PDO_BITWISE_MAPPING) != 0 */
 }
 
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
 static bool readTpdoBits(const CO_CANtx_t *buffer, uint16_t bitOffset, uint16_t bitLength, uint32_t *value)
 {
     uint32_t decoded = 0U;
@@ -218,19 +221,49 @@ static bool readTpdoBits(const CO_CANtx_t *buffer, uint16_t bitOffset, uint16_t 
     *value = decoded;
     return true;
 }
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 
 static void commitSuccessfulTpdo(CO_401_device_RTT_t *runtime, CO_TPDO_t *tpdo, const CO_CANtx_t *buffer)
 {
     CO_PDO_common_t *pdo = &tpdo->PDO_common;
     uint16_t bitOffset = 0U;
     uint8_t i;
+#if !defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+    (void)buffer;
+#endif /* !PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+    /*
+     * PDO streams expose absolute OD indices. Compare against the entries bound for this
+     * runtime instead of canonical 0x64xx constants so non-zero logical-device slots commit
+     * only their own successful TPDO communication state.
+     */
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
+    const uint16_t digitalInputIndex = runtime->device.bound.digitalInput8 != NULL
+                                           ? OD_getIndex(runtime->device.bound.digitalInput8)
+                                           : 0U;
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+    const uint16_t analogInputIndex = runtime->device.bound.analogInput16 != NULL
+                                          ? OD_getIndex(runtime->device.bound.analogInput16)
+                                          : 0U;
+    const uint16_t analogSourceIndex = runtime->device.bound.analogInterruptSource != NULL
+                                           ? OD_getIndex(runtime->device.bound.analogInterruptSource)
+                                           : 0U;
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 
     for (i = 0U; i < pdo->mappedObjectsCount; i++) {
         OD_IO_t *io = &pdo->OD_IO[i];
         const uint16_t mappedBits = tpdoMappedLengthBits(io);
         uint32_t communicated;
 
-        if (io->stream.index == CO_401_INDEX_ANALOG_INPUT_16 && mappedBits > 0U && mappedBits <= 16U
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
+        if (digitalInputIndex != 0U && io->stream.index == digitalInputIndex && mappedBits > 0U
+            && mappedBits <= 8U) {
+            CO_401_device_retireDigitalInputTpdoEvent(&runtime->device, io->stream.subIndex);
+        } else
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
+#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+        if (analogInputIndex != 0U && io->stream.index == analogInputIndex
+            && mappedBits > 0U && mappedBits <= 16U
             && readTpdoBits(buffer, bitOffset, mappedBits, &communicated)) {
             if (mappedBits == 16U) {
                 CO_401_device_commitAnalogInputTpdoCommunication(&runtime->device, io->stream.subIndex,
@@ -239,11 +272,16 @@ static void commitSuccessfulTpdo(CO_401_device_RTT_t *runtime, CO_TPDO_t *tpdo, 
                 /* A partial wire value retires only the event retry; it is not a valid delta reference. */
                 CO_401_device_retireAnalogInputTpdoEvent(&runtime->device, io->stream.subIndex);
             }
-        } else if (io->stream.index == CO_401_INDEX_ANALOG_INTERRUPT_SOURCE && mappedBits > 0U
+        } else if (analogSourceIndex != 0U && io->stream.index == analogSourceIndex && mappedBits > 0U
                    && mappedBits <= 32U && readTpdoBits(buffer, bitOffset, mappedBits, &communicated)) {
             /* communicated contains only the transmitted low-order bits, so unmapped source bits remain latched. */
             CO_401_device_commitAnalogSourceCommunication(&runtime->device, io->stream.subIndex, communicated);
         }
+#else
+        {
+            (void)communicated;
+        }
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
         bitOffset = (uint16_t)(bitOffset + mappedBits);
     }
 }
@@ -280,7 +318,7 @@ static void onCanTxSuccess(void *object, CO_CANtx_t *buffer)
         CO_UNLOCK_OD(co->CANmodule);
     }
 }
-#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS || PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 
 /** Preserve NMT transition facts in mainline order instead of reconstructing them from worker snapshots. */
 static void onNmtStateChanged(CANopenNodeRTT *app, void *context, CO_NMT_internalState_t state)
@@ -469,6 +507,8 @@ static void onStop(CANopenNodeRTT *app, void *context)
     CO_401_device_setOutputSupervisionProbe(&runtime->device, NULL, NULL);
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
     CO_401_device_setSdoReadMatcher(&runtime->device, NULL, NULL);
+#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
     if (app != NULL && app->canOpenStack != NULL && app->canOpenStack->CANmodule != NULL) {
         /*
          * Reset/deinit callers quiesce CANopen processing with lifecycleMutex before this hook,
@@ -478,7 +518,7 @@ static void onStop(CANopenNodeRTT *app, void *context)
     }
 #else
     (void)app;
-#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS || PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
     /* Retire generation-local transition obligations before the next OD is published. */
@@ -506,18 +546,18 @@ static void onReady(CANopenNodeRTT *app, void *context)
 {
     CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)context;
 
-#if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
     if (app != NULL && app->canOpenStack != NULL && app->canOpenStack->CANmodule != NULL) {
         CO_RTT_CANsetTxSuccessCallback(app->canOpenStack->CANmodule, runtime, onCanTxSuccess);
     }
-#endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS || PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
     runtime->nmtState = (app != NULL && app->canOpenStack != NULL && app->canOpenStack->NMT != NULL)
                             ? CO_NMT_getInternalState(app->canOpenStack->NMT)
                             : CO_NMT_UNKNOWN;
     runtime->nmtStoppedApplyPending = RT_FALSE;
-#elif !defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
+#elif !defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) && !defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
     (void)app;
 #endif /* output fail-safe or no app consumer */
     runtime->communicationReady = RT_TRUE;

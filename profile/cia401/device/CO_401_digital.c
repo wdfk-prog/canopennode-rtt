@@ -42,6 +42,16 @@ static bool getInputEventConfiguration(CO_401_device_t *device, uint8_t subIndex
         && OD_get_u8(device->bound.digitalInterruptRising8, subIndex, risingMask, true) == ODR_OK
         && OD_get_u8(device->bound.digitalInterruptFalling8, subIndex, fallingMask, true) == ODR_OK;
 }
+
+static void requestPendingDigitalInputTpdo(CO_401_device_t *device, uint8_t bank, uint8_t subIndex)
+{
+    const uint8_t pendingMask = (uint8_t)(1U << (bank & 0x07U));
+
+    if ((device->digitalInputEventTpdoPending[bank >> 3] & pendingMask) != 0U) {
+        /* CANopenNode consumes the OD request before CO_CANsend() reports success; reassert until accepted. */
+        OD_requestTPDO(device->bound.digitalInput8, subIndex);
+    }
+}
 #endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
 
 void CO_401_digital_refreshInputs(CO_401_device_t *device)
@@ -70,8 +80,12 @@ void CO_401_digital_refreshInputs(CO_401_device_t *device)
     for (bank = 0U; bank < device->config.digitalInputBanks; bank++) {
         uint8_t value;
         const uint8_t subIndex = (uint8_t)(bank + 1U);
-        CO_401_io_result_t result = device->config.io->readDigital8(device->config.ioObject, bank, &value);
+        CO_401_io_result_t result;
 
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
+        requestPendingDigitalInputTpdo(device, bank, subIndex);
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
+        result = device->config.io->readDigital8(device->config.ioObject, bank, &value);
         if (result != CO_401_IO_OK) {
             continue;
         }
@@ -101,8 +115,10 @@ void CO_401_digital_refreshInputs(CO_401_device_t *device)
                                                 | (falling & fallingMask));
 
             if (eventBits != 0U) {
-                /* Request by OD entry/sub-index so any current TPDO mapping observes the event. */
-                OD_requestTPDO(device->bound.digitalInput8, subIndex);
+                const uint8_t pendingMask = (uint8_t)(1U << (bank & 0x07U));
+
+                device->digitalInputEventTpdoPending[bank >> 3] |= pendingMask;
+                requestPendingDigitalInputTpdo(device, bank, subIndex);
             }
         }
 #else

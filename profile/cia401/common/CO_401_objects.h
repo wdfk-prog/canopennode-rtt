@@ -6,7 +6,10 @@
 #ifndef CO_401_OBJECTS_H
 #define CO_401_OBJECTS_H
 
+/** Standalone Device type object in the communication-profile area. */
 #define CO_401_INDEX_DEVICE_TYPE 0x1000U
+/** Canonical logical-device Device type object used by multiple-device modules. */
+#define CO_401_INDEX_LOGICAL_DEVICE_TYPE 0x67FFU
 #define CO_401_INDEX_DIGITAL_INPUT_8 0x6000U
 #define CO_401_INDEX_DIGITAL_INPUT_POLARITY_8 0x6002U
 #define CO_401_INDEX_DIGITAL_INPUT_FILTER_8 0x6003U

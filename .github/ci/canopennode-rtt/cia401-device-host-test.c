@@ -29,6 +29,7 @@
 
 typedef struct {
     uint32_t deviceType;
+    uint32_t logicalDeviceType;
     uint8_t digitalInputSub0;
     uint8_t digitalOutputSub0;
     uint8_t analogInputSub0;
@@ -40,12 +41,13 @@ typedef struct {
     int16_t analogOutputs[TEST_AO_CHANNELS];
 
     OD_obj_var_t deviceTypeObject;
+    OD_obj_var_t logicalDeviceTypeObject;
     OD_obj_var_t analogInterruptEnableObject;
     OD_obj_array_t digitalInputObject;
     OD_obj_array_t digitalOutputObject;
     OD_obj_array_t analogInputObject;
     OD_obj_array_t analogOutputObject;
-    OD_entry_t entries[6];
+    OD_entry_t entries[7];
     OD_t od;
 } test_od_fixture_t;
 
@@ -224,6 +226,24 @@ static void fixtureInit(test_od_fixture_t *fixture, CO_401_capabilities_t capabi
     }
 }
 
+static void fixtureUseLogicalDevice(test_od_fixture_t *fixture, uint8_t logicalDevice,
+                                    CO_401_capabilities_t capabilities)
+{
+    uint16_t i;
+
+    fixture->deviceType = UINT32_C(0xFFFF0192);
+    fixture->logicalDeviceType = CO_401_deviceTypeForCapabilities(capabilities);
+    fixture->logicalDeviceTypeObject.dataOrig = &fixture->logicalDeviceType;
+    fixture->logicalDeviceTypeObject.attribute = ODA_SDO_R | ODA_MB;
+    fixture->logicalDeviceTypeObject.dataLength = 4U;
+
+    for (i = 1U; i < fixture->od.size; i++) {
+        fixture->entries[i].index = CO_401_objectIndex(logicalDevice, fixture->entries[i].index);
+    }
+    addEntry(fixture, CO_401_objectIndex(logicalDevice, CO_401_INDEX_LOGICAL_DEVICE_TYPE), 1U, ODT_VAR,
+             &fixture->logicalDeviceTypeObject);
+}
+
 static OD_entry_t *fixtureFind(test_od_fixture_t *fixture, uint16_t index)
 {
     return OD_find(&fixture->od, index);
@@ -276,6 +296,145 @@ static bool test_all_capability_combinations(void)
         TEST_ASSERT(device.capabilities == capabilities);
     }
 
+    return true;
+}
+
+static bool test_logical_device_three_binds_translated_profile_block(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+    const CO_401_capabilities_t capabilities = CO_401_CAP_DIGITAL_INPUT | CO_401_CAP_DIGITAL_OUTPUT;
+
+    ioInit(&io);
+    fixtureInit(&fixture, capabilities);
+    /* Slot 3 belongs to a multiple-device module whose first logical device is the existing CiA 402 profile. */
+    fixtureUseLogicalDevice(&fixture, 3U, capabilities);
+
+    config = configForCapabilities(capabilities, &io);
+    config.logicalDevice = 3U;
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    TEST_ASSERT(device.logicalDevice == 3U);
+    TEST_ASSERT(device.odBase == 0x7800U);
+    TEST_ASSERT(OD_getIndex(device.bound.digitalInput8) == 0x7800U);
+    TEST_ASSERT(OD_getIndex(device.bound.digitalOutput8) == 0x7A00U);
+    TEST_ASSERT(OD_getIndex(device.bound.deviceType) == 0x7FFFU);
+    return true;
+}
+
+static bool test_logical_device_three_rejects_non_multiple_global_type(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+    const CO_401_capabilities_t capabilities = CO_401_CAP_DIGITAL_INPUT | CO_401_CAP_DIGITAL_OUTPUT;
+
+    ioInit(&io);
+    fixtureInit(&fixture, capabilities);
+    fixtureUseLogicalDevice(&fixture, 3U, capabilities);
+    fixture.deviceType = UINT32_C(0x00000192);
+    config = configForCapabilities(capabilities, &io);
+    config.logicalDevice = 3U;
+
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_DEVICE_TYPE);
+    TEST_ASSERT(diag.logicalDevice == 3U);
+    TEST_ASSERT(diag.index == CO_401_INDEX_DEVICE_TYPE);
+    TEST_ASSERT(!device.odBound);
+    return true;
+}
+
+static bool test_logical_device_three_requires_slot_type(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+    const CO_401_capabilities_t capabilities = CO_401_CAP_DIGITAL_INPUT | CO_401_CAP_DIGITAL_OUTPUT;
+    const uint16_t logicalTypeIndex = CO_401_objectIndex(3U, CO_401_INDEX_LOGICAL_DEVICE_TYPE);
+
+    ioInit(&io);
+    fixtureInit(&fixture, capabilities);
+    fixtureUseLogicalDevice(&fixture, 3U, capabilities);
+    TEST_ASSERT(fixtureRemove(&fixture, logicalTypeIndex));
+    config = configForCapabilities(capabilities, &io);
+    config.logicalDevice = 3U;
+
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OD_MISSING);
+    TEST_ASSERT(diag.logicalDevice == 3U);
+    TEST_ASSERT(diag.index == logicalTypeIndex);
+    TEST_ASSERT(!device.odBound);
+    return true;
+}
+
+static bool test_logical_device_three_rejects_wrong_slot_type(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+    const CO_401_capabilities_t capabilities = CO_401_CAP_DIGITAL_INPUT | CO_401_CAP_DIGITAL_OUTPUT;
+    const uint16_t logicalTypeIndex = CO_401_objectIndex(3U, CO_401_INDEX_LOGICAL_DEVICE_TYPE);
+
+    ioInit(&io);
+    fixtureInit(&fixture, capabilities);
+    fixtureUseLogicalDevice(&fixture, 3U, capabilities);
+    fixture.logicalDeviceType = CO_401_deviceTypeForCapabilities(CO_401_CAP_DIGITAL_INPUT);
+    config = configForCapabilities(capabilities, &io);
+    config.logicalDevice = 3U;
+
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_DEVICE_TYPE);
+    TEST_ASSERT(diag.logicalDevice == 3U);
+    TEST_ASSERT(diag.index == logicalTypeIndex);
+    TEST_ASSERT(!device.odBound);
+    return true;
+}
+
+static bool test_maximum_logical_device_binds_translated_profile_block(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+    const uint8_t logicalDevice = CO_401_LOGICAL_DEVICE_COUNT_MAX - 1U;
+    const CO_401_capabilities_t capabilities = CO_401_CAP_DIGITAL_INPUT;
+
+    ioInit(&io);
+    fixtureInit(&fixture, capabilities);
+    fixtureUseLogicalDevice(&fixture, logicalDevice, capabilities);
+    config = configForCapabilities(capabilities, &io);
+    config.logicalDevice = logicalDevice;
+
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    TEST_ASSERT(device.logicalDevice == logicalDevice);
+    TEST_ASSERT(device.odBase == 0x9800U);
+    TEST_ASSERT(OD_getIndex(device.bound.digitalInput8) == 0x9800U);
+    TEST_ASSERT(OD_getIndex(device.bound.deviceType) == 0x9FFFU);
+    return true;
+}
+
+static bool test_invalid_logical_device_fails_closed(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    ioInit(&io);
+    fixtureInit(&fixture, CO_401_CAP_DIGITAL_INPUT);
+    config = configForCapabilities(CO_401_CAP_DIGITAL_INPUT, &io);
+    config.logicalDevice = CO_401_LOGICAL_DEVICE_COUNT_MAX;
+
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_CONFIG);
+    TEST_ASSERT(diag.logicalDevice == CO_401_LOGICAL_DEVICE_COUNT_MAX);
+    TEST_ASSERT(!device.odBound);
     return true;
 }
 
@@ -861,6 +1020,12 @@ typedef struct {
 int main(void)
 {
     static const test_case_t tests[] = {
+        {"logical-device-three", test_logical_device_three_binds_translated_profile_block},
+        {"logical-device-global-type", test_logical_device_three_rejects_non_multiple_global_type},
+        {"logical-device-slot-type-required", test_logical_device_three_requires_slot_type},
+        {"logical-device-slot-type-value", test_logical_device_three_rejects_wrong_slot_type},
+        {"logical-device-max-slot", test_maximum_logical_device_binds_translated_profile_block},
+        {"logical-device-range", test_invalid_logical_device_fails_closed},
         {"all-capability-combinations", test_all_capability_combinations},
         {"missing-object", test_missing_object_fails_closed},
         {"wrong-object-type", test_wrong_object_type_fails_closed},

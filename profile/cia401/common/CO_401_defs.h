@@ -12,21 +12,31 @@
 extern "C" {
 #endif
 
-/** CiA 401 device-profile number encoded in Object 0x1000 bits 0..15. */
+/** Maximum number of CiA 301 logical-device application-profile slots (zero-based 0..7). */
+#define CO_401_LOGICAL_DEVICE_COUNT_MAX 8U
+
+/** First index in the canonical CiA 401 application-profile block. */
+#define CO_401_PROFILE_INDEX_BASE 0x6000U
+/** Offset between adjacent logical-device application-profile blocks. */
+#define CO_401_PROFILE_INDEX_STRIDE 0x0800U
+/** Last index in the canonical CiA 401 application-profile block. */
+#define CO_401_PROFILE_INDEX_LAST 0x67FFU
+
+/** CiA 401 device-profile number encoded in Device type bits 0..15. */
 #define CO_401_DEVICE_PROFILE_NUMBER 401U
 
-/** Object 0x1000 capability bit for digital inputs. */
+/** Device type capability bit for digital inputs. */
 #define CO_401_DEVICE_TYPE_DIGITAL_INPUT (UINT32_C(1) << 16)
-/** Object 0x1000 capability bit for digital outputs. */
+/** Device type capability bit for digital outputs. */
 #define CO_401_DEVICE_TYPE_DIGITAL_OUTPUT (UINT32_C(1) << 17)
-/** Object 0x1000 capability bit for analogue inputs. */
+/** Device type capability bit for analogue inputs. */
 #define CO_401_DEVICE_TYPE_ANALOG_INPUT (UINT32_C(1) << 18)
-/** Object 0x1000 capability bit for analogue outputs. */
+/** Device type capability bit for analogue outputs. */
 #define CO_401_DEVICE_TYPE_ANALOG_OUTPUT (UINT32_C(1) << 19)
-/** Object 0x1000 bit selecting device-specific rather than generic PDO mapping. */
+/** Device type bit selecting device-specific rather than generic PDO mapping. */
 #define CO_401_DEVICE_TYPE_DEVICE_SPECIFIC_MAPPING (UINT32_C(1) << 23)
 
-/** Stage-1 local capability flags, independent from the Object 0x1000 bit positions. */
+/** Stage-1 local capability flags, independent from the Device type bit positions. */
 typedef uint8_t CO_401_capabilities_t;
 
 #define CO_401_CAP_DIGITAL_INPUT ((CO_401_capabilities_t)(1U << 0))
@@ -37,13 +47,31 @@ typedef uint8_t CO_401_capabilities_t;
                                                 | CO_401_CAP_ANALOG_INPUT | CO_401_CAP_ANALOG_OUTPUT))
 
 /**
- * @brief Build the Stage-1 CiA 401 Object 0x1000 value for one capability set.
+ * @brief Resolve a canonical CiA 401 profile index for one logical device.
  *
- * Stage 1 implements the generic pre-defined PDO model (M bit clear) and no
- * profile-specific joystick function (bits 24..31 clear).
+ * @param logicalDevice Zero-based logical-device index in the CANopen device.
+ * @param profileIndex Object index in the canonical 0x6000..0x67FF CiA 401 block.
+ * @return Absolute Object Dictionary index for the selected logical-device slot.
+ *
+ * This helper translates only the standardized application-profile block. Communication-profile
+ * objects such as 0x1000 are global and must not be passed through this function.
+ *
+ * @pre logicalDevice is less than CO_401_LOGICAL_DEVICE_COUNT_MAX.
+ * @pre profileIndex is in the inclusive range CO_401_PROFILE_INDEX_BASE..CO_401_PROFILE_INDEX_LAST.
+ */
+static inline uint16_t CO_401_objectIndex(uint8_t logicalDevice, uint16_t profileIndex)
+{
+    return (uint16_t)(profileIndex + ((uint16_t)logicalDevice * (uint16_t)CO_401_PROFILE_INDEX_STRIDE));
+}
+
+/**
+ * @brief Build the CiA 401 Device type value for one capability set.
+ *
+ * The current Device core implements the generic pre-defined PDO model (M bit clear)
+ * and no profile-specific joystick function (bits 24..31 clear).
  *
  * @param capabilities Local capability flags.
- * @return Exact Object 0x1000 value expected by the Stage-1 runtime contract.
+ * @return Device type value expected for a standalone CiA 401 device or one logical-device type entry.
  */
 static inline uint32_t CO_401_deviceTypeForCapabilities(CO_401_capabilities_t capabilities)
 {

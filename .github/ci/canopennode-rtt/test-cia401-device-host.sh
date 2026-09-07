@@ -164,6 +164,9 @@ build_rtt_matrix_variant base-rtt
 build_rtt_matrix_variant events-only \
     -DPKG_CANOPENNODE_CIA401_ANALOG_EVENTS=1 \
     -DPKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER=1
+build_rtt_matrix_variant digital-events-only \
+    -DPKG_CANOPENNODE_CIA401_DIGITAL_EVENTS=1 \
+    -DPKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER=1
 build_rtt_matrix_variant analog-failsafe-only \
     -DPKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE=1
 build_rtt_matrix_variant digital-failsafe \
@@ -180,6 +183,7 @@ build_rtt_matrix_variant single-od-all \
 # Link the real RT-Thread TX path; section GC keeps this Host contract focused on the observer boundary.
 ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -ffunction-sections -fdata-sections \
+    -DPKG_CANOPENNODE_CIA401_DIGITAL_EVENTS=1 \
     -DPKG_CANOPENNODE_CIA401_ANALOG_EVENTS=1 \
     -DPKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE=1 \
     -DPKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER=1 \
@@ -232,6 +236,7 @@ ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
 ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -DCIA401_TEST_BITWISE_TPDO=1 \
     -ffunction-sections -fdata-sections \
+    -DPKG_CANOPENNODE_CIA401_DIGITAL_EVENTS=1 \
     -DPKG_CANOPENNODE_CIA401_ANALOG_EVENTS=1 \
     -DPKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE=1 \
     -DPKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER=1 \

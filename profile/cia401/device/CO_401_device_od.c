@@ -14,6 +14,13 @@
 #define CO_401_OD_OBJECT_TYPE_ARRAY 0x02U
 #define CO_401_OD_OBJECT_TYPE_MASK 0x0FU
 #define CO_401_OD_ATTRIBUTE_CONTRACT_MASK (ODA_SDO_RW | ODA_TRPDO | ODA_TRSRDO | ODA_MB | ODA_STR)
+#define CO_401_DEVICE_TYPE_MULTIPLE_DEVICE_MASK UINT32_C(0xFFFF0000)
+#define CO_401_DEVICE_TYPE_PROFILE_MASK UINT32_C(0x0000FFFF)
+
+static uint16_t profileIndex(const CO_401_device_t *device, uint16_t canonicalIndex)
+{
+    return CO_401_objectIndex(device->logicalDevice, canonicalIndex);
+}
 
 static void setDiag(CO_401_init_diag_t *diag, CO_401_init_error_t error, uint16_t index, uint8_t subIndex)
 {
@@ -31,50 +38,91 @@ static bool attributesMatch(OD_attr_t attributes, OD_attr_t required, OD_attr_t 
     return (contract & required) == required && (contract & (OD_attr_t)(~allowed)) == 0U;
 }
 
-static CO_401_init_error_t validateDeviceType(OD_t *od, CO_401_capabilities_t capabilities,
-                                               CO_401_device_od_t *bound, CO_401_init_diag_t *diag)
+static CO_401_init_error_t validateDeviceTypeEntry(OD_t *od, uint16_t index, uint32_t expectedValue,
+                                                    uint32_t valueMask, OD_entry_t **cache,
+                                                    CO_401_init_diag_t *diag)
 {
-    OD_entry_t *entry = OD_find(od, CO_401_INDEX_DEVICE_TYPE);
+    OD_entry_t *entry = OD_find(od, index);
     OD_IO_t io;
     uint32_t value;
 
     if (entry == NULL) {
-        setDiag(diag, CO_401_INIT_OD_MISSING, CO_401_INDEX_DEVICE_TYPE, 0U);
+        setDiag(diag, CO_401_INIT_OD_MISSING, index, 0U);
         return CO_401_INIT_OD_MISSING;
     }
     if ((entry->odObjectType & CO_401_OD_OBJECT_TYPE_MASK) != CO_401_OD_OBJECT_TYPE_VAR
         || entry->subEntriesCount != 1U) {
-        setDiag(diag, CO_401_INIT_OD_TYPE, CO_401_INDEX_DEVICE_TYPE, 0U);
+        setDiag(diag, CO_401_INIT_OD_TYPE, index, 0U);
         return CO_401_INIT_OD_TYPE;
     }
     if (OD_getSub(entry, 0U, &io, true) != ODR_OK || io.stream.dataOrig == NULL) {
-        setDiag(diag, CO_401_INIT_OD_MISSING, CO_401_INDEX_DEVICE_TYPE, 0U);
+        setDiag(diag, CO_401_INIT_OD_MISSING, index, 0U);
         return CO_401_INIT_OD_MISSING;
     }
     if (io.stream.dataLength != sizeof(value)) {
-        setDiag(diag, CO_401_INIT_OD_LENGTH, CO_401_INDEX_DEVICE_TYPE, 0U);
+        setDiag(diag, CO_401_INIT_OD_LENGTH, index, 0U);
         return CO_401_INIT_OD_LENGTH;
     }
     if (!attributesMatch(io.stream.attribute, ODA_SDO_R | ODA_MB, ODA_SDO_R | ODA_MB)) {
-        setDiag(diag, CO_401_INIT_OD_ACCESS, CO_401_INDEX_DEVICE_TYPE, 0U);
+        setDiag(diag, CO_401_INIT_OD_ACCESS, index, 0U);
         return CO_401_INIT_OD_ACCESS;
     }
-    if (OD_get_u32(entry, 0U, &value, true) != ODR_OK
-        || value != CO_401_deviceTypeForCapabilities(capabilities)) {
-        setDiag(diag, CO_401_INIT_DEVICE_TYPE, CO_401_INDEX_DEVICE_TYPE, 0U);
+    if (OD_get_u32(entry, 0U, &value, true) != ODR_OK || (value & valueMask) != expectedValue) {
+        setDiag(diag, CO_401_INIT_DEVICE_TYPE, index, 0U);
         return CO_401_INIT_DEVICE_TYPE;
     }
 
-    bound->deviceType = entry;
+    if (cache != NULL) {
+        *cache = entry;
+    }
     return CO_401_INIT_OK;
 }
 
-static CO_401_init_error_t validateArrayContract(OD_t *od, uint16_t index, uint8_t expectedCount,
-                                                  OD_size_t elementLength, OD_attr_t requiredAttributes,
+static CO_401_init_error_t validateDeviceType(CO_401_device_t *device, CO_401_device_od_t *bound,
+                                               CO_401_init_diag_t *diag)
+{
+    const uint32_t expected = CO_401_deviceTypeForCapabilities(device->capabilities);
+    const uint16_t logicalTypeIndex = profileIndex(device, CO_401_INDEX_LOGICAL_DEVICE_TYPE);
+    OD_entry_t *logicalType = OD_find(device->od, logicalTypeIndex);
+    CO_401_init_error_t result;
+
+    /*
+     * Standalone CiA 401 devices keep the established Object 0x1000 contract.
+     * In a multiple-device module, 0x1000 identifies the module (FFFFh in bits 16..31)
+     * while 0x67FF + slot*0x800 owns the exact CiA 401 capability-specific Device type.
+     * Slot 0 is treated as multiple-device only when its canonical 0x67FF type is present.
+     */
+    if (device->logicalDevice == 0U && logicalType == NULL) {
+        return validateDeviceTypeEntry(device->od, CO_401_INDEX_DEVICE_TYPE, expected, UINT32_MAX,
+                                       &bound->deviceType, diag);
+    }
+
+    if (device->logicalDevice == 0U) {
+        result = validateDeviceTypeEntry(
+            device->od, CO_401_INDEX_DEVICE_TYPE, CO_401_DEVICE_TYPE_MULTIPLE_DEVICE_MASK
+                                                   | (expected & CO_401_DEVICE_TYPE_PROFILE_MASK),
+            UINT32_MAX, NULL, diag);
+    } else {
+        result = validateDeviceTypeEntry(device->od, CO_401_INDEX_DEVICE_TYPE,
+                                         CO_401_DEVICE_TYPE_MULTIPLE_DEVICE_MASK,
+                                         CO_401_DEVICE_TYPE_MULTIPLE_DEVICE_MASK, NULL, diag);
+    }
+    if (result != CO_401_INIT_OK) {
+        return result;
+    }
+
+    return validateDeviceTypeEntry(device->od, logicalTypeIndex, expected, UINT32_MAX,
+                                   &bound->deviceType, diag);
+}
+
+static CO_401_init_error_t validateArrayContract(const CO_401_device_t *device, uint16_t canonicalIndex,
+                                                  uint8_t expectedCount, OD_size_t elementLength,
+                                                  OD_attr_t requiredAttributes,
                                                   OD_attr_t allowedAttributes, OD_entry_t **cache,
                                                   CO_401_init_diag_t *diag)
 {
-    OD_entry_t *entry = OD_find(od, index);
+    const uint16_t index = profileIndex(device, canonicalIndex);
+    OD_entry_t *entry = OD_find(device->od, index);
     OD_IO_t io;
     uint8_t subCount;
 
@@ -138,11 +186,12 @@ static CO_401_init_error_t validateArrayContract(OD_t *od, uint16_t index, uint8
     return CO_401_INIT_OK;
 }
 
-static CO_401_init_error_t validateArray(OD_t *od, uint16_t index, uint8_t expectedCount,
-                                          OD_size_t elementLength, OD_attr_t expectedAttributes,
+static CO_401_init_error_t validateArray(const CO_401_device_t *device, uint16_t canonicalIndex,
+                                          uint8_t expectedCount, OD_size_t elementLength,
+                                          OD_attr_t expectedAttributes,
                                           OD_entry_t **cache, CO_401_init_diag_t *diag)
 {
-    return validateArrayContract(od, index, expectedCount, elementLength, expectedAttributes,
+    return validateArrayContract(device, canonicalIndex, expectedCount, elementLength, expectedAttributes,
                                  expectedAttributes, cache, diag);
 }
 
@@ -151,32 +200,36 @@ static CO_401_init_error_t validateArray(OD_t *od, uint16_t index, uint8_t expec
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
-static CO_401_init_error_t validateOptionalMappingArraySized(OD_t *od, uint16_t index, uint8_t expectedCount,
+static CO_401_init_error_t validateOptionalMappingArraySized(const CO_401_device_t *device,
+                                                              uint16_t canonicalIndex, uint8_t expectedCount,
                                                               OD_size_t elementLength, OD_attr_t required,
                                                               OD_attr_t allowed, OD_entry_t **cache,
                                                               CO_401_init_diag_t *diag)
 {
-    return validateArrayContract(od, index, expectedCount, elementLength, required, allowed, cache, diag);
+    return validateArrayContract(device, canonicalIndex, expectedCount, elementLength, required, allowed, cache, diag);
 }
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) \
     || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-static CO_401_init_error_t validateOptionalMappingArray(OD_t *od, uint16_t index, uint8_t expectedCount,
+static CO_401_init_error_t validateOptionalMappingArray(const CO_401_device_t *device,
+                                                         uint16_t canonicalIndex, uint8_t expectedCount,
                                                          OD_entry_t **cache, CO_401_init_diag_t *diag)
 {
-    return validateOptionalMappingArraySized(od, index, expectedCount, 1U, ODA_SDO_RW,
+    return validateOptionalMappingArraySized(device, canonicalIndex, expectedCount, 1U, ODA_SDO_RW,
                                               ODA_SDO_RW | ODA_TRPDO, cache, diag);
 }
 #endif /* optional 8-bit mapping arrays */
 #endif /* optional mapping-array validators */
 
-static CO_401_init_error_t validateVariable8(OD_t *od, uint16_t index, OD_attr_t requiredAttributes,
-                                              OD_attr_t allowedAttributes, OD_entry_t **cache,
+static CO_401_init_error_t validateVariable8(const CO_401_device_t *device, uint16_t canonicalIndex,
+                                              OD_attr_t requiredAttributes, OD_attr_t allowedAttributes,
+                                              OD_entry_t **cache,
                                               CO_401_init_diag_t *diag)
 {
-    OD_entry_t *entry = OD_find(od, index);
+    const uint16_t index = profileIndex(device, canonicalIndex);
+    OD_entry_t *entry = OD_find(device->od, index);
     OD_IO_t io;
 
     if (entry == NULL) {
@@ -205,13 +258,16 @@ static CO_401_init_error_t validateVariable8(OD_t *od, uint16_t index, OD_attr_t
     return CO_401_INIT_OK;
 }
 
-static CO_401_init_error_t validateCapabilityObject(OD_t *od, bool enabled, uint16_t index,
-                                                     uint8_t expectedCount, OD_size_t elementLength,
+static CO_401_init_error_t validateCapabilityObject(const CO_401_device_t *device, bool enabled,
+                                                     uint16_t canonicalIndex, uint8_t expectedCount,
+                                                     OD_size_t elementLength,
                                                      OD_attr_t expectedAttributes, OD_entry_t **cache,
                                                      CO_401_init_diag_t *diag)
 {
+    const uint16_t index = profileIndex(device, canonicalIndex);
+
     if (!enabled) {
-        if (OD_find(od, index) != NULL) {
+        if (OD_find(device->od, index) != NULL) {
             setDiag(diag, CO_401_INIT_OD_UNEXPECTED, index, 0U);
             return CO_401_INIT_OD_UNEXPECTED;
         }
@@ -219,19 +275,22 @@ static CO_401_init_error_t validateCapabilityObject(OD_t *od, bool enabled, uint
         return CO_401_INIT_OK;
     }
 
-    return validateArray(od, index, expectedCount, elementLength, expectedAttributes, cache, diag);
+    return validateArray(device, canonicalIndex, expectedCount, elementLength, expectedAttributes, cache, diag);
 }
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) \
     || defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-static CO_401_init_error_t validateOptionalArray(OD_t *od, bool enabled, uint16_t index,
-                                                  uint8_t expectedCount, OD_entry_t **cache,
+static CO_401_init_error_t validateOptionalArray(const CO_401_device_t *device, bool enabled,
+                                                  uint16_t canonicalIndex, uint8_t expectedCount,
+                                                  OD_entry_t **cache,
                                                   CO_401_init_diag_t *diag)
 {
+    const uint16_t index = profileIndex(device, canonicalIndex);
+
     if (!enabled) {
-        if (OD_find(od, index) != NULL) {
+        if (OD_find(device->od, index) != NULL) {
             setDiag(diag, CO_401_INIT_OD_UNEXPECTED, index, 0U);
             return CO_401_INIT_OD_UNEXPECTED;
         }
@@ -239,49 +298,55 @@ static CO_401_init_error_t validateOptionalArray(OD_t *od, bool enabled, uint16_
         return CO_401_INIT_OK;
     }
 
-    return validateOptionalMappingArray(od, index, expectedCount, cache, diag);
+    return validateOptionalMappingArray(device, canonicalIndex, expectedCount, cache, diag);
 }
 #endif /* optional 8-bit arrays */
 
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
-static CO_401_init_error_t validateOptionalArraySized(OD_t *od, bool enabled, uint16_t index,
-                                                       uint8_t expectedCount, OD_size_t elementLength,
+static CO_401_init_error_t validateOptionalArraySized(const CO_401_device_t *device, bool enabled,
+                                                       uint16_t canonicalIndex, uint8_t expectedCount,
+                                                       OD_size_t elementLength,
                                                        OD_attr_t required, OD_attr_t allowed,
                                                        OD_entry_t **cache, CO_401_init_diag_t *diag)
 {
+    const uint16_t index = profileIndex(device, canonicalIndex);
+
     if (!enabled) {
-        if (OD_find(od, index) != NULL) {
+        if (OD_find(device->od, index) != NULL) {
             setDiag(diag, CO_401_INIT_OD_UNEXPECTED, index, 0U);
             return CO_401_INIT_OD_UNEXPECTED;
         }
         *cache = NULL;
         return CO_401_INIT_OK;
     }
-    return validateOptionalMappingArraySized(od, index, expectedCount, elementLength, required, allowed,
+    return validateOptionalMappingArraySized(device, canonicalIndex, expectedCount, elementLength, required, allowed,
                                               cache, diag);
 }
 
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
-static CO_401_init_error_t validatePresentOptionalArraySized(OD_t *od, bool enabled, uint16_t index,
-                                                              uint8_t expectedCount, OD_size_t elementLength,
+static CO_401_init_error_t validatePresentOptionalArraySized(const CO_401_device_t *device, bool enabled,
+                                                              uint16_t canonicalIndex, uint8_t expectedCount,
+                                                              OD_size_t elementLength,
                                                               OD_attr_t required, OD_attr_t allowed,
                                                               OD_entry_t **cache, CO_401_init_diag_t *diag)
 {
+    const uint16_t index = profileIndex(device, canonicalIndex);
+
     if (!enabled) {
-        if (OD_find(od, index) != NULL) {
+        if (OD_find(device->od, index) != NULL) {
             setDiag(diag, CO_401_INIT_OD_UNEXPECTED, index, 0U);
             return CO_401_INIT_OD_UNEXPECTED;
         }
         *cache = NULL;
         return CO_401_INIT_OK;
     }
-    if (OD_find(od, index) == NULL) {
+    if (OD_find(device->od, index) == NULL) {
         *cache = NULL;
         return CO_401_INIT_OK;
     }
-    return validateOptionalMappingArraySized(od, index, expectedCount, elementLength, required, allowed,
+    return validateOptionalMappingArraySized(device, canonicalIndex, expectedCount, elementLength, required, allowed,
                                               cache, diag);
 }
 #endif /* PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING */
@@ -424,6 +489,7 @@ static void detachOwnedExtensions(CO_401_device_t *device)
         (void)OD_extension_init(device->bound.digitalInputFilter8, NULL);
     }
     device->digitalInputFilterDirty = false;
+    (void)memset(device->digitalInputEventTpdoPending, 0, sizeof(device->digitalInputEventTpdoPending));
 #endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
     if (device->bound.analogInput16 != NULL
@@ -448,6 +514,9 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     const bool digitalOutputEnabled = device != NULL && device->config.digitalOutputBanks != 0U;
     const bool analogInputEnabled = device != NULL && device->config.analogInputChannels != 0U;
 
+    if (diag != NULL) {
+        diag->logicalDevice = device != NULL ? device->logicalDevice : 0U;
+    }
     if (device == NULL) {
         setDiag(diag, CO_401_INIT_BAD_ARGUMENT, 0U, 0U);
         return CO_401_INIT_BAD_ARGUMENT;
@@ -462,24 +531,24 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     }
     (void)memset(&candidate, 0, sizeof(candidate));
 
-    result = validateDeviceType(device->od, device->capabilities, &candidate, diag);
+    result = validateDeviceType(device, &candidate, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
 
-    result = validateCapabilityObject(device->od, digitalInputEnabled, CO_401_INDEX_DIGITAL_INPUT_8,
+    result = validateCapabilityObject(device, digitalInputEnabled, CO_401_INDEX_DIGITAL_INPUT_8,
                                       device->config.digitalInputBanks, 1U, ODA_SDO_R | ODA_TPDO,
                                       &candidate.digitalInput8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateCapabilityObject(device->od, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_8,
+    result = validateCapabilityObject(device, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_8,
                                       device->config.digitalOutputBanks, 1U, ODA_SDO_RW | ODA_RPDO,
                                       &candidate.digitalOutput8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateCapabilityObject(device->od, analogInputEnabled,
+    result = validateCapabilityObject(device, analogInputEnabled,
                                       CO_401_INDEX_ANALOG_INPUT_16, device->config.analogInputChannels,
                                       2U, ODA_SDO_R | ODA_TPDO | ODA_MB, &candidate.analogInput16, diag);
     if (result != CO_401_INIT_OK) {
@@ -488,11 +557,11 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
 
     /* CiA 401 0x6423 is Conditional: Device with analogue input, not an optional comparator feature. */
     if (analogInputEnabled) {
-        result = validateVariable8(device->od, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE, ODA_SDO_RW,
+        result = validateVariable8(device, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE, ODA_SDO_RW,
                                    ODA_SDO_RW | ODA_TRPDO, &candidate.analogInterruptEnable, diag);
     } else {
-        if (OD_find(device->od, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE) != NULL) {
-            setDiag(diag, CO_401_INIT_OD_UNEXPECTED, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE, 0U);
+        if (OD_find(device->od, profileIndex(device, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE)) != NULL) {
+            setDiag(diag, CO_401_INIT_OD_UNEXPECTED, profileIndex(device, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE), 0U);
             return CO_401_INIT_OD_UNEXPECTED;
         }
         candidate.analogInterruptEnable = NULL;
@@ -502,7 +571,7 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
         return result;
     }
 
-    result = validateCapabilityObject(device->od, device->config.analogOutputChannels != 0U,
+    result = validateCapabilityObject(device, device->config.analogOutputChannels != 0U,
                                       CO_401_INDEX_ANALOG_OUTPUT_16, device->config.analogOutputChannels,
                                       2U, ODA_SDO_RW | ODA_RPDO | ODA_MB, &candidate.analogOutput16, diag);
     if (result != CO_401_INIT_OK) {
@@ -510,37 +579,37 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     }
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
-    result = validateOptionalArray(device->od, digitalInputEnabled, CO_401_INDEX_DIGITAL_INPUT_POLARITY_8,
+    result = validateOptionalArray(device, digitalInputEnabled, CO_401_INDEX_DIGITAL_INPUT_POLARITY_8,
                                    device->config.digitalInputBanks, &candidate.digitalInputPolarity8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateOptionalArray(device->od, digitalInputEnabled, CO_401_INDEX_DIGITAL_INPUT_FILTER_8,
+    result = validateOptionalArray(device, digitalInputEnabled, CO_401_INDEX_DIGITAL_INPUT_FILTER_8,
                                    device->config.digitalInputBanks, &candidate.digitalInputFilter8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
     if (digitalInputEnabled) {
-        result = validateVariable8(device->od, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE,
+        result = validateVariable8(device, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE,
                                    ODA_SDO_RW, ODA_SDO_RW, &candidate.digitalInterruptEnable, diag);
-    } else if (OD_find(device->od, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE) != NULL) {
-        setDiag(diag, CO_401_INIT_OD_UNEXPECTED, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE, 0U);
+    } else if (OD_find(device->od, profileIndex(device, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE)) != NULL) {
+        setDiag(diag, CO_401_INIT_OD_UNEXPECTED, profileIndex(device, CO_401_INDEX_DIGITAL_INTERRUPT_ENABLE), 0U);
         return CO_401_INIT_OD_UNEXPECTED;
     }
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateOptionalArray(device->od, digitalInputEnabled, CO_401_INDEX_DIGITAL_INTERRUPT_ANY_8,
+    result = validateOptionalArray(device, digitalInputEnabled, CO_401_INDEX_DIGITAL_INTERRUPT_ANY_8,
                                    device->config.digitalInputBanks, &candidate.digitalInterruptAny8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateOptionalArray(device->od, digitalInputEnabled, CO_401_INDEX_DIGITAL_INTERRUPT_RISING_8,
+    result = validateOptionalArray(device, digitalInputEnabled, CO_401_INDEX_DIGITAL_INTERRUPT_RISING_8,
                                    device->config.digitalInputBanks, &candidate.digitalInterruptRising8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateOptionalArray(device->od, digitalInputEnabled, CO_401_INDEX_DIGITAL_INTERRUPT_FALLING_8,
+    result = validateOptionalArray(device, digitalInputEnabled, CO_401_INDEX_DIGITAL_INTERRUPT_FALLING_8,
                                    device->config.digitalInputBanks, &candidate.digitalInterruptFalling8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
@@ -548,22 +617,22 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
 #endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) */
 
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE)
-    result = validateOptionalArray(device->od, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_POLARITY_8,
+    result = validateOptionalArray(device, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_POLARITY_8,
                                    device->config.digitalOutputBanks, &candidate.digitalOutputPolarity8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateOptionalArray(device->od, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_ERROR_MODE_8,
+    result = validateOptionalArray(device, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_ERROR_MODE_8,
                                    device->config.digitalOutputBanks, &candidate.digitalOutputErrorMode8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateOptionalArray(device->od, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_ERROR_VALUE_8,
+    result = validateOptionalArray(device, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_ERROR_VALUE_8,
                                    device->config.digitalOutputBanks, &candidate.digitalOutputErrorValue8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
     }
-    result = validateOptionalArray(device->od, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_FILTER_8,
+    result = validateOptionalArray(device, digitalOutputEnabled, CO_401_INDEX_DIGITAL_OUTPUT_FILTER_8,
                                    device->config.digitalOutputBanks, &candidate.digitalOutputFilter8, diag);
     if (result != CO_401_INIT_OK) {
         return result;
@@ -574,30 +643,30 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
     {
         const uint8_t sourceBanks = (uint8_t)((device->config.analogInputChannels + 31U) / 32U);
 
-        result = validateOptionalArray(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_TRIGGER,
+        result = validateOptionalArray(device, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_TRIGGER,
                                        device->config.analogInputChannels, &candidate.analogInterruptTrigger, diag);
         if (result != CO_401_INIT_OK) return result;
-        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_SOURCE,
+        result = validateOptionalArraySized(device, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_SOURCE,
                                             sourceBanks, 4U, ODA_SDO_R, ODA_SDO_R | ODA_TPDO | ODA_MB,
                                             &candidate.analogInterruptSource, diag);
         if (result != CO_401_INIT_OK) return result;
-        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_UPPER_32,
+        result = validateOptionalArraySized(device, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_UPPER_32,
                                             device->config.analogInputChannels, 4U, ODA_SDO_RW,
                                             ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptUpper32, diag);
         if (result != CO_401_INIT_OK) return result;
-        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_LOWER_32,
+        result = validateOptionalArraySized(device, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_LOWER_32,
                                             device->config.analogInputChannels, 4U, ODA_SDO_RW,
                                             ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptLower32, diag);
         if (result != CO_401_INIT_OK) return result;
-        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_DELTA_U32,
+        result = validateOptionalArraySized(device, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_DELTA_U32,
                                             device->config.analogInputChannels, 4U, ODA_SDO_RW,
                                             ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptDeltaU32, diag);
         if (result != CO_401_INIT_OK) return result;
-        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_NEG_DELTA_U32,
+        result = validateOptionalArraySized(device, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_NEG_DELTA_U32,
                                             device->config.analogInputChannels, 4U, ODA_SDO_RW,
                                             ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptNegDeltaU32, diag);
         if (result != CO_401_INIT_OK) return result;
-        result = validateOptionalArraySized(device->od, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_POS_DELTA_U32,
+        result = validateOptionalArraySized(device, analogInputEnabled, CO_401_INDEX_ANALOG_INTERRUPT_POS_DELTA_U32,
                                             device->config.analogInputChannels, 4U, ODA_SDO_RW,
                                             ODA_SDO_RW | ODA_TRPDO | ODA_MB, &candidate.analogInterruptPosDeltaU32, diag);
         if (result != CO_401_INIT_OK) return result;
@@ -605,11 +674,11 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
 #endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
 
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-    result = validateOptionalArray(device->od, device->config.analogOutputChannels != 0U,
+    result = validateOptionalArray(device, device->config.analogOutputChannels != 0U,
                                    CO_401_INDEX_ANALOG_OUTPUT_ERROR_MODE, device->config.analogOutputChannels,
                                    &candidate.analogOutputErrorMode, diag);
     if (result != CO_401_INIT_OK) return result;
-    result = validateOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+    result = validateOptionalArraySized(device, device->config.analogOutputChannels != 0U,
                                         CO_401_INDEX_ANALOG_OUTPUT_ERROR_VALUE_32, device->config.analogOutputChannels,
                                         4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
                                         &candidate.analogOutputErrorValue32, diag);
@@ -618,33 +687,33 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
 
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_CONDITIONING)
     /* 0x6430/0x6450 are Optional in CiA 401; validate their OD contract only when the object is present. */
-    result = validatePresentOptionalArraySized(device->od, device->config.analogInputChannels != 0U,
+    result = validatePresentOptionalArraySized(device, device->config.analogInputChannels != 0U,
                                                CO_401_INDEX_ANALOG_INPUT_SI_UNIT,
                                                device->config.analogInputChannels, 4U, ODA_SDO_RW,
                                                ODA_SDO_RW | ODA_TRPDO | ODA_MB,
                                                &candidate.analogInputSiUnit, diag);
     if (result != CO_401_INIT_OK) return result;
-    result = validateOptionalArraySized(device->od, device->config.analogInputChannels != 0U,
+    result = validateOptionalArraySized(device, device->config.analogInputChannels != 0U,
                                         CO_401_INDEX_ANALOG_INPUT_OFFSET_32, device->config.analogInputChannels,
                                         4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
                                         &candidate.analogInputOffset32, diag);
     if (result != CO_401_INIT_OK) return result;
-    result = validateOptionalArraySized(device->od, device->config.analogInputChannels != 0U,
+    result = validateOptionalArraySized(device, device->config.analogInputChannels != 0U,
                                         CO_401_INDEX_ANALOG_INPUT_PRESCALING_32, device->config.analogInputChannels,
                                         4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
                                         &candidate.analogInputPrescaling32, diag);
     if (result != CO_401_INIT_OK) return result;
-    result = validateOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+    result = validateOptionalArraySized(device, device->config.analogOutputChannels != 0U,
                                         CO_401_INDEX_ANALOG_OUTPUT_OFFSET_32, device->config.analogOutputChannels,
                                         4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
                                         &candidate.analogOutputOffset32, diag);
     if (result != CO_401_INIT_OK) return result;
-    result = validateOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+    result = validateOptionalArraySized(device, device->config.analogOutputChannels != 0U,
                                         CO_401_INDEX_ANALOG_OUTPUT_SCALING_32, device->config.analogOutputChannels,
                                         4U, ODA_SDO_RW, ODA_SDO_RW | ODA_TRPDO | ODA_MB,
                                         &candidate.analogOutputScaling32, diag);
     if (result != CO_401_INIT_OK) return result;
-    result = validatePresentOptionalArraySized(device->od, device->config.analogOutputChannels != 0U,
+    result = validatePresentOptionalArraySized(device, device->config.analogOutputChannels != 0U,
                                                CO_401_INDEX_ANALOG_OUTPUT_SI_UNIT,
                                                device->config.analogOutputChannels, 4U, ODA_SDO_RW,
                                                ODA_SDO_RW | ODA_TRPDO | ODA_MB,
@@ -655,12 +724,12 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
     if (digitalInputEnabled) {
         result = validateExtensionSlot(candidate.digitalInput8, &device->digitalInput8Extension,
-                                       CO_401_INDEX_DIGITAL_INPUT_8, diag);
+                                       profileIndex(device, CO_401_INDEX_DIGITAL_INPUT_8), diag);
         if (result != CO_401_INIT_OK) {
             return result;
         }
         result = validateExtensionSlot(candidate.digitalInputFilter8, &device->digitalInputFilter8Extension,
-                                       CO_401_INDEX_DIGITAL_INPUT_FILTER_8, diag);
+                                       profileIndex(device, CO_401_INDEX_DIGITAL_INPUT_FILTER_8), diag);
         if (result != CO_401_INIT_OK) {
             return result;
         }
@@ -668,14 +737,14 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
 #endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) */
     if (digitalOutputEnabled) {
         result = validateExtensionSlot(candidate.digitalOutput8, &device->digitalOutput8Extension,
-                                       CO_401_INDEX_DIGITAL_OUTPUT_8, diag);
+                                       profileIndex(device, CO_401_INDEX_DIGITAL_OUTPUT_8), diag);
         if (result != CO_401_INIT_OK) {
             return result;
         }
     }
     if (device->config.analogOutputChannels != 0U) {
         result = validateExtensionSlot(candidate.analogOutput16, &device->analogOutput16Extension,
-                                       CO_401_INDEX_ANALOG_OUTPUT_16, diag);
+                                       profileIndex(device, CO_401_INDEX_ANALOG_OUTPUT_16), diag);
         if (result != CO_401_INIT_OK) {
             return result;
         }
@@ -684,10 +753,10 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
 #if defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)
     if (analogInputEnabled) {
         result = validateExtensionSlot(candidate.analogInput16, &device->analogInput16Extension,
-                                       CO_401_INDEX_ANALOG_INPUT_16, diag);
+                                       profileIndex(device, CO_401_INDEX_ANALOG_INPUT_16), diag);
         if (result != CO_401_INIT_OK) return result;
         result = validateExtensionSlot(candidate.analogInterruptSource, &device->analogInterruptSourceExtension,
-                                       CO_401_INDEX_ANALOG_INTERRUPT_SOURCE, diag);
+                                       profileIndex(device, CO_401_INDEX_ANALOG_INTERRUPT_SOURCE), diag);
         if (result != CO_401_INIT_OK) return result;
     }
 #endif /* PKG_CANOPENNODE_CIA401_ANALOG_EVENTS */
@@ -701,6 +770,7 @@ CO_401_init_error_t CO_401_device_bindOD(CO_401_device_t *device, CO_401_init_di
         (void)OD_extension_init(candidate.digitalInput8, &device->digitalInput8Extension);
         (void)OD_extension_init(candidate.digitalInputFilter8, &device->digitalInputFilter8Extension);
         device->digitalInputFilterDirty = true;
+        (void)memset(device->digitalInputEventTpdoPending, 0, sizeof(device->digitalInputEventTpdoPending));
     }
 #endif /* defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) */
     if (digitalOutputEnabled) {

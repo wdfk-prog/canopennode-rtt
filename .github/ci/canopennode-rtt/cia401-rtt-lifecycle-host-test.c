@@ -15,7 +15,7 @@
 #undef OD_DEFINITION
 #include "CO_app_RTT.h"
 
-#define ENTRY_COUNT 13U
+#define ENTRY_COUNT 14U
 #define CIA401_TEST_EMCY_STATUS_BIT 0x48U
 #define TEST_ASSERT(x) \
     do { \
@@ -27,6 +27,7 @@
 
 typedef struct {
     uint32_t deviceType;
+    uint32_t logicalDeviceType;
     uint8_t subAi, subAo, subTrigger, subSource, subUpper, subLower, subDelta, subNeg, subPos;
     uint8_t subErrMode, subErrValue;
     uint8_t interruptEnable;
@@ -34,7 +35,7 @@ typedef struct {
     uint8_t trigger[1], errorMode[1];
     uint32_t source[1], delta[1], negDelta[1], posDelta[1];
     int32_t upper[1], lower[1], errorValue[1];
-    OD_obj_var_t deviceTypeObj, interruptEnableObj;
+    OD_obj_var_t deviceTypeObj, logicalDeviceTypeObj, interruptEnableObj;
     OD_obj_array_t aiObj, aoObj, triggerObj, sourceObj, upperObj, lowerObj, deltaObj, negObj, posObj;
     OD_obj_array_t errorModeObj, errorValueObj;
     OD_entry_t entries[ENTRY_COUNT];
@@ -139,6 +140,24 @@ static void fixtureInit(fixture_t *fixture)
     addEntry(fixture, CO_401_INDEX_ANALOG_INTERRUPT_POS_DELTA_U32, 2U, ODT_ARR, &fixture->posObj);
     addEntry(fixture, CO_401_INDEX_ANALOG_OUTPUT_ERROR_MODE, 2U, ODT_ARR, &fixture->errorModeObj);
     addEntry(fixture, CO_401_INDEX_ANALOG_OUTPUT_ERROR_VALUE_32, 2U, ODT_ARR, &fixture->errorValueObj);
+}
+
+static void fixtureUseLogicalDevice(fixture_t *fixture, uint8_t logicalDevice)
+{
+    uint16_t i;
+
+    fixture->deviceType = UINT32_C(0xFFFF0192);
+    fixture->logicalDeviceType =
+        CO_401_deviceTypeForCapabilities(CO_401_CAP_ANALOG_INPUT | CO_401_CAP_ANALOG_OUTPUT);
+    fixture->logicalDeviceTypeObj.dataOrig = &fixture->logicalDeviceType;
+    fixture->logicalDeviceTypeObj.attribute = ODA_SDO_R | ODA_MB;
+    fixture->logicalDeviceTypeObj.dataLength = 4U;
+
+    for (i = 1U; i < fixture->od.size; i++) {
+        fixture->entries[i].index = CO_401_objectIndex(logicalDevice, fixture->entries[i].index);
+    }
+    addEntry(fixture, CO_401_objectIndex(logicalDevice, CO_401_INDEX_LOGICAL_DEVICE_TYPE),
+             1U, ODT_VAR, &fixture->logicalDeviceTypeObj);
 }
 
 static CO_401_io_result_t readAnalog16(void *object, uint8_t channel, int16_t *value)
@@ -399,18 +418,22 @@ static void setFrameBits(uint8_t *data, uint16_t bitOffset, uint16_t bitLength, 
 }
 #endif /* CIA401_TEST_BITWISE_TPDO */
 
-static void prepareTpdoFrame(CO_TPDO_t *tpdo, CO_CANtx_t *buffer, uint16_t input, uint32_t source)
+static void prepareTpdoFrame(const CO_401_device_RTT_t *runtime, CO_TPDO_t *tpdo, CO_CANtx_t *buffer,
+                             uint16_t input, uint32_t source)
 {
+    const uint16_t analogInputIndex = OD_getIndex(runtime->device.bound.analogInput16);
+    const uint16_t analogSourceIndex = OD_getIndex(runtime->device.bound.analogInterruptSource);
+
     (void)memset(buffer->data, 0, sizeof(buffer->data));
 #if defined(CIA401_TEST_BITWISE_TPDO)
     tpdo->PDO_common.mappedObjectsCount = 3U;
     tpdo->PDO_common.OD_IO[0].stream.index = 0x2000U;
     tpdo->PDO_common.OD_IO[0].stream.subIndex = 0U;
     tpdo->PDO_common.OD_IO[0].stream.dataOffset = 1U;
-    tpdo->PDO_common.OD_IO[1].stream.index = CO_401_INDEX_ANALOG_INPUT_16;
+    tpdo->PDO_common.OD_IO[1].stream.index = analogInputIndex;
     tpdo->PDO_common.OD_IO[1].stream.subIndex = 1U;
     tpdo->PDO_common.OD_IO[1].stream.dataOffset = 16U;
-    tpdo->PDO_common.OD_IO[2].stream.index = CO_401_INDEX_ANALOG_INTERRUPT_SOURCE;
+    tpdo->PDO_common.OD_IO[2].stream.index = analogSourceIndex;
     tpdo->PDO_common.OD_IO[2].stream.subIndex = 1U;
     tpdo->PDO_common.OD_IO[2].stream.dataOffset = 32U;
     buffer->DLC = 7U;
@@ -419,10 +442,10 @@ static void prepareTpdoFrame(CO_TPDO_t *tpdo, CO_CANtx_t *buffer, uint16_t input
     setFrameBits(buffer->data, 17U, 32U, source);
 #else
     tpdo->PDO_common.mappedObjectsCount = 2U;
-    tpdo->PDO_common.OD_IO[0].stream.index = CO_401_INDEX_ANALOG_INPUT_16;
+    tpdo->PDO_common.OD_IO[0].stream.index = analogInputIndex;
     tpdo->PDO_common.OD_IO[0].stream.subIndex = 1U;
     tpdo->PDO_common.OD_IO[0].stream.dataOffset = 2U;
-    tpdo->PDO_common.OD_IO[1].stream.index = CO_401_INDEX_ANALOG_INTERRUPT_SOURCE;
+    tpdo->PDO_common.OD_IO[1].stream.index = analogSourceIndex;
     tpdo->PDO_common.OD_IO[1].stream.subIndex = 1U;
     tpdo->PDO_common.OD_IO[1].stream.dataOffset = 4U;
     buffer->DLC = 6U;
@@ -432,14 +455,18 @@ static void prepareTpdoFrame(CO_TPDO_t *tpdo, CO_CANtx_t *buffer, uint16_t input
 }
 
 #if defined(CIA401_TEST_BITWISE_TPDO)
-static void preparePartialTpdoFrame(CO_TPDO_t *tpdo, CO_CANtx_t *buffer, uint8_t inputLow, uint8_t sourceLow)
+static void preparePartialTpdoFrame(const CO_401_device_RTT_t *runtime, CO_TPDO_t *tpdo, CO_CANtx_t *buffer,
+                                    uint8_t inputLow, uint8_t sourceLow)
 {
+    const uint16_t analogInputIndex = OD_getIndex(runtime->device.bound.analogInput16);
+    const uint16_t analogSourceIndex = OD_getIndex(runtime->device.bound.analogInterruptSource);
+
     (void)memset(buffer->data, 0, sizeof(buffer->data));
     tpdo->PDO_common.mappedObjectsCount = 2U;
-    tpdo->PDO_common.OD_IO[0].stream.index = CO_401_INDEX_ANALOG_INPUT_16;
+    tpdo->PDO_common.OD_IO[0].stream.index = analogInputIndex;
     tpdo->PDO_common.OD_IO[0].stream.subIndex = 1U;
     tpdo->PDO_common.OD_IO[0].stream.dataOffset = 8U;
-    tpdo->PDO_common.OD_IO[1].stream.index = CO_401_INDEX_ANALOG_INTERRUPT_SOURCE;
+    tpdo->PDO_common.OD_IO[1].stream.index = analogSourceIndex;
     tpdo->PDO_common.OD_IO[1].stream.subIndex = 1U;
     tpdo->PDO_common.OD_IO[1].stream.dataOffset = 8U;
     buffer->DLC = 2U;
@@ -718,6 +745,7 @@ static bool test_lifecycle_reset_rebind_and_deinit(void)
             .ioObject = &io,
             .analogInputChannels = 1U,
             .analogOutputChannels = 1U,
+            .logicalDevice = 3U,
         },
         .outputSupervisionEstablished = outputSupervisionEstablished,
         .outputSupervisionFaultActive = outputSupervisionFaultActive,
@@ -728,6 +756,8 @@ static bool test_lifecycle_reset_rebind_and_deinit(void)
     (void)memset(tpdo, 0, sizeof(tpdo));
     fixtureInit(&first);
     fixtureInit(&second);
+    fixtureUseLogicalDevice(&first, 3U);
+    fixtureUseLogicalDevice(&second, 3U);
     coConfig.CNT_SDO_SRV = 1U;
     coConfig.CNT_TPDO = 1U;
     co.config = &coConfig;
@@ -926,7 +956,7 @@ static bool test_lifecycle_reset_rebind_and_deinit(void)
     TEST_ASSERT(CO_CANsend(&canModule, &sdoTx) == CO_ERROR_NO);
     TEST_ASSERT(first.source[0] == 0x04U);
 
-    prepareTpdoFrame(&tpdo[0], &tpdoTx, 9U, 0x02U);
+    prepareTpdoFrame(&runtime, &tpdo[0], &tpdoTx, 9U, 0x02U);
     first.source[0] = 0x06U;
 
     /* Failed or transmit-gated sends must not reach the observer; only the later real write may commit. */
@@ -948,11 +978,52 @@ static bool test_lifecycle_reset_rebind_and_deinit(void)
     TEST_ASSERT(runtime.device.analogLastCommunicated[0] == 9);
     TEST_ASSERT(first.source[0] == 0x04U);
 
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS)
+    {
+        OD_entry_t digitalInputEntry = {0};
+        const uint8_t savedDigitalInputBanks = runtime.device.config.digitalInputBanks;
+        OD_entry_t *savedDigitalInputEntry = runtime.device.bound.digitalInput8;
+
+        digitalInputEntry.index = CO_401_objectIndex(runtime.device.logicalDevice, CO_401_INDEX_DIGITAL_INPUT_8);
+        runtime.device.bound.digitalInput8 = &digitalInputEntry;
+        runtime.device.config.digitalInputBanks = 1U;
+        runtime.device.digitalInputEventTpdoPending[0] = 0x01U;
+        tpdo[0].PDO_common.mappedObjectsCount = 1U;
+        tpdo[0].PDO_common.OD_IO[0].stream.index = digitalInputEntry.index;
+        tpdo[0].PDO_common.OD_IO[0].stream.subIndex = 1U;
 #if defined(CIA401_TEST_BITWISE_TPDO)
-    /* A short 0x6401 mapping retires the transport retry without manufacturing a partial delta reference. */
+        tpdo[0].PDO_common.OD_IO[0].stream.dataOffset = 8U;
+#else
+        tpdo[0].PDO_common.OD_IO[0].stream.dataOffset = 1U;
+#endif /* CIA401_TEST_BITWISE_TPDO */
+        tpdoTx.DLC = 1U;
+
+        nextDeviceWriteResult = 0;
+        TEST_ASSERT(CO_CANsend(&canModule, &tpdoTx) == CO_ERROR_TX_BUSY);
+        TEST_ASSERT((runtime.device.digitalInputEventTpdoPending[0] & 0x01U) != 0U);
+
+        nextDeviceWriteResult = (rt_ssize_t)sizeof(struct rt_can_msg);
+        tpdo[0].PDO_common.OD_IO[0].stream.index = 0x2000U;
+        TEST_ASSERT(CO_CANsend(&canModule, &tpdoTx) == CO_ERROR_NO);
+        TEST_ASSERT((runtime.device.digitalInputEventTpdoPending[0] & 0x01U) != 0U);
+
+        tpdo[0].PDO_common.OD_IO[0].stream.index = digitalInputEntry.index;
+        TEST_ASSERT(CO_CANsend(&canModule, &tpdoTx) == CO_ERROR_NO);
+        TEST_ASSERT((runtime.device.digitalInputEventTpdoPending[0] & 0x01U) == 0U);
+
+        runtime.device.config.digitalInputBanks = savedDigitalInputBanks;
+        runtime.device.bound.digitalInput8 = savedDigitalInputEntry;
+        prepareTpdoFrame(&runtime, &tpdo[0], &tpdoTx, 9U, 0x04U);
+    }
+
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS */
+
+#if defined(CIA401_TEST_BITWISE_TPDO)
+    /* A short slot-3 0x7C01 mapping retires the transport retry without manufacturing
+     * a partial delta reference. */
     runtime.device.analogInputEventTpdoPending[0] = 0x01U;
     first.source[0] = 0x0101U;
-    preparePartialTpdoFrame(&tpdo[0], &tpdoTx, 0xAAU, 0x01U);
+    preparePartialTpdoFrame(&runtime, &tpdo[0], &tpdoTx, 0xAAU, 0x01U);
     TEST_ASSERT(CO_CANsend(&canModule, &tpdoTx) == CO_ERROR_NO);
     TEST_ASSERT((runtime.device.analogInputEventTpdoPending[0] & 0x01U) == 0U);
     TEST_ASSERT(runtime.device.analogLastCommunicated[0] == 9);
@@ -994,7 +1065,7 @@ static bool test_lifecycle_reset_rebind_and_deinit(void)
     TEST_ASSERT(canModule.txSuccessObject == NULL);
 
     /* Clearing the observer allows later writes but must not commit CiA 401 communication state. */
-    prepareTpdoFrame(&tpdo[0], &tpdoTx, 10U, 0x04U);
+    prepareTpdoFrame(&runtime, &tpdo[0], &tpdoTx, 10U, 0x04U);
     writesBefore = deviceWriteCount;
     TEST_ASSERT(CO_CANsend(&canModule, &tpdoTx) == CO_ERROR_NO);
     TEST_ASSERT(deviceWriteCount == writesBefore + 1U);
@@ -1002,7 +1073,7 @@ static bool test_lifecycle_reset_rebind_and_deinit(void)
     TEST_ASSERT(first.source[0] == 0x04U);
 
     /* A callback captured just before stop must observe the closed generation gate and leave state untouched. */
-    prepareTpdoFrame(&tpdo[0], &tpdoTx, 11U, 0x04U);
+    prepareTpdoFrame(&runtime, &tpdo[0], &tpdoTx, 11U, 0x04U);
     capturedCallback(capturedObject, &tpdoTx);
     TEST_ASSERT(runtime.device.analogLastCommunicated[0] == 9);
     TEST_ASSERT(first.source[0] == 0x04U);

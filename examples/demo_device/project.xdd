@@ -920,13 +920,301 @@
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
+          <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_14C0">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_14C000">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID used by RPDO" uniqueID="UID_RECSUB_14C001">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_14C002">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Event timer" uniqueID="UID_RECSUB_14C005">
+              <UINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_14C1">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_14C100">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID used by RPDO" uniqueID="UID_RECSUB_14C101">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_14C102">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Event timer" uniqueID="UID_RECSUB_14C105">
+              <UINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="RPDO mapping parameter" uniqueID="UID_REC_16C0">
+            <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_16C000">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_16C001">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_16C002">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 3" uniqueID="UID_RECSUB_16C003">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 4" uniqueID="UID_RECSUB_16C004">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_16C005">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_16C006">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_16C007">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_16C008">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="RPDO mapping parameter" uniqueID="UID_REC_16C1">
+            <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_16C100">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_16C101">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_16C102">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 3" uniqueID="UID_RECSUB_16C103">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 4" uniqueID="UID_RECSUB_16C104">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_16C105">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_16C106">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_16C107">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_16C108">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="TPDO communication parameter" uniqueID="UID_REC_18C0">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_18C000">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID used by TPDO" uniqueID="UID_RECSUB_18C001">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_18C002">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Inhibit time" uniqueID="UID_RECSUB_18C003">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Event timer" uniqueID="UID_RECSUB_18C005">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="SYNC start value" uniqueID="UID_RECSUB_18C006">
+              <USINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="TPDO communication parameter" uniqueID="UID_REC_18C1">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_18C100">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="COB-ID used by TPDO" uniqueID="UID_RECSUB_18C101">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Transmission type" uniqueID="UID_RECSUB_18C102">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Inhibit time" uniqueID="UID_RECSUB_18C103">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Event timer" uniqueID="UID_RECSUB_18C105">
+              <UINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="SYNC start value" uniqueID="UID_RECSUB_18C106">
+              <USINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1AC0">
+            <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_1AC000">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_1AC001">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_1AC002">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 3" uniqueID="UID_RECSUB_1AC003">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 4" uniqueID="UID_RECSUB_1AC004">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_1AC005">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_1AC006">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_1AC007">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_1AC008">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1AC1">
+            <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_1AC100">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 1" uniqueID="UID_RECSUB_1AC101">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 2" uniqueID="UID_RECSUB_1AC102">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 3" uniqueID="UID_RECSUB_1AC103">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 4" uniqueID="UID_RECSUB_1AC104">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 5" uniqueID="UID_RECSUB_1AC105">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 6" uniqueID="UID_RECSUB_1AC106">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 7" uniqueID="UID_RECSUB_1AC107">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Application object 8" uniqueID="UID_RECSUB_1AC108">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
+          <q1:array name="CiA401 Digital input 8-bit" uniqueID="UID_ARR_7800">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital input polarity 8-bit" uniqueID="UID_ARR_7802">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital input filter 8-bit" uniqueID="UID_ARR_7803">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital interrupt any-change 8-bit" uniqueID="UID_ARR_7806">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital interrupt rising 8-bit" uniqueID="UID_ARR_7807">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital interrupt falling 8-bit" uniqueID="UID_ARR_7808">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital output 8-bit" uniqueID="UID_ARR_7A00">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital output polarity 8-bit" uniqueID="UID_ARR_7A02">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital output error mode 8-bit" uniqueID="UID_ARR_7A06">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital output error value 8-bit" uniqueID="UID_ARR_7A07">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Digital output filter 8-bit" uniqueID="UID_ARR_7A08">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue input 16-bit" uniqueID="UID_ARR_7C01">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <INT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue output 16-bit" uniqueID="UID_ARR_7C11">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <INT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue interrupt trigger" uniqueID="UID_ARR_7C21">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue interrupt source" uniqueID="UID_ARR_7C22">
+            <q1:subrange lowerLimit="0" upperLimit="1" />
+            <UDINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue interrupt upper limit" uniqueID="UID_ARR_7C24">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <DINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue interrupt lower limit" uniqueID="UID_ARR_7C25">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <DINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue interrupt delta" uniqueID="UID_ARR_7C26">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <UDINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue interrupt negative delta" uniqueID="UID_ARR_7C27">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <UDINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue interrupt positive delta" uniqueID="UID_ARR_7C28">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <UDINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue input offset" uniqueID="UID_ARR_7C31">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <DINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue input pre-scaling" uniqueID="UID_ARR_7C32">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <DINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue output error mode" uniqueID="UID_ARR_7C43">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <USINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue output error value" uniqueID="UID_ARR_7C44">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <DINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue output offset" uniqueID="UID_ARR_7C46">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <DINT />
+          </q1:array>
+          <q1:array name="CiA401 Analogue output scaling" uniqueID="UID_ARR_7C47">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <DINT />
+          </q1:array>
         </q1:dataTypeList>
         <q1:parameterList>
           <q1:parameter uniqueID="UID_OBJ_1000">
             <description lang="en">* bit 16-31: Additional information
 * bit 0-15: Device profile number</description>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0xFFFF0192" />
             <q1:property name="CO_countLabel" value="NMT" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
@@ -3386,6 +3674,887 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_14C0">
+            <description lang="en">* COB-ID used by RPDO:
+  * bit 31: If set, PDO does not exist / is not valid
+  * bit 11-30: set to 0
+  * bit 0-10: 11-bit CAN-ID
+* Transmission type:
+  * Value 0-240: synchronous, processed after next reception of SYNC object
+  * Value 241-253: not used
+  * Value 254: event-driven (manufacturer-specific)
+  * Value 255: event-driven (device profile and application profile specific)
+* Event timer in ms (0 = disabled) for deadline monitoring.</description>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_14C0" />
+            <q1:property name="CO_countLabel" value="RPDO" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C000">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x05" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C001" access="readWrite">
+            <label lang="en">COB-ID used by RPDO</label>
+            <UDINT />
+            <q1:defaultValue value="0x80000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C002" access="readWrite">
+            <label lang="en">Transmission type</label>
+            <USINT />
+            <q1:defaultValue value="255" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C005" access="readWrite">
+            <label lang="en">Event timer</label>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_14C1">
+            <description lang="en">* COB-ID used by RPDO:
+  * bit 31: If set, PDO does not exist / is not valid
+  * bit 11-30: set to 0
+  * bit 0-10: 11-bit CAN-ID
+* Transmission type:
+  * Value 0-240: synchronous, processed after next reception of SYNC object
+  * Value 241-253: not used
+  * Value 254: event-driven (manufacturer-specific)
+  * Value 255: event-driven (device profile and application profile specific)
+* Event timer in ms (0 = disabled) for deadline monitoring.</description>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_14C1" />
+            <q1:property name="CO_countLabel" value="RPDO" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x05" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C101" access="readWrite">
+            <label lang="en">COB-ID used by RPDO</label>
+            <UDINT />
+            <q1:defaultValue value="0x80000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C102" access="readWrite">
+            <label lang="en">Transmission type</label>
+            <USINT />
+            <q1:defaultValue value="255" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_14C105" access="readWrite">
+            <label lang="en">Event timer</label>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_16C0">
+            <description lang="en">* Number of mapped application objects in PDO:
+  * Value 0: mapping is disabled.
+  * Value 1: sub-index 0x01 is valid.
+  * Value 2-8: sub-indexes 0x01 to (0x02 to 0x08) are valid.
+* Application object 1-8:
+  * bit 16-31: index
+  * bit 8-15: sub-index
+  * bit 0-7: data length in bits</description>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_16C0" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C000" access="readWrite">
+            <label lang="en">Number of mapped application objects in PDO</label>
+            <USINT />
+            <q1:defaultValue value="2" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C001" access="readWrite">
+            <label lang="en">Application object 1</label>
+            <UDINT />
+            <q1:defaultValue value="0x7A000108" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C002" access="readWrite">
+            <label lang="en">Application object 2</label>
+            <UDINT />
+            <q1:defaultValue value="0x7A000208" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C003" access="readWrite">
+            <label lang="en">Application object 3</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C004" access="readWrite">
+            <label lang="en">Application object 4</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C005" access="readWrite">
+            <label lang="en">Application object 5</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C006" access="readWrite">
+            <label lang="en">Application object 6</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C007" access="readWrite">
+            <label lang="en">Application object 7</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C008" access="readWrite">
+            <label lang="en">Application object 8</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_16C1">
+            <description lang="en">* Number of mapped application objects in PDO:
+  * Value 0: mapping is disabled.
+  * Value 1: sub-index 0x01 is valid.
+  * Value 2-8: sub-indexes 0x01 to (0x02 to 0x08) are valid.
+* Application object 1-8:
+  * bit 16-31: index
+  * bit 8-15: sub-index
+  * bit 0-7: data length in bits</description>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_16C1" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C100" access="readWrite">
+            <label lang="en">Number of mapped application objects in PDO</label>
+            <USINT />
+            <q1:defaultValue value="2" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C101" access="readWrite">
+            <label lang="en">Application object 1</label>
+            <UDINT />
+            <q1:defaultValue value="0x7C110110" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C102" access="readWrite">
+            <label lang="en">Application object 2</label>
+            <UDINT />
+            <q1:defaultValue value="0x7C110210" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C103" access="readWrite">
+            <label lang="en">Application object 3</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C104" access="readWrite">
+            <label lang="en">Application object 4</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C105" access="readWrite">
+            <label lang="en">Application object 5</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C106" access="readWrite">
+            <label lang="en">Application object 6</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C107" access="readWrite">
+            <label lang="en">Application object 7</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_16C108" access="readWrite">
+            <label lang="en">Application object 8</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_18C0">
+            <label lang="en">TPDO communication parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_18C0" />
+            <q1:property name="CO_countLabel" value="TPDO" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C000">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x06" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C001" access="readWrite">
+            <label lang="en">COB-ID used by TPDO</label>
+            <UDINT />
+            <q1:defaultValue value="0x80000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C002" access="readWrite">
+            <label lang="en">Transmission type</label>
+            <USINT />
+            <q1:defaultValue value="255" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C003" access="readWrite">
+            <label lang="en">Inhibit time</label>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C005" access="readWrite">
+            <label lang="en">Event timer</label>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C006" access="readWrite">
+            <label lang="en">SYNC start value</label>
+            <USINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_18C1">
+            <label lang="en">TPDO communication parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_18C1" />
+            <q1:property name="CO_countLabel" value="TPDO" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x06" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C101" access="readWrite">
+            <label lang="en">COB-ID used by TPDO</label>
+            <UDINT />
+            <q1:defaultValue value="0x80000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C102" access="readWrite">
+            <label lang="en">Transmission type</label>
+            <USINT />
+            <q1:defaultValue value="255" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C103" access="readWrite">
+            <label lang="en">Inhibit time</label>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C105" access="readWrite">
+            <label lang="en">Event timer</label>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_18C106" access="readWrite">
+            <label lang="en">SYNC start value</label>
+            <USINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1AC0">
+            <label lang="en">TPDO mapping parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1AC0" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC000" access="readWrite">
+            <label lang="en">Number of mapped application objects in PDO</label>
+            <USINT />
+            <q1:defaultValue value="2" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC001" access="readWrite">
+            <label lang="en">Application object 1</label>
+            <UDINT />
+            <q1:defaultValue value="0x78000108" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC002" access="readWrite">
+            <label lang="en">Application object 2</label>
+            <UDINT />
+            <q1:defaultValue value="0x78000208" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC003" access="readWrite">
+            <label lang="en">Application object 3</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC004" access="readWrite">
+            <label lang="en">Application object 4</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC005" access="readWrite">
+            <label lang="en">Application object 5</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC006" access="readWrite">
+            <label lang="en">Application object 6</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC007" access="readWrite">
+            <label lang="en">Application object 7</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC008" access="readWrite">
+            <label lang="en">Application object 8</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1AC1">
+            <label lang="en">TPDO mapping parameter</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1AC1" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC100" access="readWrite">
+            <label lang="en">Number of mapped application objects in PDO</label>
+            <USINT />
+            <q1:defaultValue value="2" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC101" access="readWrite">
+            <label lang="en">Application object 1</label>
+            <UDINT />
+            <q1:defaultValue value="0x7C010110" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC102" access="readWrite">
+            <label lang="en">Application object 2</label>
+            <UDINT />
+            <q1:defaultValue value="0x7C010210" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC103" access="readWrite">
+            <label lang="en">Application object 3</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC104" access="readWrite">
+            <label lang="en">Application object 4</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC105" access="readWrite">
+            <label lang="en">Application object 5</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC106" access="readWrite">
+            <label lang="en">Application object 6</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC107" access="readWrite">
+            <label lang="en">Application object 7</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_1AC108" access="readWrite">
+            <label lang="en">Application object 8</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7800">
+            <label lang="en">CiA401 Digital input 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7800" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780000">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780001">
+            <label lang="en">CiA401 Digital input 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780002">
+            <label lang="en">CiA401 Digital input 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7802">
+            <label lang="en">CiA401 Digital input polarity 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7802" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780200">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780201" access="readWrite">
+            <label lang="en">CiA401 Digital input polarity 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780202" access="readWrite">
+            <label lang="en">CiA401 Digital input polarity 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7803">
+            <label lang="en">CiA401 Digital input filter 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7803" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780300">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780301" access="readWrite">
+            <label lang="en">CiA401 Digital input filter 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780302" access="readWrite">
+            <label lang="en">CiA401 Digital input filter 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7806">
+            <label lang="en">CiA401 Digital interrupt any-change 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7806" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780600">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780601" access="readWrite">
+            <label lang="en">CiA401 Digital interrupt any-change 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780602" access="readWrite">
+            <label lang="en">CiA401 Digital interrupt any-change 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7807">
+            <label lang="en">CiA401 Digital interrupt rising 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7807" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780700">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780701" access="readWrite">
+            <label lang="en">CiA401 Digital interrupt rising 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780702" access="readWrite">
+            <label lang="en">CiA401 Digital interrupt rising 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7808">
+            <label lang="en">CiA401 Digital interrupt falling 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7808" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780800">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780801" access="readWrite">
+            <label lang="en">CiA401 Digital interrupt falling 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_780802" access="readWrite">
+            <label lang="en">CiA401 Digital interrupt falling 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7A00">
+            <label lang="en">CiA401 Digital output 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7A00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0000">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0001" access="readWriteOutput">
+            <label lang="en">CiA401 Digital output 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0002" access="readWriteOutput">
+            <label lang="en">CiA401 Digital output 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7A02">
+            <label lang="en">CiA401 Digital output polarity 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7A02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0200">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0201" access="readWrite">
+            <label lang="en">CiA401 Digital output polarity 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0202" access="readWrite">
+            <label lang="en">CiA401 Digital output polarity 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7A06">
+            <label lang="en">CiA401 Digital output error mode 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7A06" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0600">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0601" access="readWrite">
+            <label lang="en">CiA401 Digital output error mode 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0xFF" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0602" access="readWrite">
+            <label lang="en">CiA401 Digital output error mode 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0xFF" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7A07">
+            <label lang="en">CiA401 Digital output error value 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7A07" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0700">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0701" access="readWrite">
+            <label lang="en">CiA401 Digital output error value 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0702" access="readWrite">
+            <label lang="en">CiA401 Digital output error value 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7A08">
+            <label lang="en">CiA401 Digital output filter 8-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7A08" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0800">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0801" access="readWrite">
+            <label lang="en">CiA401 Digital output filter 8-bit 1</label>
+            <USINT />
+            <q1:defaultValue value="0xFF" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7A0802" access="readWrite">
+            <label lang="en">CiA401 Digital output filter 8-bit 2</label>
+            <USINT />
+            <q1:defaultValue value="0xFF" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C01">
+            <label lang="en">CiA401 Analogue input 16-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C01" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C0100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C0101">
+            <label lang="en">CiA401 Analogue input 16-bit 1</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C0102">
+            <label lang="en">CiA401 Analogue input 16-bit 2</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C11">
+            <label lang="en">CiA401 Analogue output 16-bit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C11" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C1100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C1101" access="readWriteOutput">
+            <label lang="en">CiA401 Analogue output 16-bit 1</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C1102" access="readWriteOutput">
+            <label lang="en">CiA401 Analogue output 16-bit 2</label>
+            <INT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C21">
+            <label lang="en">CiA401 Analogue interrupt trigger</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C21" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2101" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt trigger 1</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2102" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt trigger 2</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C22">
+            <label lang="en">CiA401 Analogue interrupt source</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C22" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2200">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x01" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2201">
+            <label lang="en">CiA401 Analogue interrupt source 1</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C24">
+            <label lang="en">CiA401 Analogue interrupt upper limit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C24" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2400">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2401" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt upper limit 1</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2402" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt upper limit 2</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C25">
+            <label lang="en">CiA401 Analogue interrupt lower limit</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C25" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2500">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2501" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt lower limit 1</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2502" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt lower limit 2</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C26">
+            <label lang="en">CiA401 Analogue interrupt delta</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C26" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2600">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2601" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt delta 1</label>
+            <UDINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2602" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt delta 2</label>
+            <UDINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C27">
+            <label lang="en">CiA401 Analogue interrupt negative delta</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C27" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2700">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2701" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt negative delta 1</label>
+            <UDINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2702" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt negative delta 2</label>
+            <UDINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C28">
+            <label lang="en">CiA401 Analogue interrupt positive delta</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C28" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2800">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2801" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt positive delta 1</label>
+            <UDINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C2802" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt positive delta 2</label>
+            <UDINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C31">
+            <label lang="en">CiA401 Analogue input offset</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C31" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C3100">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C3101" access="readWrite">
+            <label lang="en">CiA401 Analogue input offset 1</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C3102" access="readWrite">
+            <label lang="en">CiA401 Analogue input offset 2</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C32">
+            <label lang="en">CiA401 Analogue input pre-scaling</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C32" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C3200">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C3201" access="readWrite">
+            <label lang="en">CiA401 Analogue input pre-scaling 1</label>
+            <DINT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C3202" access="readWrite">
+            <label lang="en">CiA401 Analogue input pre-scaling 2</label>
+            <DINT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C43">
+            <label lang="en">CiA401 Analogue output error mode</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C43" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4300">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4301" access="readWrite">
+            <label lang="en">CiA401 Analogue output error mode 1</label>
+            <USINT />
+            <q1:defaultValue value="0x01" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4302" access="readWrite">
+            <label lang="en">CiA401 Analogue output error mode 2</label>
+            <USINT />
+            <q1:defaultValue value="0x01" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C44">
+            <label lang="en">CiA401 Analogue output error value</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C44" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4400">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4401" access="readWrite">
+            <label lang="en">CiA401 Analogue output error value 1</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4402" access="readWrite">
+            <label lang="en">CiA401 Analogue output error value 2</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C46">
+            <label lang="en">CiA401 Analogue output offset</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C46" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4600">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4601" access="readWrite">
+            <label lang="en">CiA401 Analogue output offset 1</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4602" access="readWrite">
+            <label lang="en">CiA401 Analogue output offset 2</label>
+            <DINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C47">
+            <label lang="en">CiA401 Analogue output scaling</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_7C47" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4700">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4701" access="readWrite">
+            <label lang="en">CiA401 Analogue output scaling 1</label>
+            <DINT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_7C4702" access="readWrite">
+            <label lang="en">CiA401 Analogue output scaling 2</label>
+            <DINT />
+            <q1:defaultValue value="1" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_67FF">
+            <label lang="en">Axis0 Device type</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000192" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_6FFF">
+            <label lang="en">Axis1 Device type</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000192" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_77FF">
+            <label lang="en">Axis2 Device type</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000192" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7805" access="readWrite">
+            <label lang="en">CiA401 Digital interrupt enable</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+            <q1:property name="CO_storageGroup" value="RAM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7C23" access="readWrite">
+            <label lang="en">CiA401 Analogue interrupt enable</label>
+            <USINT />
+            <q1:defaultValue value="0x00" />
+            <q1:property name="CO_storageGroup" value="RAM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_7FFF">
+            <label lang="en">CiA401 Device type</label>
+            <UDINT />
+            <q1:defaultValue value="0x000F0191" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -3596,6 +4765,18 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140302" />
             <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140305" />
           </CANopenObject>
+          <CANopenObject index="14C0" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_14C0" subNumber="4">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C000" />
+            <CANopenSubObject subIndex="01" name="COB-ID used by RPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C001" />
+            <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C002" />
+            <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C005" />
+          </CANopenObject>
+          <CANopenObject index="14C1" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_14C1" subNumber="4">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C100" />
+            <CANopenSubObject subIndex="01" name="COB-ID used by RPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C101" />
+            <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C102" />
+            <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_14C105" />
+          </CANopenObject>
           <CANopenObject index="1600" name="RPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1600" subNumber="9">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160000" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160001" />
@@ -3640,6 +4821,28 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160307" />
             <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160308" />
           </CANopenObject>
+          <CANopenObject index="16C0" name="RPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_16C0" subNumber="9">
+            <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C000" />
+            <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C001" />
+            <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C002" />
+            <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C003" />
+            <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C004" />
+            <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C005" />
+            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C006" />
+            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C007" />
+            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C008" />
+          </CANopenObject>
+          <CANopenObject index="16C1" name="RPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_16C1" subNumber="9">
+            <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C100" />
+            <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C101" />
+            <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C102" />
+            <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C103" />
+            <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C104" />
+            <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C105" />
+            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C106" />
+            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C107" />
+            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_16C108" />
+          </CANopenObject>
           <CANopenObject index="1800" name="TPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1800" subNumber="6">
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180000" />
             <CANopenSubObject subIndex="01" name="COB-ID used by TPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180001" />
@@ -3679,6 +4882,22 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="03" name="Inhibit time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180403" />
             <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180405" />
             <CANopenSubObject subIndex="06" name="SYNC start value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180406" />
+          </CANopenObject>
+          <CANopenObject index="18C0" name="TPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_18C0" subNumber="6">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C000" />
+            <CANopenSubObject subIndex="01" name="COB-ID used by TPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C001" />
+            <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C002" />
+            <CANopenSubObject subIndex="03" name="Inhibit time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C003" />
+            <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C005" />
+            <CANopenSubObject subIndex="06" name="SYNC start value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C006" />
+          </CANopenObject>
+          <CANopenObject index="18C1" name="TPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_18C1" subNumber="6">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C100" />
+            <CANopenSubObject subIndex="01" name="COB-ID used by TPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C101" />
+            <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C102" />
+            <CANopenSubObject subIndex="03" name="Inhibit time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C103" />
+            <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C105" />
+            <CANopenSubObject subIndex="06" name="SYNC start value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_18C106" />
           </CANopenObject>
           <CANopenObject index="1A00" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A00" subNumber="9">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0000" />
@@ -3734,6 +4953,28 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0406" />
             <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0407" />
             <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0408" />
+          </CANopenObject>
+          <CANopenObject index="1AC0" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1AC0" subNumber="9">
+            <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC000" />
+            <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC001" />
+            <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC002" />
+            <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC003" />
+            <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC004" />
+            <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC005" />
+            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC006" />
+            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC007" />
+            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC008" />
+          </CANopenObject>
+          <CANopenObject index="1AC1" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1AC1" subNumber="9">
+            <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC100" />
+            <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC101" />
+            <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC102" />
+            <CANopenSubObject subIndex="03" name="Application object 3" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC103" />
+            <CANopenSubObject subIndex="04" name="Application object 4" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC104" />
+            <CANopenSubObject subIndex="05" name="Application object 5" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC105" />
+            <CANopenSubObject subIndex="06" name="Application object 6" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC106" />
+            <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC107" />
+            <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1AC108" />
           </CANopenObject>
           <CANopenObject index="2100" name="status_value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_2100" />
           <CANopenObject index="2101" name="counter_value" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_2101" />
@@ -3849,6 +5090,7 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="609A" name="Axis0 Homing acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_609A" />
           <CANopenObject index="60FF" name="Axis0 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_60FF" />
           <CANopenObject index="6502" name="Axis0 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6502" />
+          <CANopenObject index="67FF" name="Axis0 Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_67FF" />
           <CANopenObject index="683F" name="Axis1 Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_683F" />
           <CANopenObject index="6840" name="Axis1 Controlword" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_6840" />
           <CANopenObject index="6841" name="Axis1 Statusword" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_6841" />
@@ -3874,6 +5116,7 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="689A" name="Axis1 Homing acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_689A" />
           <CANopenObject index="68FF" name="Axis1 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_68FF" />
           <CANopenObject index="6D02" name="Axis1 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6D02" />
+          <CANopenObject index="6FFF" name="Axis1 Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_6FFF" />
           <CANopenObject index="703F" name="Axis2 Error code" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_703F" />
           <CANopenObject index="7040" name="Axis2 Controlword" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_7040" />
           <CANopenObject index="7041" name="Axis2 Statusword" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_OBJ_7041" />
@@ -3899,6 +5142,139 @@ The life time factor multiplied with the guard time gives the life time for the 
           <CANopenObject index="709A" name="Axis2 Homing acceleration" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_709A" />
           <CANopenObject index="70FF" name="Axis2 Target velocity" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_OBJ_70FF" />
           <CANopenObject index="7502" name="Axis2 Supported drive modes" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7502" />
+          <CANopenObject index="77FF" name="Axis2 Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_77FF" />
+          <CANopenObject index="7800" name="CiA401 Digital input 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7800" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital input 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780000" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital input 8-bit 1" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_780001" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital input 8-bit 2" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_780002" />
+          </CANopenObject>
+          <CANopenObject index="7802" name="CiA401 Digital input polarity 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7802" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital input polarity 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780200" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital input polarity 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780201" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital input polarity 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780202" />
+          </CANopenObject>
+          <CANopenObject index="7803" name="CiA401 Digital input filter 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7803" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital input filter 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780300" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital input filter 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780301" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital input filter 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780302" />
+          </CANopenObject>
+          <CANopenObject index="7805" name="CiA401 Digital interrupt enable" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7805" />
+          <CANopenObject index="7806" name="CiA401 Digital interrupt any-change 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7806" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital interrupt any-change 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780600" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital interrupt any-change 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780601" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital interrupt any-change 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780602" />
+          </CANopenObject>
+          <CANopenObject index="7807" name="CiA401 Digital interrupt rising 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7807" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital interrupt rising 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780700" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital interrupt rising 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780701" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital interrupt rising 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780702" />
+          </CANopenObject>
+          <CANopenObject index="7808" name="CiA401 Digital interrupt falling 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7808" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital interrupt falling 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780800" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital interrupt falling 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780801" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital interrupt falling 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_780802" />
+          </CANopenObject>
+          <CANopenObject index="7A00" name="CiA401 Digital output 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7A00" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital output 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0000" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital output 8-bit 1" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_SUB_7A0001" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital output 8-bit 2" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_SUB_7A0002" />
+          </CANopenObject>
+          <CANopenObject index="7A02" name="CiA401 Digital output polarity 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7A02" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital output polarity 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0200" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital output polarity 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0201" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital output polarity 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0202" />
+          </CANopenObject>
+          <CANopenObject index="7A06" name="CiA401 Digital output error mode 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7A06" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital output error mode 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0600" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital output error mode 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0601" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital output error mode 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0602" />
+          </CANopenObject>
+          <CANopenObject index="7A07" name="CiA401 Digital output error value 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7A07" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital output error value 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0700" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital output error value 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0701" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital output error value 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0702" />
+          </CANopenObject>
+          <CANopenObject index="7A08" name="CiA401 Digital output filter 8-bit" objectType="8" uniqueIDRef="UID_OBJ_7A08" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Digital output filter 8-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0800" />
+            <CANopenSubObject subIndex="01" name="CiA401 Digital output filter 8-bit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0801" />
+            <CANopenSubObject subIndex="02" name="CiA401 Digital output filter 8-bit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7A0802" />
+          </CANopenObject>
+          <CANopenObject index="7C01" name="CiA401 Analogue input 16-bit" objectType="8" uniqueIDRef="UID_OBJ_7C01" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue input 16-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C0100" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue input 16-bit 1" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_7C0101" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue input 16-bit 2" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_7C0102" />
+          </CANopenObject>
+          <CANopenObject index="7C11" name="CiA401 Analogue output 16-bit" objectType="8" uniqueIDRef="UID_OBJ_7C11" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue output 16-bit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C1100" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue output 16-bit 1" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_SUB_7C1101" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue output 16-bit 2" objectType="7" PDOmapping="RPDO" uniqueIDRef="UID_SUB_7C1102" />
+          </CANopenObject>
+          <CANopenObject index="7C21" name="CiA401 Analogue interrupt trigger" objectType="8" uniqueIDRef="UID_OBJ_7C21" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue interrupt trigger 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2100" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue interrupt trigger 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2101" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue interrupt trigger 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2102" />
+          </CANopenObject>
+          <CANopenObject index="7C22" name="CiA401 Analogue interrupt source" objectType="8" uniqueIDRef="UID_OBJ_7C22" subNumber="2">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue interrupt source 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2200" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue interrupt source 1" objectType="7" PDOmapping="TPDO" uniqueIDRef="UID_SUB_7C2201" />
+          </CANopenObject>
+          <CANopenObject index="7C23" name="CiA401 Analogue interrupt enable" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7C23" />
+          <CANopenObject index="7C24" name="CiA401 Analogue interrupt upper limit" objectType="8" uniqueIDRef="UID_OBJ_7C24" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue interrupt upper limit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2400" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue interrupt upper limit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2401" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue interrupt upper limit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2402" />
+          </CANopenObject>
+          <CANopenObject index="7C25" name="CiA401 Analogue interrupt lower limit" objectType="8" uniqueIDRef="UID_OBJ_7C25" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue interrupt lower limit 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2500" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue interrupt lower limit 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2501" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue interrupt lower limit 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2502" />
+          </CANopenObject>
+          <CANopenObject index="7C26" name="CiA401 Analogue interrupt delta" objectType="8" uniqueIDRef="UID_OBJ_7C26" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue interrupt delta 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2600" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue interrupt delta 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2601" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue interrupt delta 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2602" />
+          </CANopenObject>
+          <CANopenObject index="7C27" name="CiA401 Analogue interrupt negative delta" objectType="8" uniqueIDRef="UID_OBJ_7C27" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue interrupt negative delta 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2700" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue interrupt negative delta 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2701" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue interrupt negative delta 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2702" />
+          </CANopenObject>
+          <CANopenObject index="7C28" name="CiA401 Analogue interrupt positive delta" objectType="8" uniqueIDRef="UID_OBJ_7C28" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue interrupt positive delta 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2800" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue interrupt positive delta 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2801" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue interrupt positive delta 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C2802" />
+          </CANopenObject>
+          <CANopenObject index="7C31" name="CiA401 Analogue input offset" objectType="8" uniqueIDRef="UID_OBJ_7C31" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue input offset 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C3100" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue input offset 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C3101" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue input offset 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C3102" />
+          </CANopenObject>
+          <CANopenObject index="7C32" name="CiA401 Analogue input pre-scaling" objectType="8" uniqueIDRef="UID_OBJ_7C32" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue input pre-scaling 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C3200" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue input pre-scaling 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C3201" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue input pre-scaling 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C3202" />
+          </CANopenObject>
+          <CANopenObject index="7C43" name="CiA401 Analogue output error mode" objectType="8" uniqueIDRef="UID_OBJ_7C43" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue output error mode 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4300" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue output error mode 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4301" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue output error mode 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4302" />
+          </CANopenObject>
+          <CANopenObject index="7C44" name="CiA401 Analogue output error value" objectType="8" uniqueIDRef="UID_OBJ_7C44" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue output error value 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4400" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue output error value 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4401" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue output error value 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4402" />
+          </CANopenObject>
+          <CANopenObject index="7C46" name="CiA401 Analogue output offset" objectType="8" uniqueIDRef="UID_OBJ_7C46" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue output offset 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4600" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue output offset 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4601" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue output offset 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4602" />
+          </CANopenObject>
+          <CANopenObject index="7C47" name="CiA401 Analogue output scaling" objectType="8" uniqueIDRef="UID_OBJ_7C47" subNumber="3">
+            <CANopenSubObject subIndex="00" name="CiA401 Analogue output scaling 0" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4700" />
+            <CANopenSubObject subIndex="01" name="CiA401 Analogue output scaling 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4701" />
+            <CANopenSubObject subIndex="02" name="CiA401 Analogue output scaling 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_7C4702" />
+          </CANopenObject>
+          <CANopenObject index="7FFF" name="CiA401 Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_7FFF" />
         </q2:CANopenObjectList>
         <dummyUsage>
           <dummy entry="Dummy0001=0" />

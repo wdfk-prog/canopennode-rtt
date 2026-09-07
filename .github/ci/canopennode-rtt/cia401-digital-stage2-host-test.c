@@ -20,6 +20,7 @@
 
 #define ARRAY_COUNT(a) (sizeof(a) / sizeof((a)[0]))
 #define TEST_DI_BANKS 2U
+#define TEST_DI_STORAGE_BANKS 9U
 #define TEST_DO_BANKS 2U
 #define TEST_OD_ENTRIES 13U
 
@@ -36,12 +37,12 @@ typedef struct {
     uint8_t digitalInputSub0;
     uint8_t digitalOutputSub0;
     uint8_t digitalInterruptEnable;
-    uint8_t digitalInputs[TEST_DI_BANKS];
-    uint8_t digitalInputPolarity[TEST_DI_BANKS];
-    uint8_t digitalInputFilter[TEST_DI_BANKS];
-    uint8_t digitalInterruptAny[TEST_DI_BANKS];
-    uint8_t digitalInterruptRising[TEST_DI_BANKS];
-    uint8_t digitalInterruptFalling[TEST_DI_BANKS];
+    uint8_t digitalInputs[TEST_DI_STORAGE_BANKS];
+    uint8_t digitalInputPolarity[TEST_DI_STORAGE_BANKS];
+    uint8_t digitalInputFilter[TEST_DI_STORAGE_BANKS];
+    uint8_t digitalInterruptAny[TEST_DI_STORAGE_BANKS];
+    uint8_t digitalInterruptRising[TEST_DI_STORAGE_BANKS];
+    uint8_t digitalInterruptFalling[TEST_DI_STORAGE_BANKS];
     uint8_t digitalOutputs[TEST_DO_BANKS];
     uint8_t digitalOutputPolarity[TEST_DO_BANKS];
     uint8_t digitalOutputErrorMode[TEST_DO_BANKS];
@@ -66,9 +67,9 @@ typedef struct {
 } test_od_fixture_t;
 
 typedef struct {
-    uint8_t digitalInputs[TEST_DI_BANKS];
+    uint8_t digitalInputs[TEST_DI_STORAGE_BANKS];
     uint8_t physicalOutputs[TEST_DO_BANKS];
-    uint8_t filterMasks[TEST_DI_BANKS];
+    uint8_t filterMasks[TEST_DI_STORAGE_BANKS];
     unsigned digitalReadCalls;
     unsigned digitalWriteCalls;
     unsigned digitalMaskedWriteCalls;
@@ -83,7 +84,7 @@ static CO_401_io_result_t readDigital8(void *object, uint8_t bank, uint8_t *valu
     test_io_t *io = object;
 
     io->digitalReadCalls++;
-    if (bank >= TEST_DI_BANKS || value == NULL) {
+    if (bank >= TEST_DI_STORAGE_BANKS || value == NULL) {
         return CO_401_IO_ERROR;
     }
     if (io->digitalReadResult == CO_401_IO_OK) {
@@ -125,7 +126,7 @@ static CO_401_io_result_t setDigitalInputFilter8(void *object, uint8_t bank, uin
     test_io_t *io = object;
 
     io->filterCalls++;
-    if (bank >= TEST_DI_BANKS) {
+    if (bank >= TEST_DI_STORAGE_BANKS) {
         return CO_401_IO_ERROR;
     }
     if (io->filterResult == CO_401_IO_OK) {
@@ -234,6 +235,27 @@ static void fixtureInit(test_od_fixture_t *fixture)
              &fixture->digitalOutputErrorValueObject);
     addEntry(fixture, CO_401_INDEX_DIGITAL_OUTPUT_FILTER_8, TEST_DO_BANKS + 1U, ODT_ARR,
              &fixture->digitalOutputFilterObject);
+}
+
+static void fixtureSetDigitalInputBanks(test_od_fixture_t *fixture, uint8_t banks)
+{
+    uint16_t i;
+
+    fixture->digitalInputSub0 = banks;
+    for (i = 0U; i < fixture->od.size; i++) {
+        switch (fixture->entries[i].index) {
+        case CO_401_INDEX_DIGITAL_INPUT_8:
+        case CO_401_INDEX_DIGITAL_INPUT_POLARITY_8:
+        case CO_401_INDEX_DIGITAL_INPUT_FILTER_8:
+        case CO_401_INDEX_DIGITAL_INTERRUPT_ANY_8:
+        case CO_401_INDEX_DIGITAL_INTERRUPT_RISING_8:
+        case CO_401_INDEX_DIGITAL_INTERRUPT_FALLING_8:
+            fixture->entries[i].subEntriesCount = (uint8_t)(banks + 1U);
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 static void ioInit(test_io_t *io)
@@ -422,6 +444,85 @@ static bool test_filter_bridge_forwards_and_retries(void)
     }
     return true;
 }
+static bool test_digital_event_retries_until_transport_retire(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    fixtureInit(&fixture);
+    ioInit(&io);
+    config = makeConfig(&io);
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 1U, 0x00U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInterruptAny8, 1U, 0x01U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInterruptRising8, 1U, 0x00U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInterruptFalling8, 1U, 0x00U, true) == ODR_OK);
+    io.digitalInputs[0] = 0x01U;
+
+    clearTpdoRequest(device.bound.digitalInput8, 1U);
+    CO_401_digital_refreshInputs(&device);
+    TEST_ASSERT(tpdoRequested(device.bound.digitalInput8, 1U));
+    TEST_ASSERT((device.digitalInputEventTpdoPending[0] & 0x01U) != 0U);
+
+    /* Model CANopenNode consuming the OD request before the transport result is known. */
+    clearTpdoRequest(device.bound.digitalInput8, 1U);
+    CO_401_digital_refreshInputs(&device);
+    TEST_ASSERT(tpdoRequested(device.bound.digitalInput8, 1U));
+    TEST_ASSERT((device.digitalInputEventTpdoPending[0] & 0x01U) != 0U);
+
+    CO_401_device_retireDigitalInputTpdoEvent(&device, 1U);
+    clearTpdoRequest(device.bound.digitalInput8, 1U);
+    CO_401_digital_refreshInputs(&device);
+    TEST_ASSERT(!tpdoRequested(device.bound.digitalInput8, 1U));
+    TEST_ASSERT((device.digitalInputEventTpdoPending[0] & 0x01U) == 0U);
+    return true;
+}
+
+static bool test_digital_event_pending_bitmap_crosses_byte_boundary(void)
+{
+#if OD_FLAGS_PDO_SIZE > 1
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    fixtureInit(&fixture);
+    fixtureSetDigitalInputBanks(&fixture, TEST_DI_STORAGE_BANKS);
+    ioInit(&io);
+    config = makeConfig(&io);
+    config.digitalInputBanks = TEST_DI_STORAGE_BANKS;
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 8U, 0x00U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 9U, 0x00U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInterruptAny8, 8U, 0x01U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalInterruptAny8, 9U, 0x01U, true) == ODR_OK);
+    io.digitalInputs[7] = 0x01U;
+    io.digitalInputs[8] = 0x01U;
+    clearTpdoRequest(device.bound.digitalInput8, 8U);
+    clearTpdoRequest(device.bound.digitalInput8, 9U);
+
+    CO_401_digital_refreshInputs(&device);
+
+    TEST_ASSERT(tpdoRequested(device.bound.digitalInput8, 8U));
+    TEST_ASSERT(tpdoRequested(device.bound.digitalInput8, 9U));
+    TEST_ASSERT((device.digitalInputEventTpdoPending[0] & 0x80U) != 0U);
+    TEST_ASSERT((device.digitalInputEventTpdoPending[1] & 0x01U) != 0U);
+
+    CO_401_device_retireDigitalInputTpdoEvent(&device, 8U);
+    TEST_ASSERT((device.digitalInputEventTpdoPending[0] & 0x80U) == 0U);
+    TEST_ASSERT((device.digitalInputEventTpdoPending[1] & 0x01U) != 0U);
+
+    CO_401_device_retireDigitalInputTpdoEvent(&device, 9U);
+    TEST_ASSERT((device.digitalInputEventTpdoPending[1] & 0x01U) == 0U);
+#endif /* OD_FLAGS_PDO_SIZE > 1 */
+    return true;
+}
+
 static bool test_polarity_is_applied_before_logical_falling_edge(void)
 {
     test_od_fixture_t fixture;
@@ -475,6 +576,7 @@ static bool test_any_rising_falling_masks_are_ored(void)
     clearTpdoRequest(device.bound.digitalInput8, 1U);
     CO_401_digital_refreshInputs(&device);
     TEST_ASSERT(tpdoRequested(device.bound.digitalInput8, 1U));
+    CO_401_device_retireDigitalInputTpdoEvent(&device, 1U);
 
     /* Rising-edge source only. */
     TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 1U, 0x01U, true) == ODR_OK);
@@ -484,6 +586,7 @@ static bool test_any_rising_falling_masks_are_ored(void)
     clearTpdoRequest(device.bound.digitalInput8, 1U);
     CO_401_digital_refreshInputs(&device);
     TEST_ASSERT(tpdoRequested(device.bound.digitalInput8, 1U));
+    CO_401_device_retireDigitalInputTpdoEvent(&device, 1U);
 
     /* Falling-edge source only. */
     TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 1U, 0x03U, true) == ODR_OK);
@@ -493,6 +596,7 @@ static bool test_any_rising_falling_masks_are_ored(void)
     clearTpdoRequest(device.bound.digitalInput8, 1U);
     CO_401_digital_refreshInputs(&device);
     TEST_ASSERT(tpdoRequested(device.bound.digitalInput8, 1U));
+    CO_401_device_retireDigitalInputTpdoEvent(&device, 1U);
 
     /* A change outside every enabled mask must not request transmission. */
     TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 1U, 0x01U, true) == ODR_OK);
@@ -1007,6 +1111,8 @@ int main(void)
         {"stage2-binding-contract", test_stage2_binding_requires_optional_contract},
         {"failed-rebind-detach", test_failed_rebind_detaches_owned_extensions},
         {"filter-bridge-retry", test_filter_bridge_forwards_and_retries},
+        {"digital-event-transport-retry", test_digital_event_retries_until_transport_retire},
+        {"digital-event-pending-byte-boundary", test_digital_event_pending_bitmap_crosses_byte_boundary},
         {"polarity-before-logical-edge", test_polarity_is_applied_before_logical_falling_edge},
         {"event-mask-or", test_any_rising_falling_masks_are_ored},
         {"global-interrupt-disable", test_global_interrupt_disable_suppresses_request},
