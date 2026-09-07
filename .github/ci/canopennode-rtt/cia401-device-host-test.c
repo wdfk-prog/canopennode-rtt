@@ -33,12 +33,14 @@ typedef struct {
     uint8_t digitalOutputSub0;
     uint8_t analogInputSub0;
     uint8_t analogOutputSub0;
+    uint8_t analogInterruptEnable;
     uint8_t digitalInputs[TEST_DI_BANKS];
     uint8_t digitalOutputs[TEST_DO_BANKS];
     int16_t analogInputs[TEST_AI_CHANNELS];
     int16_t analogOutputs[TEST_AO_CHANNELS];
 
     OD_obj_var_t deviceTypeObject;
+    OD_obj_var_t analogInterruptEnableObject;
     OD_obj_array_t digitalInputObject;
     OD_obj_array_t digitalOutputObject;
     OD_obj_array_t analogInputObject;
@@ -165,6 +167,10 @@ static void fixtureInit(test_od_fixture_t *fixture, CO_401_capabilities_t capabi
     fixture->deviceTypeObject.attribute = ODA_SDO_R | ODA_MB;
     fixture->deviceTypeObject.dataLength = 4U;
 
+    fixture->analogInterruptEnableObject.dataOrig = &fixture->analogInterruptEnable;
+    fixture->analogInterruptEnableObject.attribute = ODA_SDO_RW;
+    fixture->analogInterruptEnableObject.dataLength = 1U;
+
     fixture->digitalInputObject.dataOrig0 = &fixture->digitalInputSub0;
     fixture->digitalInputObject.dataOrig = fixture->digitalInputs;
     fixture->digitalInputObject.attribute0 = ODA_SDO_R;
@@ -211,6 +217,10 @@ static void fixtureInit(test_od_fixture_t *fixture, CO_401_capabilities_t capabi
     if ((capabilities & CO_401_CAP_ANALOG_OUTPUT) != 0U) {
         addEntry(fixture, CO_401_INDEX_ANALOG_OUTPUT_16, TEST_AO_CHANNELS + 1U, ODT_ARR,
                  &fixture->analogOutputObject);
+    }
+    if ((capabilities & CO_401_CAP_ANALOG_INPUT) != 0U) {
+        addEntry(fixture, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE, 1U, ODT_VAR,
+                 &fixture->analogInterruptEnableObject);
     }
 }
 
@@ -346,6 +356,84 @@ static bool test_wrong_digital_stride_fails_closed(void)
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OD_LENGTH);
     TEST_ASSERT(diag.index == CO_401_INDEX_DIGITAL_INPUT_8);
     TEST_ASSERT(diag.subIndex == 1U);
+    TEST_ASSERT(!device.odBound);
+    return true;
+}
+
+static bool test_analog_input_requires_object_6423(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    ioInit(&io);
+    fixtureInit(&fixture, CO_401_CAP_ANALOG_INPUT);
+    TEST_ASSERT(fixtureRemove(&fixture, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE));
+    config = configForCapabilities(CO_401_CAP_ANALOG_INPUT, &io);
+
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OD_MISSING);
+    TEST_ASSERT(diag.index == CO_401_INDEX_ANALOG_INTERRUPT_ENABLE);
+    TEST_ASSERT(!device.odBound);
+    return true;
+}
+
+static bool test_object_6423_and_warning_are_base_analog_contract(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_error_event_t event;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    ioInit(&io);
+    fixtureInit(&fixture, CO_401_CAP_ANALOG_INPUT);
+    fixture.analogInterruptEnableObject.attribute = ODA_SDO_RW | ODA_TRPDO;
+    config = configForCapabilities(CO_401_CAP_ANALOG_INPUT, &io);
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+
+    TEST_ASSERT(fixture.analogInterruptEnable == 0U);
+    CO_401_device_setNmtOperational(&device, true);
+    TEST_ASSERT(CO_401_device_takeErrorEvent(&device, &event));
+    TEST_ASSERT(event.errorCode == 0x0080U);
+    TEST_ASSERT(!CO_401_device_takeErrorEvent(&device, &event));
+
+    CO_401_device_setNmtOperational(&device, true);
+    TEST_ASSERT(!CO_401_device_takeErrorEvent(&device, &event));
+    CO_401_device_setNmtOperational(&device, false);
+    fixture.analogInterruptEnable = 1U;
+    CO_401_device_setNmtOperational(&device, true);
+    TEST_ASSERT(!CO_401_device_takeErrorEvent(&device, &event));
+
+    CO_401_device_setNmtOperational(&device, false);
+    fixture.analogInterruptEnable = 0U;
+    CO_401_device_setNmtOperational(&device, true);
+    TEST_ASSERT(CO_401_device_takeErrorEvent(&device, &event));
+    CO_401_device_resetCommunicationState(&device);
+    TEST_ASSERT(!CO_401_device_takeErrorEvent(&device, &event));
+    CO_401_device_setNmtOperational(&device, true);
+    TEST_ASSERT(CO_401_device_takeErrorEvent(&device, &event));
+    return true;
+}
+
+static bool test_non_analog_device_rejects_object_6423(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    ioInit(&io);
+    fixtureInit(&fixture, CO_401_CAP_DIGITAL_INPUT);
+    addEntry(&fixture, CO_401_INDEX_ANALOG_INTERRUPT_ENABLE, 1U, ODT_VAR,
+             &fixture.analogInterruptEnableObject);
+    config = configForCapabilities(CO_401_CAP_DIGITAL_INPUT, &io);
+
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OD_UNEXPECTED);
+    TEST_ASSERT(diag.index == CO_401_INDEX_ANALOG_INTERRUPT_ENABLE);
     TEST_ASSERT(!device.odBound);
     return true;
 }
@@ -717,6 +805,52 @@ static bool test_output_failure_keeps_command_for_later_pass(void)
     return true;
 }
 
+static bool test_output_network_writes_require_supervision(void)
+{
+    const CO_401_capabilities_t capabilities = CO_401_CAP_DIGITAL_OUTPUT | CO_401_CAP_ANALOG_OUTPUT;
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    ioInit(&io);
+    fixtureInit(&fixture, capabilities);
+    config = configForCapabilities(capabilities, &io);
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    TEST_ASSERT(!device.outputSupervisionReady);
+
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x5AU, false) == ODR_DATA_DEV_STATE);
+    TEST_ASSERT(OD_set_i16(device.bound.analogOutput16, 1U, 1234, false) == ODR_DATA_DEV_STATE);
+    TEST_ASSERT(fixture.digitalOutputs[0] == 0U);
+    TEST_ASSERT(fixture.analogOutputs[0] == 0);
+
+    CO_401_device_process(&device);
+    TEST_ASSERT(io.digitalOutputs[0] == 0U);
+    TEST_ASSERT(io.analogOutputs[0] == 0);
+
+    CO_401_device_notifyOutputSupervision(&device);
+    TEST_ASSERT(device.outputSupervisionReady);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x5AU, false) == ODR_OK);
+    TEST_ASSERT(OD_set_i16(device.bound.analogOutput16, 1U, 1234, false) == ODR_OK);
+    CO_401_device_process(&device);
+    TEST_ASSERT(io.digitalOutputs[0] == 0x5AU);
+    TEST_ASSERT(io.analogOutputs[0] == 1234);
+
+    /* Communication reset must not reopen the application-lifetime startup gate. */
+    CO_401_device_resetCommunicationState(&device);
+    TEST_ASSERT(device.outputSupervisionReady);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0xA5U, false) == ODR_OK);
+
+    /* A fresh application runtime starts gated again; generated defaults are zero in this fixture. */
+    fixtureInit(&fixture, capabilities);
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    TEST_ASSERT(!device.outputSupervisionReady);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0xA5U, false) == ODR_DATA_DEV_STATE);
+    TEST_ASSERT(fixture.digitalOutputs[0] == 0U);
+    return true;
+}
+
 typedef bool (*test_function_t)(void);
 
 typedef struct {
@@ -732,6 +866,9 @@ int main(void)
         {"wrong-object-type", test_wrong_object_type_fails_closed},
         {"wrong-width", test_wrong_width_fails_closed},
         {"wrong-digital-stride", test_wrong_digital_stride_fails_closed},
+        {"analog-6423-required", test_analog_input_requires_object_6423},
+        {"analog-6423-warning-base-contract", test_object_6423_and_warning_are_base_analog_contract},
+        {"non-analog-rejects-6423", test_non_analog_device_rejects_object_6423},
         {"wrong-analog-stride", test_wrong_analog_stride_fails_closed},
         {"wrong-access", test_wrong_access_fails_closed},
         {"sub-index-count-mismatch", test_sub_index_count_mismatch_fails_closed},
@@ -746,6 +883,7 @@ int main(void)
         {"disabled-capability-callbacks-optional", test_disabled_capability_callbacks_are_optional},
         {"unbound-helpers-noop", test_unbound_helpers_are_noop},
         {"output-failure-keeps-command", test_output_failure_keeps_command_for_later_pass},
+        {"output-supervision-gate", test_output_network_writes_require_supervision},
     };
     size_t i;
 

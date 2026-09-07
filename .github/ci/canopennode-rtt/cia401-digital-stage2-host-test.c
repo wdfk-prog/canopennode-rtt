@@ -321,6 +321,7 @@ static bool test_stage2_binding_requires_optional_contract(void)
     config = makeConfig(&io);
 
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(device.bound.digitalInput8->extension == &device.digitalInput8Extension);
     TEST_ASSERT(device.bound.digitalInputFilter8->extension == &device.digitalInputFilter8Extension);
     TEST_ASSERT(device.bound.digitalOutput8->extension == &device.digitalOutput8Extension);
@@ -344,6 +345,7 @@ static bool test_failed_rebind_detaches_owned_extensions(void)
     ioInit(&io);
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(device.bound.digitalInput8->extension == &device.digitalInput8Extension);
     TEST_ASSERT(device.bound.digitalInputFilter8->extension == &device.digitalInputFilter8Extension);
     TEST_ASSERT(device.bound.digitalOutput8->extension == &device.digitalOutput8Extension);
@@ -377,6 +379,7 @@ static bool test_filter_bridge_forwards_and_retries(void)
     ioInit(&io);
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
 
     CO_401_digital_refreshInputs(&device);
     TEST_ASSERT(io.filterCalls == TEST_DI_BANKS);
@@ -432,6 +435,7 @@ static bool test_polarity_is_applied_before_logical_falling_edge(void)
     ioInit(&io);
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 1U, 0x01U, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalInputPolarity8, 1U, 0x01U, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalInterruptAny8, 1U, 0x00U, true) == ODR_OK);
@@ -460,6 +464,7 @@ static bool test_any_rising_falling_masks_are_ored(void)
     ioInit(&io);
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
 
     /* Any-change source only. */
     TEST_ASSERT(OD_set_u8(device.bound.digitalInput8, 1U, 0x00U, true) == ODR_OK);
@@ -511,6 +516,7 @@ static bool test_global_interrupt_disable_suppresses_request(void)
     ioInit(&io);
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalInterruptEnable, 0U, 0U, true) == ODR_OK);
     io.digitalInputs[0] = 0x80U;
     clearTpdoRequest(device.bound.digitalInput8, 1U);
@@ -535,6 +541,7 @@ static bool test_event_request_uses_6000_subindex_flag(void)
     ioInit(&io);
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     io.digitalInputs[1] = 0x01U;
     clearTpdoRequest(device.bound.digitalInput8, 1U);
     clearTpdoRequest(device.bound.digitalInput8, 2U);
@@ -560,6 +567,7 @@ static bool test_output_filter_masks_final_physical_write(void)
     io.physicalOutputs[0] = 0xA0U;
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputPolarity8, 1U, 0x0FU, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 1U, 0x0FU, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 2U, 0x00U, true) == ODR_OK);
@@ -597,6 +605,7 @@ static bool test_sdo_and_mapped_write_keep_full_6200_command(void)
     io.physicalOutputs[0] = 0xF0U;
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 1U, 0x0FU, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 2U, 0x00U, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0xA5U, false) == ODR_OK);
@@ -627,6 +636,7 @@ static bool test_output_filter_applies_after_fault_and_polarity(void)
     io.physicalOutputs[0] = 0xA5U;
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x3CU, false) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputPolarity8, 1U, 0x0FU, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputErrorMode8, 1U, 0x0FU, true) == ODR_OK);
@@ -659,6 +669,7 @@ static bool test_output_filter_masked_write_retries_after_backend_failure(void)
     io.physicalOutputs[0] = 0xA0U;
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 1U, 0x0FU, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 2U, 0x00U, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x55U, false) == ODR_OK);
@@ -699,6 +710,7 @@ static bool test_output_polarity_and_fault_keep_error_value(void)
     ioInit(&io);
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x3CU, false) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputPolarity8, 1U, 0x0FU, true) == ODR_OK);
     CO_401_digital_applyOutputs(&device);
@@ -746,6 +758,7 @@ static bool test_mixed_fault_preserves_backend_state_before_first_normal_write(v
     io.physicalOutputs[0] = 0xA0U;
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x3CU, false) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputPolarity8, 1U, 0x0FU, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputErrorMode8, 1U, 0x0FU, true) == ODR_OK);
@@ -777,6 +790,7 @@ static bool test_masked_fault_write_retries_after_backend_failure(void)
     io.physicalOutputs[0] = 0xA0U;
     config = makeConfig(&io);
     TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x3CU, false) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputPolarity8, 1U, 0x0FU, true) == ODR_OK);
     TEST_ASSERT(OD_set_u8(device.bound.digitalOutputErrorMode8, 1U, 0x0FU, true) == ODR_OK);
@@ -785,23 +799,138 @@ static bool test_masked_fault_write_retries_after_backend_failure(void)
     CO_401_device_setDigitalOutputFault(&device, true);
 
     io.digitalWriteResult = CO_401_IO_BUSY;
-    CO_401_digital_applyOutputs(&device);
+    CO_401_device_process(&device);
     TEST_ASSERT(io.digitalMaskedWriteCalls == 1U);
     TEST_ASSERT(io.physicalOutputs[0] == 0xA0U);
+    TEST_ASSERT(!device.failSafeOutputApplyComplete);
 
     io.digitalWriteResult = CO_401_IO_ERROR;
-    CO_401_digital_applyOutputs(&device);
+    CO_401_device_process(&device);
     TEST_ASSERT(io.digitalMaskedWriteCalls == 2U);
     TEST_ASSERT(io.physicalOutputs[0] == 0xA0U);
+    TEST_ASSERT(!device.failSafeOutputApplyComplete);
     TEST_ASSERT(OD_get_u8(device.bound.digitalOutput8, 1U, &command, true) == ODR_OK);
     TEST_ASSERT(command == 0x3CU);
 
     io.digitalWriteResult = CO_401_IO_OK;
-    CO_401_digital_applyOutputs(&device);
+    CO_401_device_process(&device);
     TEST_ASSERT(io.digitalMaskedWriteCalls == 3U);
     TEST_ASSERT(io.physicalOutputs[0] == 0xAAU);
+    TEST_ASSERT(device.failSafeOutputApplyComplete);
     TEST_ASSERT(OD_get_u8(device.bound.digitalOutput8, 1U, &command, true) == ODR_OK);
     TEST_ASSERT(command == 0x3CU);
+    return true;
+}
+
+static bool test_fail_safe_keep_current_needs_no_backend_write(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    fixtureInit(&fixture);
+    ioInit(&io);
+    io.physicalOutputs[0] = 0xA5U;
+    io.physicalOutputs[1] = 0x5AU;
+    config = makeConfig(&io);
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutputErrorMode8, 1U, 0x00U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutputErrorMode8, 2U, 0x00U, true) == ODR_OK);
+    CO_401_device_setNmtStopped(&device, true);
+
+    /* Keep-current bits have no outstanding physical write, even if the backend would fail if called. */
+    io.digitalWriteResult = CO_401_IO_ERROR;
+    CO_401_device_process(&device);
+    TEST_ASSERT(io.digitalMaskedWriteCalls == 0U);
+    TEST_ASSERT(io.digitalWriteCalls == 0U);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+    TEST_ASSERT(io.physicalOutputs[1] == 0x5AU);
+    TEST_ASSERT(device.failSafeOutputApplyComplete);
+    return true;
+}
+
+static bool test_fail_safe_filtered_bits_need_no_backend_write(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    fixtureInit(&fixture);
+    ioInit(&io);
+    io.physicalOutputs[0] = 0xA5U;
+    io.physicalOutputs[1] = 0x5AU;
+    config = makeConfig(&io);
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 1U, 0x00U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutputFilter8, 2U, 0x00U, true) == ODR_OK);
+    CO_401_device_setNmtStopped(&device, true);
+
+    /* Fully filtered outputs retain hardware state and therefore need no backend acknowledgement. */
+    io.digitalWriteResult = CO_401_IO_BUSY;
+    CO_401_device_process(&device);
+    TEST_ASSERT(io.digitalMaskedWriteCalls == 0U);
+    TEST_ASSERT(io.digitalWriteCalls == 0U);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+    TEST_ASSERT(io.physicalOutputs[1] == 0x5AU);
+    TEST_ASSERT(device.failSafeOutputApplyComplete);
+    return true;
+}
+
+static bool test_output_fault_sources_are_ored(void)
+{
+    test_od_fixture_t fixture;
+    test_io_t io;
+    CO_401_device_t device;
+    CO_401_init_diag_t diag;
+    CO_401_device_config_t config;
+
+    fixtureInit(&fixture);
+    ioInit(&io);
+    config = makeConfig(&io);
+    TEST_ASSERT(CO_401_device_init(&device, &fixture.od, &config, &diag) == CO_401_INIT_OK);
+    CO_401_device_notifyOutputSupervision(&device);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutput8, 1U, 0x12U, false) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutputErrorValue8, 1U, 0xA5U, true) == ODR_OK);
+    TEST_ASSERT(OD_set_u8(device.bound.digitalOutputErrorMode8, 2U, 0x00U, true) == ODR_OK);
+
+    CO_401_device_setDigitalOutputFault(&device, true);
+    CO_401_device_setNmtStopped(&device, false);
+    CO_401_digital_applyOutputs(&device);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+
+    CO_401_device_setDigitalOutputFault(&device, false);
+    CO_401_device_setNmtStopped(&device, true);
+    CO_401_digital_applyOutputs(&device);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+
+    CO_401_device_setDigitalOutputFault(&device, true);
+    CO_401_device_setNmtStopped(&device, true);
+    CO_401_digital_applyOutputs(&device);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+
+    CO_401_device_setNmtStopped(&device, false);
+    CO_401_digital_applyOutputs(&device);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+
+    CO_401_device_setDigitalOutputFault(&device, false);
+    CO_401_device_setCommunicationFault(&device, true);
+    CO_401_digital_applyOutputs(&device);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+
+    CO_401_device_setDigitalOutputFault(&device, true);
+    CO_401_device_setCommunicationFault(&device, false);
+    CO_401_digital_applyOutputs(&device);
+    TEST_ASSERT(io.physicalOutputs[0] == 0xA5U);
+
+    CO_401_device_setDigitalOutputFault(&device, false);
+    CO_401_digital_applyOutputs(&device);
+    TEST_ASSERT(io.physicalOutputs[0] == 0x12U);
     return true;
 }
 
@@ -889,6 +1018,9 @@ int main(void)
         {"output-polarity-failsafe", test_output_polarity_and_fault_keep_error_value},
         {"mixed-fault-first-write", test_mixed_fault_preserves_backend_state_before_first_normal_write},
         {"masked-fault-write-retry", test_masked_fault_write_retries_after_backend_failure},
+        {"failsafe-keep-current-no-backend", test_fail_safe_keep_current_needs_no_backend_write},
+        {"failsafe-filter-noop-no-backend", test_fail_safe_filtered_bits_need_no_backend_write},
+        {"fault-source-or", test_output_fault_sources_are_ored},
         {"event-request-capacity", test_event_request_capacity_is_fail_closed},
         {"missing-filter-callback", test_missing_filter_callback_fails_closed},
         {"missing-masked-output-callback", test_missing_masked_output_callback_fails_closed},
