@@ -1,11 +1,12 @@
 [English](../en/cia402-device-rtt.md)
 
-# CiA 402 RT-Thread Device Thread 与 Communication Reset
+# CiA 402 RT-Thread Device Worker 与 Communication Reset
 
-本文说明 RT-Thread adapter 如何把 Pure-C `CO_402_device_manager_t` 接入 `CANopenNodeRTT`。该 adapter 不改变 PDS FSA、
-DriveIF 或生成 OD 的语义，只负责 RT-Thread thread、通用 lifecycle extension 接入、锁顺序、通信初始化顺序和 Communication Reset 生命周期。
+本文说明 RT-Thread adapter 如何把 Pure-C `CO_402_device_manager_t` 接入 `CANopenNodeRTT`。该 adapter 不改变 PDS FSA、DriveIF 或生成 OD 的语义，只负责 lifecycle 接入和 supervisor 调度。默认使用公共 Profile worker，也允许通过 Kconfig 切换为独立 `co_402`。
 
-![CiA 402 RT-Thread thread and reset](../assets/cia402-device-rtt.svg)
+![CiA 402 RT-Thread dedicated-worker example and reset](../assets/cia402-device-rtt.svg)
+
+图中展示的是可选 dedicated-worker 拓扑；默认配置会把 `cia402Sem -> co_402` 替换为公共 `co_prof`。
 
 ## 1. 启用与 attach
 
@@ -15,12 +16,15 @@ DriveIF 或生成 OD 的语义，只负责 RT-Thread thread、通用 lifecycle e
 |---|---:|---|
 | `PKG_CANOPENNODE_CIA402` | `n` | CiA 402 总开关。关闭时不会向 `CANopenNodeRTT` 增加 CiA 402 字段或 RT 资源。 |
 | `PKG_CANOPENNODE_CIA402_DEVICE` | `y` | Pure-C Device core。 |
-| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y` | 编译 RT-Thread Device adapter；选择通用 lifecycle registry，只有成功 attach 的实例才创建 thread/semaphore。 |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y` | 编译 RT-Thread Device adapter，并选择通用 lifecycle registry。 |
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART` | `n` | 配合默认 app auto init 与 RT-Thread component init，由已注册的 CiA 402 factory 自动分配 runtime/axis state 并 attach。 |
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | 注册 package 自带的软件 DriveIF factory，并选择生成的 demo OD，用于软件 bring-up。 |
 | `PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT` | `3` | 软件 demo logical device 数量；按生成 OD 的范围明确限制为 1..3。 |
-| `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` 栈大小。 |
-| `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` 优先级；必须低于 `co_rt`，即数值必须大于 realtime priority。 |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER` | `n` | 使用独立 `co_402`，而不是默认公共 `co_prof`。 |
+| `PKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE` | `2048` | 默认公共 `co_prof` 栈。 |
+| `PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY` | `5` | 默认公共 `co_prof` priority。 |
+| `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` 栈，仅 dedicated 模式显示。 |
+| `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` priority，仅 dedicated 模式显示。 |
 
 Device 产品使用 manual init，在 `canopen_app_rtt_init()` 前 attach persistent storage：
 
@@ -68,29 +72,23 @@ CO_402_DEVICE_RTT_AUTOSTART_DEFINE(product402, axisConfigs, RT_ARRAY_SIZE(axisCo
 
 自动分配对象跨 Communication Reset 保持存活。最终 application-init rollback/最终 lifecycle teardown 在 `runtimeDeinit()` 后调用 slot release，释放自动 axis/runtime owner 并只移除 auto-owned slot；manual slot 继续由 caller 持有并保留注册。
 
-## 2. 通用 lifecycle registry 与周期 thread
+## 2. 通用 lifecycle registry 与 Profile worker
 
-`CO_app_RTT.c` 不再直接调用任何 `CO_402_device_RTT_*()` API。RT-Thread adapter 通过 `CO_RTT_lifecycleRegister()` 注册固定容量 `ops + context`；容量由 `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY` 配置（默认 4，范围 1..255），
-由通用 lifecycle dispatcher 在既定位置调用 profile hook；registry 不使用 heap，注册完成后在 runtime 期间保持只读。
-
-RT-Thread adapter 复用现有 `rtTimer`：
+`CO_app_RTT.c` 不直接调用 CiA 402 API。adapter 向固定容量 lifecycle registry 注册 `ops + context`。默认配置发布 `deferredProcess`，因此现有 realtime timer 只合并一次公共 wake：
 
 ```text
-rtTimer -> rtSem     -> co_rt  (default priority 3)
-        -> cia402Sem -> co_402 (default priority 5)
+rtTimer -> rtSem   -> co_rt   (default priority 3)
+        -> profSem -> co_prof (default priority 5)
+                         -> CiA 401 deferred pass（shared 时）
+                         -> CiA 402 deferred pass（shared 时）
+                         -> future Profile deferred pass
 ```
 
-Timer 先释放 `rtSem`，再调用通用 `CO_RTT_lifecycleRealtimeTick()`；CiA 402 的 realtime hook 再释放 `cia402Sem`。
-该路径与 `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` 无关，因此 timerNext 开/关都会周期唤醒 `co_402`。`co_402` 每个 token 只执行一次 `CO_402_device_process()`，并固定使用：
+`co_prof` 对整个 batch 只获取一次 `lifecycleMutex`，再按 lifecycle 注册顺序执行 shared Profile callback。每个 callback 只管理自己的 OD-lock 窗口；CiA 402 callback 执行一次 `CO_402_device_process()` 后必须在返回前释放 OD lock。DriveIF callback 仍必须 bounded、non-blocking。
 
-```text
-lifecycleMutex -> CO_LOCK_OD -> Pure-C PDS supervisor -> CO_UNLOCK_OD -> lifecycleMutex release
-```
+当 `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER=y` 时，CiA 402 改为发布原有 timer wake hook，并独立拥有 `cia402Sem -> co_402`；其他 Profile 仍可继续使用 `co_prof`。`PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG` 会选择 dedicated 模式，保证 ULOG 保持在 lifecycle/OD lock 之外。两种拓扑保持相同的 supervisor 行为和 `lifecycleMutex -> OD lock` 顺序。
 
-这与 `co_rt` 的锁顺序一致，避免反向加锁。`co_402` 的 DriveIF callback 在这段临界区内执行，因此必须非阻塞，不能 sleep，
-也不能递归获取 wrapper lifecycle/OD lock。默认 priority 保证 `co_rt` 高于 `co_402`；最终 priority、WCET 和 jitter 仍需目标板测量。
-
-RT-Thread adapter 允许一周期 pipeline：本周期 RPDO 更新后的命令可以由 `co_402` 处理，新的 Statusword/feedback 最迟在后续 TPDO 周期发出。
+该调度与 `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` 无关，不会把 PDS supervisor 插入同步 `co_rt` 路径。RPDO 命令仍可在后续 Profile-worker pass 消费，并由后续 TPDO 反映。最终 WCET、jitter、priority 与 stack margin 仍需目标板测量。
 
 ## 3. OD binding 顺序
 

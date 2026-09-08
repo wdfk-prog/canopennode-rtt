@@ -99,14 +99,14 @@ static CO_402_init_error_t validateConfigs(const CO_402_device_axis_config_t *co
     uint8_t axisIndex;
     uint8_t compareIndex;
 
-    if (configs == NULL || axisCount == 0U || axisCount > CO_402_LOGICAL_DEVICE_COUNT_MAX) {
+    if (configs == NULL || axisCount == 0U || axisCount > CO_PROFILE_LOGICAL_DEVICE_COUNT_MAX) {
         setDiag(diag, CO_402_INIT_CONFIG_MISMATCH, 0U);
         return CO_402_INIT_CONFIG_MISMATCH;
     }
 
     for (axisIndex = 0U; axisIndex < axisCount; axisIndex++) {
         /* Every axis must reference one valid logical-device block and a complete PDS DriveIF. */
-        if (configs[axisIndex].logicalDevice >= CO_402_LOGICAL_DEVICE_COUNT_MAX
+        if (!CO_profileLogicalDeviceValid(configs[axisIndex].logicalDevice)
             || !driveInterfaceValid(configs[axisIndex].drive)) {
             setDiag(diag, CO_402_INIT_BAD_AXIS, configs[axisIndex].logicalDevice);
             return CO_402_INIT_BAD_AXIS;
@@ -386,7 +386,7 @@ CO_402_init_error_t CO_402_device_managerInit(CO_402_device_manager_t *manager, 
         CO_402_device_axis_t *axis = &axes[axisIndex];
 
         axis->logicalDevice = configs[axisIndex].logicalDevice;
-        axis->odBase = CO_402_objectIndex(axis->logicalDevice, CO_402_PROFILE_INDEX_BASE);
+        axis->odBase = CO_profileIndex(axis->logicalDevice, CO_PROFILE_OD_BASE);
         axis->state = CO_402_STATE_NOT_READY_TO_SWITCH_ON;
         axis->mode = CO_402_MODE_NONE;
         axis->requestedModeRaw = (CO_402_mode_raw_t)CO_402_MODE_NONE;

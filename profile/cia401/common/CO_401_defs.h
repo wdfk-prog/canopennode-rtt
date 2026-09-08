@@ -8,19 +8,21 @@
 
 #include <stdint.h>
 
+#include "CO_profile_layout.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Maximum number of CiA 301 logical-device application-profile slots (zero-based 0..7). */
-#define CO_401_LOGICAL_DEVICE_COUNT_MAX 8U
+/** Compatibility alias for the shared CiA 301 logical-device slot limit. */
+#define CO_401_LOGICAL_DEVICE_COUNT_MAX CO_PROFILE_LOGICAL_DEVICE_COUNT_MAX
 
-/** First index in the canonical CiA 401 application-profile block. */
-#define CO_401_PROFILE_INDEX_BASE 0x6000U
-/** Offset between adjacent logical-device application-profile blocks. */
-#define CO_401_PROFILE_INDEX_STRIDE 0x0800U
-/** Last index in the canonical CiA 401 application-profile block. */
-#define CO_401_PROFILE_INDEX_LAST 0x67FFU
+/** Compatibility alias for the shared canonical application-profile base. */
+#define CO_401_PROFILE_INDEX_BASE CO_PROFILE_OD_BASE
+/** Compatibility alias for the shared logical-device profile stride. */
+#define CO_401_PROFILE_INDEX_STRIDE CO_PROFILE_OD_STRIDE
+/** Compatibility alias for the shared canonical application-profile last index. */
+#define CO_401_PROFILE_INDEX_LAST CO_PROFILE_OD_CANONICAL_LAST
 
 /** CiA 401 device-profile number encoded in Device type bits 0..15. */
 #define CO_401_DEVICE_PROFILE_NUMBER 401U
@@ -47,7 +49,7 @@ typedef uint8_t CO_401_capabilities_t;
                                                 | CO_401_CAP_ANALOG_INPUT | CO_401_CAP_ANALOG_OUTPUT))
 
 /**
- * @brief Resolve a canonical CiA 401 profile index for one logical device.
+ * @brief Preserve the CiA 401 index helper while delegating translation to the shared CiA 301 layout.
  *
  * @param logicalDevice Zero-based logical-device index in the CANopen device.
  * @param profileIndex Object index in the canonical 0x6000..0x67FF CiA 401 block.
@@ -61,7 +63,7 @@ typedef uint8_t CO_401_capabilities_t;
  */
 static inline uint16_t CO_401_objectIndex(uint8_t logicalDevice, uint16_t profileIndex)
 {
-    return (uint16_t)(profileIndex + ((uint16_t)logicalDevice * (uint16_t)CO_401_PROFILE_INDEX_STRIDE));
+    return CO_profileIndex(logicalDevice, profileIndex);
 }
 
 /**

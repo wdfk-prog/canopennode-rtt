@@ -12,6 +12,145 @@
 #error "CO_lifecycle_RTT.c requires PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS"
 #endif /* !defined(PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS) */
 
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+/** Return true when at least one registered extension uses the common deferred worker. */
+static rt_bool_t CO_RTT_lifecycleHasDeferredProcess(const CANopenNodeRTT *app)
+{
+    uint8_t i;
+
+    if (app == NULL) {
+        return RT_FALSE;
+    }
+    for (i = 0U; i < app->lifecycle.count; i++) {
+        if (app->lifecycle.slots[i].ops != NULL
+            && app->lifecycle.slots[i].ops->deferredProcess != NULL) {
+            return RT_TRUE;
+        }
+    }
+    return RT_FALSE;
+}
+
+/** Dispatch one coalesced deferred pass while pinning one CANopen communication generation. */
+static void CO_RTT_lifecycleSharedWorkerEntry(void *parameter)
+{
+    CANopenNodeRTT *app = (CANopenNodeRTT *)parameter;
+
+    while (1) {
+        uint8_t i;
+
+        if (rt_sem_take(&app->lifecycle.sharedWorkerSem, RT_WAITING_FOREVER) != RT_EOK) {
+            continue;
+        }
+        /* One taken token re-opens exactly one future shared-worker request. */
+        rt_atomic_flag_clear(&app->lifecycle.sharedWorkerWakePending);
+        if (rt_mutex_take(&app->lifecycleMutex, RT_WAITING_FOREVER) != RT_EOK) {
+            continue;
+        }
+
+        /*
+         * Registration order is the deterministic shared scheduling order. The
+         * lifecycle mutex pins one CO_t generation across the complete profile
+         * batch; each callback owns only its profile-local OD lock windows.
+         */
+        for (i = 0U; i < app->lifecycle.count; i++) {
+            CO_RTT_lifecycle_slot_t *slot = &app->lifecycle.slots[i];
+
+            if (slot->runtimeInitialized == RT_TRUE && slot->communicationBound == RT_TRUE
+                && slot->ops->deferredProcess != NULL) {
+                slot->ops->deferredProcess(app, slot->context);
+            }
+        }
+
+        (void)rt_mutex_release(&app->lifecycleMutex);
+    }
+}
+
+/** Create the common worker only when at least one extension publishes deferred work. */
+static rt_err_t CO_RTT_lifecycleSharedWorkerInit(CANopenNodeRTT *app)
+{
+    rt_err_t ret;
+
+    if (CO_RTT_lifecycleHasDeferredProcess(app) != RT_TRUE) {
+        return RT_EOK;
+    }
+    if (app->lifecycle.sharedWorkerSemInitialized == RT_TRUE
+        || app->lifecycle.sharedWorkerThread != RT_NULL) {
+        return -RT_EBUSY;
+    }
+    if (PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY <= PKG_CANOPENNODE_RT_THREAD_PRIORITY) {
+        return -RT_EINVAL;
+    }
+
+    ret = rt_sem_init(&app->lifecycle.sharedWorkerSem, "prof_sem", 0U, RT_IPC_FLAG_FIFO);
+    if (ret != RT_EOK) {
+        return ret;
+    }
+    app->lifecycle.sharedWorkerSemInitialized = RT_TRUE;
+    rt_atomic_flag_clear(&app->lifecycle.sharedWorkerWakePending);
+
+    app->lifecycle.sharedWorkerThread = rt_thread_create(
+        "co_prof", CO_RTT_lifecycleSharedWorkerEntry, app, PKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE,
+        PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY, PKG_CANOPENNODE_RT_THREAD_TICK);
+    if (app->lifecycle.sharedWorkerThread == RT_NULL) {
+        (void)rt_sem_detach(&app->lifecycle.sharedWorkerSem);
+        app->lifecycle.sharedWorkerSemInitialized = RT_FALSE;
+        return -RT_ENOMEM;
+    }
+    return RT_EOK;
+}
+
+/** Start the common worker after all extension runtime-init callbacks have completed. */
+static rt_err_t CO_RTT_lifecycleSharedWorkerStart(CANopenNodeRTT *app)
+{
+    if (app->lifecycle.sharedWorkerThread == RT_NULL) {
+        return CO_RTT_lifecycleHasDeferredProcess(app) == RT_TRUE ? -RT_ERROR : RT_EOK;
+    }
+    return rt_thread_startup(app->lifecycle.sharedWorkerThread);
+}
+
+rt_err_t CO_RTT_lifecycleRequestDeferredProcess(CANopenNodeRTT *app)
+{
+    if (app == NULL) {
+        return -RT_EINVAL;
+    }
+    if (app->lifecycle.sharedWorkerSemInitialized != RT_TRUE) {
+        return -RT_EBUSY;
+    }
+
+    if (rt_atomic_flag_test_and_set(&app->lifecycle.sharedWorkerWakePending) == 0) {
+        rt_err_t ret = rt_sem_release(&app->lifecycle.sharedWorkerSem);
+        if (ret != RT_EOK) {
+            rt_atomic_flag_clear(&app->lifecycle.sharedWorkerWakePending);
+            return ret;
+        }
+    }
+    return RT_EOK;
+}
+
+/** Drain the common coalesced wake while the periodic timer is stopped. */
+static void CO_RTT_lifecycleSharedWorkerResetWakeups(CANopenNodeRTT *app)
+{
+    if (app->lifecycle.sharedWorkerSemInitialized == RT_TRUE) {
+        (void)rt_sem_control(&app->lifecycle.sharedWorkerSem, RT_IPC_CMD_RESET, RT_NULL);
+        rt_atomic_flag_clear(&app->lifecycle.sharedWorkerWakePending);
+    }
+}
+
+/** Delete the common worker before extension contexts can be deinitialized/released. */
+static void CO_RTT_lifecycleSharedWorkerDeinit(CANopenNodeRTT *app)
+{
+    CO_RTT_lifecycleSharedWorkerResetWakeups(app);
+    if (app->lifecycle.sharedWorkerThread != RT_NULL) {
+        (void)rt_thread_delete(app->lifecycle.sharedWorkerThread);
+        app->lifecycle.sharedWorkerThread = RT_NULL;
+    }
+    if (app->lifecycle.sharedWorkerSemInitialized == RT_TRUE) {
+        (void)rt_sem_detach(&app->lifecycle.sharedWorkerSem);
+        app->lifecycle.sharedWorkerSemInitialized = RT_FALSE;
+    }
+}
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
+
 #if defined(PKG_CANOPENNODE_RTT_LIFECYCLE_AUTOSTART)
 /** Process-wide factory registration and auto-attach transaction state. */
 typedef struct {
@@ -281,7 +420,11 @@ rt_err_t CO_RTT_lifecycleRuntimeInit(CANopenNodeRTT *app)
         slot->deinitRequired = RT_TRUE;
     }
 
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+    return CO_RTT_lifecycleSharedWorkerInit(app);
+#else
     return RT_EOK;
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
 }
 
 /**
@@ -311,7 +454,11 @@ rt_err_t CO_RTT_lifecycleRuntimeStart(CANopenNodeRTT *app)
         }
     }
 
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+    return CO_RTT_lifecycleSharedWorkerStart(app);
+#else
     return RT_EOK;
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
 }
 
 /**
@@ -507,6 +654,9 @@ void CO_RTT_lifecycleRealtimeTick(CANopenNodeRTT *app)
             slot->ops->realtimeTick(app, slot->context);
         }
     }
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+    (void)CO_RTT_lifecycleRequestDeferredProcess(app);
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
 }
 
 /**
@@ -523,6 +673,10 @@ void CO_RTT_lifecycleResetWakeups(CANopenNodeRTT *app)
     if (app == NULL) {
         return;
     }
+
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+    CO_RTT_lifecycleSharedWorkerResetWakeups(app);
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
 
     for (i = app->lifecycle.count; i > 0U; i--) {
         CO_RTT_lifecycle_slot_t *slot = &app->lifecycle.slots[i - 1U];
@@ -549,6 +703,11 @@ void CO_RTT_lifecycleRuntimeDeinit(CANopenNodeRTT *app)
     if (app == NULL) {
         return;
     }
+
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+    /* Stop deferred callbacks before any profile runtime state/context can be retired. */
+    CO_RTT_lifecycleSharedWorkerDeinit(app);
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
 
     for (i = app->lifecycle.count; i > 0U; i--) {
         CO_RTT_lifecycle_slot_t *slot = &app->lifecycle.slots[i - 1U];

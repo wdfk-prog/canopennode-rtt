@@ -1034,6 +1034,9 @@ static bool test_lifecycle_reset_rebind_and_deinit(void)
     capturedCallback = canModule.txSuccessCallback;
     capturedObject = canModule.txSuccessObject;
 
+    TEST_ASSERT(CO_401_device_RTT_requestProcess(NULL) == -RT_EINVAL);
+    TEST_ASSERT(CO_401_device_RTT_requestProcess(&runtime) == RT_EOK);
+    TEST_ASSERT(CO_401_device_RTT_requestProcess(&runtime) == RT_EOK);
     for (unsigned tick = 0U; tick < 100U; tick++) {
         registeredOps->realtimeTick(&app, registeredContext);
     }

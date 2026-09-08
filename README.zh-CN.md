@@ -141,7 +141,7 @@ Demo OD 还包含若干 manufacturer-specific 诊断/控制对象，供 package 
 可选 CiA 402 支持按职责拆分：
 
 - [Pure-C Device Core 与 OD Binding](docs/zh/cia402-device-core.md)：多轴 PDS supervisor、OD binding、DriveIF ownership 与 mode 接口。
-- [RT-Thread Device 集成](docs/zh/cia402-device-rtt.md)：lifecycle registry、worker thread、锁顺序、自动构造和 Communication Reset。
+- [RT-Thread Device 集成](docs/zh/cia402-device-rtt.md)：lifecycle registry、shared/dedicated worker 调度、锁顺序、自动构造和 Communication Reset。
 - [Device 诊断与产品集成](docs/zh/cia402.md)：每轴 Error-code/EMCY 绑定以及产品 OD 使用方式。
 - [Controller API](docs/zh/cia402-controller.md)：与传输无关的远端 PDS Controlword 状态推进。
 

@@ -197,7 +197,7 @@ static bool CO_402_mshParseAxis(const char *text, uint8_t *axis)
     unsigned long parsed;
 
     if (axis == NULL
-        || !CO_402_mshParseUnsignedLong(text, CO_402_LOGICAL_DEVICE_COUNT_MAX - 1U, &parsed)) {
+        || !CO_402_mshParseUnsignedLong(text, CO_PROFILE_LOGICAL_DEVICE_COUNT_MAX - 1U, &parsed)) {
         return false;
     }
 
@@ -309,15 +309,13 @@ static void CO_402_mshUnlock(CANopenNodeRTT *app, CO_t *co)
 }
 
 /*
- * Publish OD changes before waking co_402, while lifecycle ownership still
- * pins the runtime and semaphore against final teardown.
+ * Publish OD changes before waking the configured profile worker while
+ * lifecycle ownership still pins the runtime against final teardown.
  */
 static void CO_402_mshPublishAndUnlock(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime, CO_t *co)
 {
     (void)rt_mutex_release(&co->CANmodule->odMutex);
-    if (runtime->semInitialized == RT_TRUE) {
-        (void)rt_sem_release(&runtime->cia402Sem);
-    }
+    (void)CO_402_device_RTT_requestProcess(runtime);
     (void)rt_mutex_release(&app->lifecycleMutex);
 }
 

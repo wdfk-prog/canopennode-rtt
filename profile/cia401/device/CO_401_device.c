@@ -47,7 +47,7 @@ static CO_401_capabilities_t capabilitiesFromConfig(const CO_401_device_config_t
 static CO_401_init_error_t validateConfig(const CO_401_device_config_t *config, CO_401_capabilities_t capabilities)
 {
     if (config == NULL || config->io == NULL || capabilities == 0U
-        || config->logicalDevice >= CO_401_LOGICAL_DEVICE_COUNT_MAX) {
+        || !CO_profileLogicalDeviceValid(config->logicalDevice)) {
         return CO_401_INIT_CONFIG;
     }
     if (!validCount(config->digitalInputBanks) || !validCount(config->digitalOutputBanks)
@@ -122,7 +122,7 @@ CO_401_init_error_t CO_401_device_init(CO_401_device_t *device, OD_t *od,
     device->config = *config;
     device->capabilities = capabilities;
     device->logicalDevice = config->logicalDevice;
-    device->odBase = CO_401_objectIndex(config->logicalDevice, CO_401_PROFILE_INDEX_BASE);
+    device->odBase = CO_profileIndex(config->logicalDevice, CO_PROFILE_OD_BASE);
 
     return CO_401_device_bindOD(device, diag);
 }

@@ -67,7 +67,7 @@ PDO Mapping
 |   0x607A0020 | Axis0 Target position                                         |
 
 
-### RPDO 0x1402
+### RPDO 0x1441
 |              |                                                               |
 | ------------ | ------------------------------------------------------------- |
 | COB_ID       | $NODEID+0x80000400                                            |
@@ -77,7 +77,7 @@ PDO Mapping
 |   0x687A0020 | Axis1 Target position                                         |
 
 
-### RPDO 0x1403
+### RPDO 0x1481
 |              |                                                               |
 | ------------ | ------------------------------------------------------------- |
 | COB_ID       | $NODEID+0x80000500                                            |
@@ -106,7 +106,7 @@ PDO Mapping
 |   0x60640020 | Axis0 Position actual value                                   |
 
 
-### TPDO 0x1802
+### TPDO 0x1841
 |              |                                                               |
 | ------------ | ------------------------------------------------------------- |
 | COB_ID       | $NODEID+0xC0000380                                            |
@@ -116,7 +116,7 @@ PDO Mapping
 |   0x68640020 | Axis1 Position actual value                                   |
 
 
-### TPDO 0x1803
+### TPDO 0x1881
 |              |                                                               |
 | ------------ | ------------------------------------------------------------- |
 | COB_ID       | $NODEID+0xC0000480                                            |
@@ -581,7 +581,7 @@ Sub-indexes 1 and 2:
   * Value 255: event-driven (device profile and application profile specific)
 * Event timer in ms (0 = disabled) for deadline monitoring.
 
-### 0x1402 - RPDO communication parameter
+### 0x1441 - RPDO communication parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      | RPDO           | PERSIST_COMM   |
@@ -604,7 +604,7 @@ Sub-indexes 1 and 2:
   * Value 255: event-driven (device profile and application profile specific)
 * Event timer in ms (0 = disabled) for deadline monitoring.
 
-### 0x1403 - RPDO communication parameter
+### 0x1481 - RPDO communication parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      | RPDO           | PERSIST_COMM   |
@@ -679,7 +679,7 @@ Sub-indexes 1 and 2:
   * bit 8-15: sub-index
   * bit 0-7: data length in bits
 
-### 0x1602 - RPDO mapping parameter
+### 0x1641 - RPDO mapping parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      |                | PERSIST_COMM   |
@@ -705,7 +705,7 @@ Sub-indexes 1 and 2:
   * bit 8-15: sub-index
   * bit 0-7: data length in bits
 
-### 0x1603 - RPDO mapping parameter
+### 0x1681 - RPDO mapping parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      |                | PERSIST_COMM   |
@@ -793,7 +793,7 @@ Sub-indexes 1 and 2:
   * Value 0: Counter of the SYNC message shall not be processed.
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.
 
-### 0x1802 - TPDO communication parameter
+### 0x1841 - TPDO communication parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      | TPDO           | PERSIST_COMM   |
@@ -824,7 +824,7 @@ Sub-indexes 1 and 2:
   * Value 0: Counter of the SYNC message shall not be processed.
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.
 
-### 0x1803 - TPDO communication parameter
+### 0x1881 - TPDO communication parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      | TPDO           | PERSIST_COMM   |
@@ -921,7 +921,7 @@ Sub-indexes 1 and 2:
   * bit 8-15: sub-index
   * bit 0-7: data length in bits
 
-### 0x1A02 - TPDO mapping parameter
+### 0x1A41 - TPDO mapping parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      |                | PERSIST_COMM   |
@@ -947,7 +947,7 @@ Sub-indexes 1 and 2:
   * bit 8-15: sub-index
   * bit 0-7: data length in bits
 
-### 0x1A03 - TPDO mapping parameter
+### 0x1A81 - TPDO mapping parameter
 | Object Type | Count Label    | Storage Group  |
 | ----------- | -------------- | -------------- |
 | RECORD      |                | PERSIST_COMM   |

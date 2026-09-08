@@ -312,8 +312,12 @@ append_canopennode_cia401_device_rtt()
     remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BUFFER_SIZE"
     append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_SDO_SRV_BUFFER_SIZE" "1024"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_CRC16"
-    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_THREAD_STACK_SIZE" "1536"
-    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_THREAD_PRIORITY" "6"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_THREAD_STACK_SIZE"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_THREAD_PRIORITY"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE" "2048"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY" "5"
 
     append_config_define "$config_file" "$rtconfig_file" "RT_USING_COMPONENTS_INIT"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_AUTOSTART"
@@ -392,8 +396,12 @@ append_canopennode_cia402_device_rtt_autostart()
     # Raw post-Kconfig patching bypasses `select`, so mirror the cyclic bridge selector explicitly.
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_SYNC_FASTPATH"
     append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD"
-    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE" "2048"
-    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_THREAD_PRIORITY" "5"
+    remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE"
+    remove_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_THREAD_PRIORITY"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE" "2048"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY" "5"
 
     # CI patches rtconfig.h after Kconfig generation, so mirror Kconfig-selected lifecycle/demo symbols explicitly.
     append_config_define "$config_file" "$rtconfig_file" "RT_USING_COMPONENTS_INIT"

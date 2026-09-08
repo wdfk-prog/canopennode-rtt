@@ -6,6 +6,11 @@
 
 #include "CO_401_device_RTT.h"
 #include "CO_app_RTT.h"
+
+#if !defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) \
+    && !defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+#error "CiA 401 RT adapter requires the shared profile worker or a dedicated worker"
+#endif /* !dedicated && !shared */
 #if (defined(PKG_CANOPENNODE_CIA401_DIGITAL_EVENTS) || defined(PKG_CANOPENNODE_CIA401_ANALOG_EVENTS)) \
     && !defined(PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER)
 #error "CiA 401 input events require PKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER"
@@ -379,93 +384,106 @@ static void onNmtStateChanged(CANopenNodeRTT *app, void *context, CO_NMT_interna
     (void)rt_mutex_release(&app->lifecycleMutex);
 }
 
-/** Process one bounded profile pass under lifecycleMutex -> OD lock ordering. */
+/** Process one bounded profile pass while the caller pins the current lifecycle generation. */
+static void processPassLocked(CO_401_device_RTT_t *runtime, CANopenNodeRTT *app)
+{
+    CO_t *co = app != NULL ? app->canOpenStack : NULL;
+
+    if (runtime == NULL || runtime->communicationReady != RT_TRUE
+        || runtime->deviceInitialized != RT_TRUE || co == NULL || co->CANmodule == NULL
+        || co->NMT == NULL || co->nodeIdUnconfigured || !co->CANmodule->CANnormal) {
+        return;
+    }
+
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
+    const bool stopped = runtime->nmtState == CO_NMT_STOPPED;
+    const bool applyStopped = stopped || runtime->nmtStoppedApplyPending == RT_TRUE;
+    bool outputSupervisionReady;
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+
+    /*
+     * SDO/RPDO output writes publish this monotonic latch under the OD lock.
+     * Use the same lock for the worker's false->true update and snapshot so
+     * the two contexts never race on outputSupervisionReady.
+     */
+    CO_LOCK_OD(co->CANmodule);
+    if (!runtime->device.outputSupervisionReady
+        && runtime->config.outputSupervisionEstablished != NULL
+        && outputSupervisionEstablishedProbe(runtime)) {
+        CO_401_device_notifyOutputSupervision(&runtime->device);
+    }
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
+    outputSupervisionReady = runtime->device.outputSupervisionReady;
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+    CO_UNLOCK_OD(co->CANmodule);
+
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
+    /*
+     * Product peer-fault classification stays outside the OD lock by callback contract.
+     * The supervision snapshot is monotonic; a later latch is observed on the next worker pass.
+     */
+    const bool communicationFault = hasOutputCommunicationFault(runtime, co, outputSupervisionReady);
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+
+    /*
+     * The caller already pins this CO_t generation with lifecycleMutex across
+     * both OD-serialized phases. Re-enter the OD lock after the product callback
+     * so process-image updates stay serialized without invoking product fault
+     * classification under the OD lock.
+     */
+    CO_LOCK_OD(co->CANmodule);
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
+    /*
+     * A transient Stopped edge stays sticky until every required fail-safe backend write returns OK.
+     * Merely attempting one process pass is insufficient because BUSY/ERROR keeps the old physical output.
+     */
+    CO_401_device_setNmtStopped(&runtime->device, applyStopped);
+    CO_401_device_setCommunicationFault(&runtime->device, communicationFault);
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+    CO_401_device_process(&runtime->device);
+#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
+    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
+    if (runtime->nmtStoppedApplyPending == RT_TRUE && runtime->device.failSafeOutputApplyComplete) {
+        runtime->nmtStoppedApplyPending = RT_FALSE;
+        if (!stopped) {
+            CO_401_device_setNmtStopped(&runtime->device, false);
+        }
+    }
+#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
+    CO_UNLOCK_OD(co->CANmodule);
+}
+
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
+/** Run one CiA 401 pass on the optional profile-private worker. */
 static void workerEntry(void *parameter)
 {
     CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)parameter;
     CANopenNodeRTT *app = runtime->app;
 
     while (1) {
-        CO_t *co;
-
         if (rt_sem_take(&runtime->cia401Sem, RT_WAITING_FOREVER) != RT_EOK) {
             continue;
         }
-        /* A token represents "process the latest state", so one in-flight pass re-opens exactly one future wake slot. */
-        rt_atomic_store(&runtime->wakePending, 0);
+        /* A token means "process latest state"; re-open one future coalesced wake before processing. */
+        rt_atomic_flag_clear(&runtime->wakePending);
         if (rt_mutex_take(&app->lifecycleMutex, RT_WAITING_FOREVER) != RT_EOK) {
             continue;
         }
-
-        co = app->canOpenStack;
-        if (runtime->communicationReady == RT_TRUE
-            && runtime->deviceInitialized == RT_TRUE
-            && co != NULL && co->CANmodule != NULL && co->NMT != NULL
-            && !co->nodeIdUnconfigured && co->CANmodule->CANnormal) {
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
-    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-            const bool stopped = runtime->nmtState == CO_NMT_STOPPED;
-            const bool applyStopped = stopped || runtime->nmtStoppedApplyPending == RT_TRUE;
-            bool outputSupervisionReady;
-#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
-
-            /*
-             * SDO/RPDO output writes publish this monotonic latch under the OD lock.
-             * Use the same lock for the worker's false->true update and snapshot so
-             * the two contexts never race on outputSupervisionReady.
-             */
-            CO_LOCK_OD(co->CANmodule);
-            if (!runtime->device.outputSupervisionReady
-                && runtime->config.outputSupervisionEstablished != NULL
-                && outputSupervisionEstablishedProbe(runtime)) {
-                CO_401_device_notifyOutputSupervision(&runtime->device);
-            }
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
-    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-            outputSupervisionReady = runtime->device.outputSupervisionReady;
-#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
-            CO_UNLOCK_OD(co->CANmodule);
-
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
-    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-            /*
-             * Product peer-fault classification stays outside the OD lock by callback contract.
-             * The supervision snapshot is monotonic; a later latch is observed on the next worker pass.
-             */
-            const bool communicationFault = hasOutputCommunicationFault(runtime, co, outputSupervisionReady);
-#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
-
-            /*
-             * lifecycleMutex pins this CO_t generation across both OD-serialized phases.
-             * Re-enter the OD lock after the product callback so Device state and process-image
-             * updates remain serialized without invoking product fault logic under that lock.
-             */
-            CO_LOCK_OD(co->CANmodule);
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
-    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-            /*
-             * A transient Stopped edge stays sticky until every required fail-safe backend write returns OK.
-             * Merely attempting one process pass is insufficient because BUSY/ERROR keeps the old physical output.
-             */
-            CO_401_device_setNmtStopped(&runtime->device, applyStopped);
-            CO_401_device_setCommunicationFault(&runtime->device, communicationFault);
-#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
-            CO_401_device_process(&runtime->device);
-#if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
-    || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
-            if (runtime->nmtStoppedApplyPending == RT_TRUE && runtime->device.failSafeOutputApplyComplete) {
-                runtime->nmtStoppedApplyPending = RT_FALSE;
-                if (!stopped) {
-                    CO_401_device_setNmtStopped(&runtime->device, false);
-                }
-            }
-#endif /* PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE || PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE */
-            CO_UNLOCK_OD(co->CANmodule);
-        }
-
+        processPassLocked(runtime, app);
         (void)rt_mutex_release(&app->lifecycleMutex);
     }
 }
+#else
+/** Run one CiA 401 pass from the common profile worker, which already owns lifecycleMutex. */
+static void onDeferredProcess(CANopenNodeRTT *app, void *context)
+{
+    processPassLocked((CO_401_device_RTT_t *)context, app);
+}
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
 
 /** Bind/rebind the Pure-C Device before SRDO/PDO cache current OD IO callbacks. */
 static rt_err_t onBind(CANopenNodeRTT *app, CO_t *co, OD_t *od, void *context)
@@ -563,15 +581,19 @@ static void onReady(CANopenNodeRTT *app, void *context)
     runtime->communicationReady = RT_TRUE;
 }
 
-/** Allocate RT resources only after the initial Device/OD binding succeeds. */
+/** Allocate only the scheduling resources selected for this CiA 401 adapter. */
 static rt_err_t onRuntimeInit(CANopenNodeRTT *app, void *context)
 {
     CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)context;
-    rt_err_t ret;
 
     (void)app;
-    if (runtime->deviceInitialized != RT_TRUE
-        || runtime->semInitialized == RT_TRUE || runtime->workerThread != RT_NULL) {
+    if (runtime->deviceInitialized != RT_TRUE) {
+        return -RT_EBUSY;
+    }
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
+    rt_err_t ret;
+
+    if (runtime->semInitialized == RT_TRUE || runtime->workerThread != RT_NULL) {
         return -RT_EBUSY;
     }
     if (PKG_CANOPENNODE_CIA401_THREAD_PRIORITY <= PKG_CANOPENNODE_RT_THREAD_PRIORITY) {
@@ -582,7 +604,7 @@ static rt_err_t onRuntimeInit(CANopenNodeRTT *app, void *context)
     if (ret != RT_EOK) {
         return ret;
     }
-    rt_atomic_store(&runtime->wakePending, 0);
+    rt_atomic_flag_clear(&runtime->wakePending);
     runtime->semInitialized = RT_TRUE;
     runtime->workerThread = rt_thread_create(
         "co_401", workerEntry, runtime, PKG_CANOPENNODE_CIA401_THREAD_STACK_SIZE,
@@ -592,44 +614,65 @@ static rt_err_t onRuntimeInit(CANopenNodeRTT *app, void *context)
         runtime->semInitialized = RT_FALSE;
         return -RT_ENOMEM;
     }
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
     return RT_EOK;
 }
 
 static rt_err_t onRuntimeStart(CANopenNodeRTT *app, void *context)
 {
     CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)context;
-    rt_err_t ret;
+    rt_err_t ret = RT_EOK;
 
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
     if (runtime->workerThread == RT_NULL || runtime->semInitialized != RT_TRUE) {
         return -RT_EINVAL;
     }
-
     ret = rt_thread_startup(runtime->workerThread);
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
+
 #if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH)
     if (ret == RT_EOK) {
         CO_401_device_RTT_mshBind(app, runtime);
     }
 #else
     (void)app;
+    (void)runtime;
 #endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH) */
     return ret;
 }
 
-static void onTick(CANopenNodeRTT *app, void *context)
+rt_err_t CO_401_device_RTT_requestProcess(CO_401_device_RTT_t *runtime)
 {
-    CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)context;
+    if (runtime == NULL || runtime->app == NULL) {
+        return -RT_EINVAL;
+    }
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
+    if (runtime->semInitialized != RT_TRUE) {
+        return -RT_EBUSY;
+    }
 
-    (void)app;
-    /* Timer ticks request processing of the latest process image; historical tick count is intentionally coalesced. */
-    if (runtime->semInitialized == RT_TRUE && rt_atomic_load(&runtime->wakePending) == 0) {
-        rt_atomic_store(&runtime->wakePending, 1);
-        if (rt_sem_release(&runtime->cia401Sem) != RT_EOK) {
-            rt_atomic_store(&runtime->wakePending, 0);
+    /* All producers share one latest-state token, so timer/MSH wakes cannot build a backlog. */
+    if (rt_atomic_flag_test_and_set(&runtime->wakePending) == 0) {
+        rt_err_t ret = rt_sem_release(&runtime->cia401Sem);
+        if (ret != RT_EOK) {
+            rt_atomic_flag_clear(&runtime->wakePending);
+            return ret;
         }
     }
+    return RT_EOK;
+#else
+    return CO_RTT_lifecycleRequestDeferredProcess(runtime->app);
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
 }
 
-/** Drain the coalesced wake while the realtime timer is stopped so old work cannot reach the new generation. */
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
+static void onTick(CANopenNodeRTT *app, void *context)
+{
+    (void)app;
+    (void)CO_401_device_RTT_requestProcess((CO_401_device_RTT_t *)context);
+}
+
+/** Drain the private coalesced wake while the realtime timer is stopped. */
 static void onResetWakeups(CANopenNodeRTT *app, void *context)
 {
     CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)context;
@@ -637,9 +680,10 @@ static void onResetWakeups(CANopenNodeRTT *app, void *context)
     (void)app;
     if (runtime->semInitialized == RT_TRUE) {
         (void)rt_sem_control(&runtime->cia401Sem, RT_IPC_CMD_RESET, RT_NULL);
-        rt_atomic_store(&runtime->wakePending, 0);
+        rt_atomic_flag_clear(&runtime->wakePending);
     }
 }
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
 
 static void onRuntimeDeinit(CANopenNodeRTT *app, void *context)
 {
@@ -649,6 +693,7 @@ static void onRuntimeDeinit(CANopenNodeRTT *app, void *context)
     CO_401_device_RTT_mshUnbind(app, runtime);
 #endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH) */
     runtime->communicationReady = RT_FALSE;
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
     onResetWakeups(app, context);
     if (runtime->workerThread != RT_NULL) {
         (void)rt_thread_delete(runtime->workerThread);
@@ -658,6 +703,9 @@ static void onRuntimeDeinit(CANopenNodeRTT *app, void *context)
         (void)rt_sem_detach(&runtime->cia401Sem);
         runtime->semInitialized = RT_FALSE;
     }
+#else
+    (void)app;
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
     (void)memset(&runtime->device, 0, sizeof(runtime->device));
     runtime->deviceInitialized = RT_FALSE;
 }
@@ -669,8 +717,12 @@ static const CO_RTT_lifecycle_ops_t lifecycleOps = {
     .communicationQuiesced = onQuiesced,
     .communicationBind = onBind,
     .communicationReady = onReady,
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
     .realtimeTick = onTick,
     .resetWakeups = onResetWakeups,
+#else
+    .deferredProcess = onDeferredProcess,
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
     .runtimeDeinit = onRuntimeDeinit,
     .nmtStateChanged = onNmtStateChanged,
 };

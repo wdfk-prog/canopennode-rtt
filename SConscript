@@ -51,6 +51,29 @@ def _add_required(path):
 
 
 if GetDepend('PKG_USING_CANOPENNODE'):
+    if _has_any('PKG_CANOPENNODE_CIA401', 'PKG_CANOPENNODE_CIA402',
+                'PKG_CANOPENNODE_PROFILE_REGISTRY'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'common')]
+
+    if GetDepend('PKG_CANOPENNODE_PROFILE_REGISTRY'):
+        _add_required(os.path.join('profile', 'common', 'CO_profile_registry.c'))
+
+    if _has_any('PKG_CANOPENNODE_PROFILE_MIXED_RTT',
+                'PKG_CANOPENNODE_PROFILE_MIXED_RTT_DEMO'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'mixed')]
+
+    if _has_any('PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEMO',
+                'PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO',
+                'PKG_CANOPENNODE_PROFILE_MIXED_RTT_DEMO'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'mixed', 'demo')]
+
+    if GetDepend('PKG_CANOPENNODE_PROFILE_MIXED_RTT'):
+        _add_required(os.path.join('profile', 'mixed', 'CO_profile_mixed_RTT.c'))
+
+    if GetDepend('PKG_CANOPENNODE_PROFILE_MIXED_RTT_DEMO'):
+        _add_required(os.path.join('profile', 'mixed', 'demo', 'CO_profile_mixed_demo.c'))
+        _add_required(os.path.join('profile', 'mixed', 'demo', 'CO_profile_mixed_RTT_demo.c'))
+
     if GetDepend('PKG_CANOPENNODE_CIA401'):
         CPPPATH += [
             os.path.join(cwd, 'profile', 'cia401', 'common'),

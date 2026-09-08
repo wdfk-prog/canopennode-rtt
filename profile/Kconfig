@@ -2,7 +2,50 @@
 
 menu "CANopen profiles"
 
+config PKG_CANOPENNODE_PROFILE_REGISTRY
+    bool "Enable common logical-device profile registry"
+    default n
+    help
+        Build the Pure-C fixed-capacity registry that validates one CANopen
+        node's logical-device slot ownership against generated Device Type
+        entries. The registry uses no heap, RT-Thread, BSP, HAL, or concrete
+        Device Profile dependency.
+
 rsource "cia401/Kconfig"
 rsource "cia402/Kconfig"
+rsource "mixed/Kconfig"
+
+config PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER
+    bool
+    default y if PKG_CANOPENNODE_CIA401_DEVICE_RTT_THREAD && !PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER
+    default y if PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD && !PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER
+    help
+        Internal derived switch for the common deferred lifecycle worker used by
+        Device Profiles that did not request a dedicated RT-Thread worker.
+
+if PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER
+
+menu "Shared RT-Thread profile worker"
+
+config PKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE
+    int "Stack size"
+    default 2048
+    help
+        Stack size in bytes for the common co_prof worker. Profile callbacks run
+        sequentially, so size this for the deepest enabled shared Profile pass,
+        not the sum of all Profile stack sizes. Confirm the final margin on target.
+
+config PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY
+    int "Priority"
+    default 5
+    help
+        RT-Thread priority for the common co_prof worker. Lower numeric values are
+        higher priority. It must remain numerically greater than co_rt priority.
+        A Profile requiring stronger isolation should enable its dedicated-worker
+        option instead of increasing this shared priority arbitrarily.
+
+endmenu
+
+endif
 
 endmenu
