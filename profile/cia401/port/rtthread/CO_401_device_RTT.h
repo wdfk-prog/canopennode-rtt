@@ -140,6 +140,28 @@ rt_err_t CO_401_device_RTT_attach(CANopenNodeRTT *app, CO_401_device_RTT_t *runt
  */
 rt_err_t CO_401_device_RTT_autoAttach(CANopenNodeRTT *app, const CO_401_device_RTT_config_t *config);
 
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH)
+/**
+ * @brief Bind the optional CiA 401 MSH bench frontend after the worker starts.
+ *
+ * Commands snapshot the singleton binding, acquire the application lifecycle
+ * mutex, revalidate the runtime and then take the OD lock before touching the
+ * Device or software demo backend.
+ *
+ * @param app Running default CANopenNode RT-Thread application instance.
+ * @param runtime Started local CiA 401 runtime owned by @p app.
+ */
+void CO_401_device_RTT_mshBind(CANopenNodeRTT *app, CO_401_device_RTT_t *runtime);
+
+/**
+ * @brief Remove the optional MSH binding before runtime resources are released.
+ *
+ * @param app Application instance previously supplied to the MSH frontend.
+ * @param runtime CiA 401 runtime previously supplied to the MSH frontend.
+ */
+void CO_401_device_RTT_mshUnbind(CANopenNodeRTT *app, CO_401_device_RTT_t *runtime);
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH) */
+
 /** Define and component-register one automatic CiA 401 factory for the default app. */
 #define CO_401_DEVICE_RTT_AUTOSTART_DEFINE(name_, config_)                                                  \
     static rt_err_t name_##_co401_auto_attach(CANopenNodeRTT *app_, const void *context_)                  \

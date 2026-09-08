@@ -598,9 +598,21 @@ static rt_err_t onRuntimeInit(CANopenNodeRTT *app, void *context)
 static rt_err_t onRuntimeStart(CANopenNodeRTT *app, void *context)
 {
     CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)context;
+    rt_err_t ret;
 
+    if (runtime->workerThread == RT_NULL || runtime->semInitialized != RT_TRUE) {
+        return -RT_EINVAL;
+    }
+
+    ret = rt_thread_startup(runtime->workerThread);
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH)
+    if (ret == RT_EOK) {
+        CO_401_device_RTT_mshBind(app, runtime);
+    }
+#else
     (void)app;
-    return runtime->workerThread != RT_NULL ? rt_thread_startup(runtime->workerThread) : -RT_EINVAL;
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH) */
+    return ret;
 }
 
 static void onTick(CANopenNodeRTT *app, void *context)
@@ -633,6 +645,9 @@ static void onRuntimeDeinit(CANopenNodeRTT *app, void *context)
 {
     CO_401_device_RTT_t *runtime = (CO_401_device_RTT_t *)context;
 
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH)
+    CO_401_device_RTT_mshUnbind(app, runtime);
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH) */
     runtime->communicationReady = RT_FALSE;
     onResetWakeups(app, context);
     if (runtime->workerThread != RT_NULL) {

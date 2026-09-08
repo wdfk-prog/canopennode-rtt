@@ -70,7 +70,12 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         _add_required(os.path.join('profile', 'cia401', 'port', 'rtthread', 'CO_401_device_RTT.c'))
 
     if GetDepend('PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEMO'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'cia401', 'demo')]
         _add_required(os.path.join('profile', 'cia401', 'demo', 'CO_401_device_RTT_demo.c'))
+
+    _add_required_any(GetDepend('PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH'),
+                      'CiA 401 RT-Thread MSH bench control',
+                      [os.path.join('profile', 'cia401', 'port', 'rtthread', 'CO_401_device_RTT_msh.c')])
 
     if GetDepend('PKG_CANOPENNODE_CIA402'):
         CPPPATH += [

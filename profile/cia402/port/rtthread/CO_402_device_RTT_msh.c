@@ -290,7 +290,12 @@ static rt_err_t CO_402_mshLock(CANopenNodeRTT **appOut, CO_402_device_RTT_t **ru
         return -RT_ERROR;
     }
 
-    CO_LOCK_OD(co->CANmodule);
+    /*
+     * RT-Thread CO_LOCK_OD/CO_UNLOCK_OD form one lexical macro scope.
+     * MSH keeps this lock across helper calls, so use the same mutex
+     * directly while lifecycleMutex pins the current CANmodule.
+     */
+    (void)rt_mutex_take(&co->CANmodule->odMutex, RT_WAITING_FOREVER);
     *appOut = app;
     *runtimeOut = runtime;
     *coOut = co;
@@ -299,7 +304,7 @@ static rt_err_t CO_402_mshLock(CANopenNodeRTT **appOut, CO_402_device_RTT_t **ru
 
 static void CO_402_mshUnlock(CANopenNodeRTT *app, CO_t *co)
 {
-    CO_UNLOCK_OD(co->CANmodule);
+    (void)rt_mutex_release(&co->CANmodule->odMutex);
     (void)rt_mutex_release(&app->lifecycleMutex);
 }
 
@@ -309,7 +314,7 @@ static void CO_402_mshUnlock(CANopenNodeRTT *app, CO_t *co)
  */
 static void CO_402_mshPublishAndUnlock(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime, CO_t *co)
 {
-    CO_UNLOCK_OD(co->CANmodule);
+    (void)rt_mutex_release(&co->CANmodule->odMutex);
     if (runtime->semInitialized == RT_TRUE) {
         (void)rt_sem_release(&runtime->cia402Sem);
     }
