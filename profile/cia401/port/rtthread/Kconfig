@@ -48,4 +48,17 @@ config PKG_CANOPENNODE_CIA401_DEVICE_RTT_AUTOSTART
         Allocate only the adapter runtime. The CO_401_device_config_t and IOIF
         remain product-owned and must outlive the default CANopenNodeRTT app.
 
+config PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH
+    bool "Enable CiA 401 MSH bench control"
+    default n
+    depends on PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEMO
+    depends on PKG_CANOPENNODE_CIA401_DEVICE_RTT_AUTOSTART
+    depends on RT_USING_FINSH && FINSH_USING_MSH
+    help
+        Register the cia401 MSH command for the software-only RT-Thread demo.
+        Commands inject raw DI/AI process values, inspect physical DO/AO state,
+        write the same bound output OD entries used by SDO/RPDO, inject output
+        fault/supervision state, and wake the existing co_401 worker. This is
+        bench/debug functionality only and does not change the product IOIF API.
+
 endif
