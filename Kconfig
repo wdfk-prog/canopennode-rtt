@@ -28,7 +28,7 @@ rsource "demo/Kconfig"
 
 config PKG_CANOPENNODE_PATH
     string
-    default "/packages/misc/CANopenNode"
+    default "/packages/misc/CanopenNode"
 
 choice
     prompt "Version"
