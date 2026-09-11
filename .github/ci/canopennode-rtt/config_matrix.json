@@ -10,6 +10,7 @@
         "demo-default",
         "demo-cia401-device-rtt",
         "demo-cia402-controller-only",
+        "demo-profile-controller-rtt",
         "demo-cia402-device-controller",
         "demo-cia402-device-rtt-autostart",
         "demo-cia402-device-diagnostics",

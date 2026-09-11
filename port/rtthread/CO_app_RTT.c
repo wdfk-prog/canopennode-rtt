@@ -913,6 +913,13 @@ static void co_app_rtt_main_thread_entry(void *parameter)
                 last_nmt_state = nmt_state;
             }
         }
+        CO_RTT_lifecycleMainlineProcess(app, time_difference_us, reset_status,
+#if defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT)
+                                        &timer_next_us
+#else
+                                        NULL
+#endif /* defined(PKG_CANOPENNODE_GLOBAL_TIMERNEXT) */
+        );
 #if (((CO_CONFIG_LSS) & CO_CONFIG_LSS_SLAVE) != 0) && defined(PKG_CANOPENNODE_LSS_PERSIST)
         if (reset_status == CO_RESET_NOT) {
             co_app_rtt_lss_bitrate_process(app, time_current_ms);

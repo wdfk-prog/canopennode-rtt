@@ -10,6 +10,8 @@
 #include "CO_app_RTT.h"
 
 static const CO_RTT_lifecycle_ops_t *registeredOps;
+static unsigned deferredRequestCount;
+static rt_err_t deferredRequestResult = RT_EOK;
 
 static const CO_401_io_if_t ioIf = {
     .readDigital8 = NULL,
@@ -27,6 +29,15 @@ rt_err_t CO_RTT_lifecycleRegisterEx(CANopenNodeRTT *app, const CO_RTT_lifecycle_
     }
     registeredOps = ops;
     return RT_EOK;
+}
+
+rt_err_t CO_RTT_lifecycleRequestDeferredProcess(CANopenNodeRTT *app)
+{
+    if (app == NULL) {
+        return -RT_EINVAL;
+    }
+    deferredRequestCount++;
+    return deferredRequestResult;
 }
 
 rt_err_t rt_sem_init(struct rt_semaphore *sem, const char *name, unsigned value, unsigned flag)
@@ -157,6 +168,20 @@ int main(void)
     }
     if (registeredOps == NULL || registeredOps->nmtStateChanged == NULL) {
         return 2;
+    }
+    if (registeredOps->deferredProcess == NULL || registeredOps->realtimeTick != NULL
+        || registeredOps->resetWakeups != NULL) {
+        return 3;
+    }
+    if (CO_401_device_RTT_requestProcess(NULL) != -RT_EINVAL) {
+        return 4;
+    }
+    if (CO_401_device_RTT_requestProcess(&runtime) != RT_EOK || deferredRequestCount != 1U) {
+        return 5;
+    }
+    deferredRequestResult = -RT_ERROR;
+    if (CO_401_device_RTT_requestProcess(&runtime) != -RT_ERROR || deferredRequestCount != 2U) {
+        return 6;
     }
     return 0;
 }

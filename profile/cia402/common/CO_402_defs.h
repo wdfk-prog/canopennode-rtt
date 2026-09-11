@@ -12,24 +12,26 @@
 
 #include <stdint.h>
 
+#include "CO_profile_layout.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Maximum number of logical devices in one CANopen device. */
-#define CO_402_LOGICAL_DEVICE_COUNT_MAX 8U
+/** Compatibility alias for the shared CiA 301 logical-device slot limit. */
+#define CO_402_LOGICAL_DEVICE_COUNT_MAX CO_PROFILE_LOGICAL_DEVICE_COUNT_MAX
 
-/** Axis-0 CiA 402 application-profile object range base. */
-#define CO_402_PROFILE_INDEX_BASE 0x6000U
+/** Compatibility alias for the shared canonical application-profile base. */
+#define CO_402_PROFILE_INDEX_BASE CO_PROFILE_OD_BASE
 
-/** Offset between adjacent logical-device CiA 402 object ranges. */
-#define CO_402_PROFILE_INDEX_STRIDE 0x0800U
+/** Compatibility alias for the shared logical-device profile stride. */
+#define CO_402_PROFILE_INDEX_STRIDE CO_PROFILE_OD_STRIDE
 
-/** Last index in the axis-0 CiA 402 application-profile object range. */
-#define CO_402_PROFILE_INDEX_LAST 0x67FFU
+/** Compatibility alias for the shared canonical application-profile last index. */
+#define CO_402_PROFILE_INDEX_LAST CO_PROFILE_OD_CANONICAL_LAST
 
 /**
- * @brief Resolve an axis-0 CiA 402 object index for one logical device.
+ * @brief Preserve the CiA 402 index helper while delegating translation to the shared CiA 301 layout.
  *
  * @param logicalDevice Zero-based logical-device index in the CANopen device.
  * @param axis0Index Object index in the axis-0 0x6000..0x67FF profile range.
@@ -40,7 +42,7 @@ extern "C" {
  */
 static inline uint16_t CO_402_objectIndex(uint8_t logicalDevice, uint16_t axis0Index)
 {
-    return (uint16_t)(axis0Index + ((uint16_t)logicalDevice * (uint16_t)CO_402_PROFILE_INDEX_STRIDE));
+    return CO_profileIndex(logicalDevice, axis0Index);
 }
 
 #ifdef __cplusplus

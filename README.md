@@ -143,7 +143,7 @@ See [Object Dictionary](docs/en/object-dictionary.md).
 The optional CiA 402 support is split into reusable layers:
 
 - [Pure-C Device core and OD binding](docs/en/cia402-device-core.md): multi-axis PDS supervision, OD binding, DriveIF ownership, and mode interfaces.
-- [RT-Thread Device integration](docs/en/cia402-device-rtt.md): lifecycle registry, worker thread, lock order, automatic construction, and Communication Reset handling.
+- [RT-Thread Device integration](docs/en/cia402-device-rtt.md): lifecycle registry, shared/dedicated worker scheduling, lock order, automatic construction, and Communication Reset handling.
 - [Device diagnostics and product integration](docs/en/cia402.md): per-axis Error-code/EMCY integration and product OD guidance.
 - [Controller API](docs/en/cia402-controller.md): transport-agnostic PDS Controlword sequencing for remote drives.
 

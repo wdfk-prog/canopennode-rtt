@@ -96,13 +96,15 @@ When lifecycle autostart is selected, profile factories are registered during RT
 | RX helper thread | `co_rx` | Read frames from RT-Thread CAN device and dispatch CANopenNode receive callbacks. |
 | Mainline thread | `co_main` | Run `CO_process()`, handle NMT, SDO, heartbeat, storage auto processing, LED state, and reset commands. |
 | Realtime thread | `co_rt` | Run time-sensitive SYNC, SRDO, RPDO, and TPDO paths when enabled. |
-| Realtime timer | `co_tmr` | Releases `rtSem` first, then invokes the generic lifecycle realtime hook; the CiA 402 hook releases `cia402Sem`. |
-| CiA 402 thread | `co_402` | Runs one Pure-C PDS supervisor pass for an attached CiA 402 Device; default priority 5. |
+| Realtime timer | `co_tmr` | Releases `rtSem` first, then invokes the generic lifecycle realtime hook. |
+| Shared Profile worker | `co_prof` | Default lower-priority deferred worker for all enabled Profiles that did not request a private worker. |
+| Optional CiA 401 worker | `co_401` | Created only when `PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER=y`. |
+| Optional CiA 402 worker | `co_402` | Created only when `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER=y`. |
 | Mainline event | `co_evt` | Coalesce callback-pre and runtime wake notifications when `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` is enabled. |
 
 The requested realtime period is configured by `PKG_CANOPENNODE_TIMER_PERIOD_US`. The wrapper rounds the period to RT-Thread ticks, so very small values are limited by the BSP tick rate.
 
-With `PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n`, `co_main` keeps the legacy 1 ms polling loop and `CO_mainline_RTT.c` is not selected by SCons. With it enabled, `CO_mainline_RTT.c` owns the event lifecycle, callback-pre wake hooks, wait policy, and wrapper-owned deadline aggregation; `CO_app_RTT.c` only calls the scheduler at explicit feature-guarded integration points. `CO_process()` and wrapper-owned work contribute the next deadline, while callback-pre hooks and Gateway input set the mainline event to wake the thread early. Event bits are only scheduling hints; CANopenNode remains the owner of protocol state and receive buffers. With 402 disabled, the lifecycle registry is not selected and the realtime path remains exactly `co_tmr -> rtSem -> co_rt`. An attached CiA 402 Device uses the same timer through the generic realtime hook; the CiA 402 hook wakes `cia402Sem -> co_402`. This is independent of timerNext and does not insert PDS work into the co_rt SYNC/RPDO/TPDO/SRDO sequence.
+With `PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n`, `co_main` keeps the legacy 1 ms polling loop and `CO_mainline_RTT.c` is not selected by SCons. With it enabled, `CO_mainline_RTT.c` owns the event lifecycle, callback-pre wake hooks, wait policy, and wrapper-owned deadline aggregation; `CO_app_RTT.c` only calls the scheduler at explicit feature-guarded integration points. `CO_process()` and wrapper-owned work contribute the next deadline, while callback-pre hooks and Gateway input set the mainline event to wake the thread early. Event bits are only scheduling hints; CANopenNode remains the owner of protocol state and receive buffers. With no lifecycle Profile adapter enabled, the realtime path remains `co_tmr -> rtSem -> co_rt`. By default, the generic lifecycle realtime hook coalesces one `co_prof` wake and that worker invokes all registered `deferredProcess` callbacks in registration order while holding `lifecycleMutex` once for the complete batch. A Profile that selects dedicated mode keeps its own timer hook/semaphore/thread and is skipped by `co_prof`. This scheduling is independent of timerNext and never inserts Profile supervisor work into the `co_rt` SYNC/RPDO/TPDO/SRDO sequence.
 
 ## 5. CAN receive path
 
@@ -150,7 +152,7 @@ Use these locks when application code shares OD, EMCY, or CAN send state with CA
 
 The mainline thread watches the return value from `CO_process()`. On communication reset, the wrapper stops `rtTimer`, drains `rtSem`, and calls generic `CO_RTT_lifecycleResetWakeups()`. After taking `lifecycleMutex`, the registry runs communication-stop hooks in reverse registration order; the old CAN module is then disabled and its RX thread drained before communication-quiesced hooks release old-generation bindings. After the old stack is deleted, bind hooks run in registration order after `CO_CANopenInit()` and before SRDO/PDO initialization, followed by ready hooks after CAN normal mode. Auto-owned contexts are not released during this reset; final teardown runs `runtimeDeinit()` first and then the slot release callback. CiA 402 is one extension; `CO_app_RTT.c` no longer contains profile-specific calls.
 
-Both `co_rt` and `co_402` use `lifecycleMutex -> OD lock` and resolve `app->canOpenStack` only after taking the lifecycle mutex. A thread therefore cannot retain an old `CO_t`, `CANmodule`, or `odMutex` pointer across reset. See [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) for the complete CiA 402 Device sequence.
+`co_rt`, `co_prof`, and any enabled dedicated Profile worker preserve `lifecycleMutex -> OD lock` ordering. The common worker takes `lifecycleMutex` once for the Profile batch; each Profile callback owns only its OD-lock windows and must return with the OD lock released. A worker therefore cannot retain an old `CO_t`, `CANmodule`, or `odMutex` pointer across reset. See [CiA 402 RT-Thread Device Worker](cia402-device-rtt.md) for the complete CiA 402 sequence.
 
 ## 9. Storage integration
 

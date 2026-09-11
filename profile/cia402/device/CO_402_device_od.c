@@ -118,7 +118,7 @@ static void setDiag(CO_402_init_diag_t *diag, CO_402_init_error_t error, uint8_t
 static CO_402_init_error_t validateOneScalar(OD_t *od, CO_402_device_axis_t *axis,
                                              const CO_402_od_contract_t *contract, CO_402_init_diag_t *diag)
 {
-    const uint16_t index = (uint16_t)(axis->odBase + (contract->axis0Index - CO_402_PROFILE_INDEX_BASE));
+    const uint16_t index = CO_profileIndex(axis->logicalDevice, contract->axis0Index);
     OD_entry_t *entry = OD_find(od, index);
     OD_IO_t io;
 
@@ -174,7 +174,7 @@ static CO_402_init_error_t validateScalarContracts(OD_t *od, CO_402_device_axis_
 /* 0x6099 is a RECORD, so validate its header and both speed sub-entries before caching it. */
 static CO_402_init_error_t validateHomingSpeeds(OD_t *od, CO_402_device_axis_t *axis, CO_402_init_diag_t *diag)
 {
-    const uint16_t index = (uint16_t)(axis->odBase + (CO_402_INDEX_HOMING_SPEEDS - CO_402_PROFILE_INDEX_BASE));
+    const uint16_t index = CO_profileIndex(axis->logicalDevice, CO_402_INDEX_HOMING_SPEEDS);
     OD_entry_t *entry = OD_find(od, index);
     OD_IO_t io;
     uint8_t subIndex;

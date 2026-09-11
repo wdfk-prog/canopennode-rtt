@@ -39,6 +39,9 @@ struct rt_mutex {
 #define RT_EBUSY 16
 #define RT_EINVAL 22
 #define RT_ENOMEM 12
+#define RT_ENOSYS 38
+#define RT_EFULL 28
+#define RT_EEMPTY 61
 #define RT_ETIMEOUT 110
 #define RT_TRUE 1
 #define RT_FALSE 0

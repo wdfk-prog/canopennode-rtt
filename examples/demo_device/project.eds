@@ -154,27 +154,27 @@ SupportedObjects=147
 26=0x13FF
 27=0x1400
 28=0x1401
-29=0x1402
-30=0x1403
+29=0x1441
+30=0x1481
 31=0x14C0
 32=0x14C1
 33=0x1600
 34=0x1601
-35=0x1602
-36=0x1603
+35=0x1641
+36=0x1681
 37=0x16C0
 38=0x16C1
 39=0x1800
 40=0x1801
-41=0x1802
-42=0x1803
+41=0x1841
+42=0x1881
 43=0x1804
 44=0x18C0
 45=0x18C1
 46=0x1A00
 47=0x1A01
-48=0x1A02
-49=0x1A03
+48=0x1A41
+49=0x1A81
 50=0x1A04
 51=0x1AC0
 52=0x1AC1
@@ -1154,13 +1154,13 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1402]
+[1441]
 ParameterName=RPDO communication parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x4
 
-[1402sub0]
+[1441sub0]
 ParameterName=Highest sub-index supported
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1169,7 +1169,7 @@ AccessType=ro
 DefaultValue=0x05
 PDOMapping=0
 
-[1402sub1]
+[1441sub1]
 ParameterName=COB-ID used by RPDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1178,7 +1178,7 @@ AccessType=rw
 DefaultValue=$NODEID+0x80000400
 PDOMapping=0
 
-[1402sub2]
+[1441sub2]
 ParameterName=Transmission type
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1187,7 +1187,7 @@ AccessType=rw
 DefaultValue=254
 PDOMapping=0
 
-[1402sub5]
+[1441sub5]
 ParameterName=Event timer
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1196,13 +1196,13 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1403]
+[1481]
 ParameterName=RPDO communication parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x4
 
-[1403sub0]
+[1481sub0]
 ParameterName=Highest sub-index supported
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1211,7 +1211,7 @@ AccessType=ro
 DefaultValue=0x05
 PDOMapping=0
 
-[1403sub1]
+[1481sub1]
 ParameterName=COB-ID used by RPDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1220,7 +1220,7 @@ AccessType=rw
 DefaultValue=$NODEID+0x80000500
 PDOMapping=0
 
-[1403sub2]
+[1481sub2]
 ParameterName=Transmission type
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1229,7 +1229,7 @@ AccessType=rw
 DefaultValue=254
 PDOMapping=0
 
-[1403sub5]
+[1481sub5]
 ParameterName=Event timer
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1412,13 +1412,13 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1602]
+[1641]
 ParameterName=RPDO mapping parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x9
 
-[1602sub0]
+[1641sub0]
 ParameterName=Number of mapped application objects in PDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1427,7 +1427,7 @@ AccessType=rw
 DefaultValue=3
 PDOMapping=0
 
-[1602sub1]
+[1641sub1]
 ParameterName=Application object 1
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1436,7 +1436,7 @@ AccessType=rw
 DefaultValue=0x68400010
 PDOMapping=0
 
-[1602sub2]
+[1641sub2]
 ParameterName=Application object 2
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1445,7 +1445,7 @@ AccessType=rw
 DefaultValue=0x68600008
 PDOMapping=0
 
-[1602sub3]
+[1641sub3]
 ParameterName=Application object 3
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1454,7 +1454,7 @@ AccessType=rw
 DefaultValue=0x687A0020
 PDOMapping=0
 
-[1602sub4]
+[1641sub4]
 ParameterName=Application object 4
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1463,7 +1463,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1602sub5]
+[1641sub5]
 ParameterName=Application object 5
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1472,7 +1472,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1602sub6]
+[1641sub6]
 ParameterName=Application object 6
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1481,7 +1481,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1602sub7]
+[1641sub7]
 ParameterName=Application object 7
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1490,7 +1490,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1602sub8]
+[1641sub8]
 ParameterName=Application object 8
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1499,13 +1499,13 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1603]
+[1681]
 ParameterName=RPDO mapping parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x9
 
-[1603sub0]
+[1681sub0]
 ParameterName=Number of mapped application objects in PDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1514,7 +1514,7 @@ AccessType=rw
 DefaultValue=3
 PDOMapping=0
 
-[1603sub1]
+[1681sub1]
 ParameterName=Application object 1
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1523,7 +1523,7 @@ AccessType=rw
 DefaultValue=0x70400010
 PDOMapping=0
 
-[1603sub2]
+[1681sub2]
 ParameterName=Application object 2
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1532,7 +1532,7 @@ AccessType=rw
 DefaultValue=0x70600008
 PDOMapping=0
 
-[1603sub3]
+[1681sub3]
 ParameterName=Application object 3
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1541,7 +1541,7 @@ AccessType=rw
 DefaultValue=0x707A0020
 PDOMapping=0
 
-[1603sub4]
+[1681sub4]
 ParameterName=Application object 4
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1550,7 +1550,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1603sub5]
+[1681sub5]
 ParameterName=Application object 5
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1559,7 +1559,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1603sub6]
+[1681sub6]
 ParameterName=Application object 6
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1568,7 +1568,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1603sub7]
+[1681sub7]
 ParameterName=Application object 7
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1577,7 +1577,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1603sub8]
+[1681sub8]
 ParameterName=Application object 8
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1706,13 +1706,13 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1802]
+[1841]
 ParameterName=TPDO communication parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x6
 
-[1802sub0]
+[1841sub0]
 ParameterName=Highest sub-index supported
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1721,7 +1721,7 @@ AccessType=ro
 DefaultValue=0x06
 PDOMapping=0
 
-[1802sub1]
+[1841sub1]
 ParameterName=COB-ID used by TPDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1730,7 +1730,7 @@ AccessType=rw
 DefaultValue=$NODEID+0xC0000380
 PDOMapping=0
 
-[1802sub2]
+[1841sub2]
 ParameterName=Transmission type
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1739,7 +1739,7 @@ AccessType=rw
 DefaultValue=254
 PDOMapping=0
 
-[1802sub3]
+[1841sub3]
 ParameterName=Inhibit time
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1748,7 +1748,7 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1802sub5]
+[1841sub5]
 ParameterName=Event timer
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1757,7 +1757,7 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1802sub6]
+[1841sub6]
 ParameterName=SYNC start value
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1766,13 +1766,13 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1803]
+[1881]
 ParameterName=TPDO communication parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x6
 
-[1803sub0]
+[1881sub0]
 ParameterName=Highest sub-index supported
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1781,7 +1781,7 @@ AccessType=ro
 DefaultValue=0x06
 PDOMapping=0
 
-[1803sub1]
+[1881sub1]
 ParameterName=COB-ID used by TPDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1790,7 +1790,7 @@ AccessType=rw
 DefaultValue=$NODEID+0xC0000480
 PDOMapping=0
 
-[1803sub2]
+[1881sub2]
 ParameterName=Transmission type
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1799,7 +1799,7 @@ AccessType=rw
 DefaultValue=254
 PDOMapping=0
 
-[1803sub3]
+[1881sub3]
 ParameterName=Inhibit time
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1808,7 +1808,7 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1803sub5]
+[1881sub5]
 ParameterName=Event timer
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -1817,7 +1817,7 @@ AccessType=rw
 DefaultValue=0
 PDOMapping=0
 
-[1803sub6]
+[1881sub6]
 ParameterName=SYNC start value
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2060,13 +2060,13 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A02]
+[1A41]
 ParameterName=TPDO mapping parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x9
 
-[1A02sub0]
+[1A41sub0]
 ParameterName=Number of mapped application objects in PDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2075,7 +2075,7 @@ AccessType=rw
 DefaultValue=3
 PDOMapping=0
 
-[1A02sub1]
+[1A41sub1]
 ParameterName=Application object 1
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2084,7 +2084,7 @@ AccessType=rw
 DefaultValue=0x68410010
 PDOMapping=0
 
-[1A02sub2]
+[1A41sub2]
 ParameterName=Application object 2
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2093,7 +2093,7 @@ AccessType=rw
 DefaultValue=0x68610008
 PDOMapping=0
 
-[1A02sub3]
+[1A41sub3]
 ParameterName=Application object 3
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2102,7 +2102,7 @@ AccessType=rw
 DefaultValue=0x68640020
 PDOMapping=0
 
-[1A02sub4]
+[1A41sub4]
 ParameterName=Application object 4
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2111,7 +2111,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A02sub5]
+[1A41sub5]
 ParameterName=Application object 5
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2120,7 +2120,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A02sub6]
+[1A41sub6]
 ParameterName=Application object 6
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2129,7 +2129,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A02sub7]
+[1A41sub7]
 ParameterName=Application object 7
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2138,7 +2138,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A02sub8]
+[1A41sub8]
 ParameterName=Application object 8
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2147,13 +2147,13 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A03]
+[1A81]
 ParameterName=TPDO mapping parameter
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x9
 
-[1A03sub0]
+[1A81sub0]
 ParameterName=Number of mapped application objects in PDO
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2162,7 +2162,7 @@ AccessType=rw
 DefaultValue=3
 PDOMapping=0
 
-[1A03sub1]
+[1A81sub1]
 ParameterName=Application object 1
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2171,7 +2171,7 @@ AccessType=rw
 DefaultValue=0x70410010
 PDOMapping=0
 
-[1A03sub2]
+[1A81sub2]
 ParameterName=Application object 2
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2180,7 +2180,7 @@ AccessType=rw
 DefaultValue=0x70610008
 PDOMapping=0
 
-[1A03sub3]
+[1A81sub3]
 ParameterName=Application object 3
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2189,7 +2189,7 @@ AccessType=rw
 DefaultValue=0x70640020
 PDOMapping=0
 
-[1A03sub4]
+[1A81sub4]
 ParameterName=Application object 4
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2198,7 +2198,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A03sub5]
+[1A81sub5]
 ParameterName=Application object 5
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2207,7 +2207,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A03sub6]
+[1A81sub6]
 ParameterName=Application object 6
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2216,7 +2216,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A03sub7]
+[1A81sub7]
 ParameterName=Application object 7
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -2225,7 +2225,7 @@ AccessType=rw
 DefaultValue=0x00000000
 PDOMapping=0
 
-[1A03sub8]
+[1A81sub8]
 ParameterName=Application object 8
 ObjectType=0x7
 ;StorageLocation=RAM

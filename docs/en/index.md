@@ -30,7 +30,7 @@ This documentation is organized as a project manual for RT-Thread BSP developers
 | [High-Resolution Time](high-resolution-time.md) | Timer source contract and time-width limitations. |
 | [LSS persistence](lss-persistence.md) | Persistent LSS record format, startup loading, bitrate switching, and recovery. |
 | [CiA 402 Device core](cia402-device-core.md) | Multi-axis Device runtime, PDS supervision, OD binding, and DriveIF contract. |
-| [CiA 402 RT-Thread integration](cia402-device-rtt.md) | Device lifecycle attachment, worker thread, lock order, and reset/rebind behavior. |
+| [CiA 402 RT-Thread integration](cia402-device-rtt.md) | Device lifecycle attachment, shared/dedicated worker scheduling, lock order, and reset/rebind behavior. |
 | [CiA 402 diagnostics and product integration](cia402.md) | Error-code/EMCY bridge and product-generated OD guidance. |
 | [CiA 402 Controller API](cia402-controller.md) | Transport-independent remote PDS target sequencing. |
 | [Submodule update](submodule-update.md) | CANopenNode submodule maintenance. |

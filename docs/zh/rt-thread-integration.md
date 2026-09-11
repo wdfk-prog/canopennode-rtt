@@ -102,8 +102,7 @@ mainline 线程最后启动，因为它可能处理 `CO_RESET_COMM` 并重建 CA
 
 realtime 请求周期由 `PKG_CANOPENNODE_TIMER_PERIOD_US` 配置。封装层会将周期换算为 RT-Thread tick，因此过小的值会受到 BSP tick rate 限制。
 
-`PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n` 时，`co_main` 保留原有 1 ms polling，SCons 也不会编译 `CO_mainline_RTT.c`。开启后由 `CO_mainline_RTT.c` 负责 Event 生命周期、callback-pre 唤醒、等待策略和 wrapper deadline 聚合，`CO_app_RTT.c` 只在明确的功能宏调用点接入调度器。`CO_process()` 与 wrapper 自有逻辑共同给出最近 deadline，callback-pre 和 Gateway 输入则通过 mainline event 提前唤醒线程。Event bit 只表达“有工作需要重新处理”，协议状态和接收数据仍由 CANopenNode 自身维护。402 关闭时不会选择 lifecycle registry，realtime 路径继续严格保持 `co_tmr -> rtSem -> co_rt`。CiA 402 Device attach 后，同一 timer 调用通用 realtime hook，
-CiA 402 hook 再唤醒 `cia402Sem -> co_402`；该 hook 与 timerNext mainline 配置无关，也不把 PDS supervisor 插入 `co_rt` 的 SYNC/RPDO/TPDO/SRDO 顺序。
+`PKG_CANOPENNODE_GLOBAL_TIMERNEXT=n` 时，`co_main` 保留原有 1 ms polling，SCons 也不会编译 `CO_mainline_RTT.c`。开启后由 `CO_mainline_RTT.c` 负责 Event 生命周期、callback-pre 唤醒、等待策略和 wrapper deadline 聚合，`CO_app_RTT.c` 只在明确的功能宏调用点接入调度器。`CO_process()` 与 wrapper 自有逻辑共同给出最近 deadline，callback-pre 和 Gateway 输入则通过 mainline event 提前唤醒线程。Event bit 只表达“有工作需要重新处理”，协议状态和接收数据仍由 CANopenNode 自身维护。没有启用任何 lifecycle Profile adapter 时，realtime 路径保持 `co_tmr -> rtSem -> co_rt`。默认情况下，通用 lifecycle realtime hook 只合并一次 `co_prof` wake，公共 worker 在一次 `lifecycleMutex` 持有期间按注册顺序调用所有 `deferredProcess`。选择 dedicated 的 Profile 继续使用自己的 timer hook/semaphore/thread，并不会再由 `co_prof` 执行。该调度与 timerNext mainline 配置无关，也不会把 Profile supervisor 插入 `co_rt` 的 SYNC/RPDO/TPDO/SRDO 顺序。
 
 ## 5. CAN 接收路径
 
@@ -151,7 +150,7 @@ RT-Thread target 层提供以下 locking macros：
 
 mainline 线程检查 `CO_process()` 返回值。当 CANopenNode 请求 communication reset 时，封装层先停止 `rtTimer`、drain `rtSem`，并调用通用 `CO_RTT_lifecycleResetWakeups()`。随后获取 `lifecycleMutex`，registry 先以逆注册顺序执行 communication-stop hook；旧 CAN module 禁用并等待 RX thread 退出后，再以逆注册顺序执行 communication-quiesced hook。删除旧 stack 后，新 stack 在 `CO_CANopenInit()` 完成后、SRDO/PDO 初始化前按注册顺序执行 bind hook，进入 CAN normal mode 后执行 ready hook。Auto-owned context 在 Communication Reset 中不会释放；只有最终 teardown 才先执行 `runtimeDeinit()`，再执行 slot release callback。CiA 402 只是其中一个 extension，`CO_app_RTT.c` 不再包含 profile 专属调用。
 
-`co_rt` 与 `co_402` 都按 `lifecycleMutex -> OD lock` 获取锁，并且只在持有 lifecycle mutex 后读取当前 `app->canOpenStack`。因此 reset 不允许 thread 保存或继续使用旧 `CO_t`、`CANmodule` 或 `odMutex` 指针。完整 CiA 402 Device 时序见 [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md)。
+`co_rt`、`co_prof` 以及任何启用的 dedicated Profile worker 都保持 `lifecycleMutex -> OD lock` 顺序。公共 worker 对整个 Profile batch 只获取一次 `lifecycleMutex`，各 Profile callback 只管理自己的 OD-lock 窗口并必须在返回前释放 OD lock。因此 reset 不允许 worker 保存或继续使用旧 `CO_t`、`CANmodule` 或 `odMutex` 指针。完整 CiA 402 时序见 [CiA 402 RT-Thread Device Worker](cia402-device-rtt.md)。
 
 ## 9. Storage 集成
 

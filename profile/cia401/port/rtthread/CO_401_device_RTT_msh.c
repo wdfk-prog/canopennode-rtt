@@ -267,12 +267,7 @@ static void CO_401_mshUnlock(CANopenNodeRTT *app, CO_t *co)
 static void CO_401_mshPublishAndUnlock(CANopenNodeRTT *app, CO_401_device_RTT_t *runtime, CO_t *co)
 {
     (void)rt_mutex_release(&co->CANmodule->odMutex);
-    if (runtime->semInitialized == RT_TRUE && rt_atomic_load(&runtime->wakePending) == 0) {
-        rt_atomic_store(&runtime->wakePending, 1);
-        if (rt_sem_release(&runtime->cia401Sem) != RT_EOK) {
-            rt_atomic_store(&runtime->wakePending, 0);
-        }
-    }
+    (void)CO_401_device_RTT_requestProcess(runtime);
     (void)rt_mutex_release(&app->lifecycleMutex);
 }
 

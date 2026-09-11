@@ -38,13 +38,17 @@ typedef struct {
 typedef struct {
     CO_402_device_manager_t manager;       /**< Pure-C Device manager bound to the generated OD. */
     CO_402_device_RTT_config_t config;     /**< Persistent pointer configuration copied by attach. */
-    rt_thread_t workerThread;              /**< Lower-priority non-blocking PDS supervisor thread. */
-    struct rt_semaphore cia402Sem;         /**< Wake semaphore released by the shared realtime timer. */
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER)
+    rt_thread_t workerThread;              /**< Optional profile-private PDS supervisor thread. */
+    struct rt_semaphore cia402Sem;         /**< Wake semaphore for the optional profile-private worker. */
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER) */
     rt_bool_t attached;                    /**< True after successful lifecycle registration. */
     rt_bool_t managerInitialized;          /**< True after the initial manager/OD binding succeeds. */
+#if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER)
     rt_bool_t semInitialized;              /**< True while cia402Sem is an initialized RT-Thread object. */
+#endif /* defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER) */
     rt_bool_t communicationReady;          /**< Gate for processing the current CANopen stack generation. */
-    CANopenNodeRTT *app;                    /**< Attached application used by the co_402 thread; caller-owned. */
+    CANopenNodeRTT *app;                    /**< Attached application used by the selected Profile worker; caller-owned. */
 #if defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG)
     uint32_t demoSyncLogSequence;           /**< Last cyclic generation sampled for deferred demo logging. */
 #endif /* defined(PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG) */
@@ -59,9 +63,11 @@ typedef struct {
  * Dictionary. @p runtime, @p axes, @p configs, and every referenced DriveIF/SyncIF
  * table/object must remain valid for the CANopenNodeRTT instance lifetime.
  *
- * The co_402 thread executes DriveIF callbacks while holding lifecycleMutex and
- * the CANopenNode OD lock. DriveIF callbacks must therefore remain non-blocking
- * and must not recursively acquire either wrapper lifecycle or OD lock. When a
+ * The configured profile worker executes DriveIF callbacks while holding lifecycleMutex and
+ * the CANopenNode OD lock. By default CiA 402 shares the common @c co_prof worker; the
+ * dedicated-worker Kconfig option instead creates @c co_402 without changing supervisor
+ * semantics. DriveIF callbacks must remain non-blocking and must not recursively acquire
+ * either wrapper lifecycle or OD lock. When a
  * cyclic SyncIF is enabled, its callbacks execute in co_rt under the same two
  * caller-owned locks and must follow the same non-blocking/no-recursive-lock rule.
  *
@@ -74,6 +80,20 @@ typedef struct {
  */
 rt_err_t CO_402_device_RTT_attach(CANopenNodeRTT *app, CO_402_device_RTT_t *runtime,
                                    const CO_402_device_RTT_config_t *config);
+
+/**
+ * @brief Request one deferred CiA 402 supervisor pass on the configured worker.
+ *
+ * The call is safe for producer paths that already hold @c lifecycleMutex. In
+ * shared-worker mode it coalesces with the common profile wake; in dedicated
+ * mode it releases the private @c co_402 semaphore.
+ *
+ * @param runtime Attached CiA 402 RT-Thread runtime.
+ * @return RT_EOK when the request was queued/coalesced, -RT_EINVAL for an
+ *         invalid runtime, -RT_EBUSY before the selected worker is initialized,
+ *         or the underlying RT-Thread wake error.
+ */
+rt_err_t CO_402_device_RTT_requestProcess(CO_402_device_RTT_t *runtime);
 
 #if defined(PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART)
 /** Fixed lifecycle factory order reserved for the single automatic local CiA 402 Device runtime. */
@@ -133,7 +153,7 @@ void CO_402_device_RTT_mshUnbind(CANopenNodeRTT *app, CO_402_device_RTT_t *runti
  */
 #define CO_402_DEVICE_RTT_AUTOSTART_DEFINE(name_, configs_, axisCount_)                                      \
     typedef char name_##_co402_axis_count_must_be_valid[                                                     \
-        ((axisCount_) > 0U && (axisCount_) <= CO_402_LOGICAL_DEVICE_COUNT_MAX) ? 1 : -1];                    \
+        ((axisCount_) > 0U && (axisCount_) <= CO_PROFILE_LOGICAL_DEVICE_COUNT_MAX) ? 1 : -1];                 \
     static const CO_402_device_RTT_autostart_config_t name_##_co402_autostart_config = {                    \
         .configs = (configs_),                                                                               \
         .axisCount = (uint8_t)(axisCount_),                                                                  \

@@ -267,7 +267,7 @@
               <UINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_1402">
+          <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_1441">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_140200">
               <USINT />
             </q1:varDeclaration>
@@ -281,7 +281,7 @@
               <UINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_1403">
+          <q1:struct name="RPDO communication parameter" uniqueID="UID_REC_1481">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_140300">
               <USINT />
             </q1:varDeclaration>
@@ -353,7 +353,7 @@
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="RPDO mapping parameter" uniqueID="UID_REC_1602">
+          <q1:struct name="RPDO mapping parameter" uniqueID="UID_REC_1641">
             <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_160200">
               <USINT />
             </q1:varDeclaration>
@@ -382,7 +382,7 @@
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="RPDO mapping parameter" uniqueID="UID_REC_1603">
+          <q1:struct name="RPDO mapping parameter" uniqueID="UID_REC_1681">
             <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_160300">
               <USINT />
             </q1:varDeclaration>
@@ -451,7 +451,7 @@
               <USINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="TPDO communication parameter" uniqueID="UID_REC_1802">
+          <q1:struct name="TPDO communication parameter" uniqueID="UID_REC_1841">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_180200">
               <USINT />
             </q1:varDeclaration>
@@ -471,7 +471,7 @@
               <USINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="TPDO communication parameter" uniqueID="UID_REC_1803">
+          <q1:struct name="TPDO communication parameter" uniqueID="UID_REC_1881">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_180300">
               <USINT />
             </q1:varDeclaration>
@@ -569,7 +569,7 @@
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1A02">
+          <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1A41">
             <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_1A0200">
               <USINT />
             </q1:varDeclaration>
@@ -598,7 +598,7 @@
               <UDINT />
             </q1:varDeclaration>
           </q1:struct>
-          <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1A03">
+          <q1:struct name="TPDO mapping parameter" uniqueID="UID_REC_1A81">
             <q1:varDeclaration name="Number of mapped application objects in PDO" uniqueID="UID_RECSUB_1A0300">
               <USINT />
             </q1:varDeclaration>
@@ -2089,7 +2089,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1402">
+          <q1:parameter uniqueID="UID_OBJ_1441">
             <description lang="en">* COB-ID used by RPDO:
   * bit 31: If set, PDO does not exist / is not valid
   * bit 11-30: set to 0
@@ -2100,7 +2100,7 @@ The life time factor multiplied with the guard time gives the life time for the 
   * Value 254: event-driven (manufacturer-specific)
   * Value 255: event-driven (device profile and application profile specific)
 * Event timer in ms (0 = disabled) for deadline monitoring.</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1402" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1441" />
             <q1:property name="CO_countLabel" value="RPDO" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
@@ -2124,7 +2124,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1403">
+          <q1:parameter uniqueID="UID_OBJ_1481">
             <description lang="en">* COB-ID used by RPDO:
   * bit 31: If set, PDO does not exist / is not valid
   * bit 11-30: set to 0
@@ -2135,7 +2135,7 @@ The life time factor multiplied with the guard time gives the life time for the 
   * Value 254: event-driven (manufacturer-specific)
   * Value 255: event-driven (device profile and application profile specific)
 * Event timer in ms (0 = disabled) for deadline monitoring.</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1403" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1481" />
             <q1:property name="CO_countLabel" value="RPDO" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
@@ -2273,7 +2273,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1602">
+          <q1:parameter uniqueID="UID_OBJ_1641">
             <description lang="en">* Number of mapped application objects in PDO:
   * Value 0: mapping is disabled.
   * Value 1: sub-index 0x01 is valid.
@@ -2282,7 +2282,7 @@ The life time factor multiplied with the guard time gives the life time for the 
   * bit 16-31: index
   * bit 8-15: sub-index
   * bit 0-7: data length in bits</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1602" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1641" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160200" access="readWrite">
@@ -2330,7 +2330,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1603">
+          <q1:parameter uniqueID="UID_OBJ_1681">
             <description lang="en">* Number of mapped application objects in PDO:
   * Value 0: mapping is disabled.
   * Value 1: sub-index 0x01 is valid.
@@ -2339,7 +2339,7 @@ The life time factor multiplied with the guard time gives the life time for the 
   * bit 16-31: index
   * bit 8-15: sub-index
   * bit 0-7: data length in bits</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1603" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1681" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160300" access="readWrite">
@@ -2489,7 +2489,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <USINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1802">
+          <q1:parameter uniqueID="UID_OBJ_1841">
             <description lang="en">* COB-ID used by RPDO:
   * bit 31: If set, PDO does not exist / is not valid
   * bit 30: If set, NO RTR is allowed on this PDO
@@ -2506,7 +2506,7 @@ The life time factor multiplied with the guard time gives the life time for the 
 * SYNC start value
   * Value 0: Counter of the SYNC message shall not be processed.
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1802" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1841" />
             <q1:property name="CO_countLabel" value="TPDO" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
@@ -2540,7 +2540,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <USINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1803">
+          <q1:parameter uniqueID="UID_OBJ_1881">
             <description lang="en">* COB-ID used by RPDO:
   * bit 31: If set, PDO does not exist / is not valid
   * bit 30: If set, NO RTR is allowed on this PDO
@@ -2557,7 +2557,7 @@ The life time factor multiplied with the guard time gives the life time for the 
 * SYNC start value
   * Value 0: Counter of the SYNC message shall not be processed.
   * Value 1-240: The SYNC message with the counter value equal to this value shall be regarded as the first received SYNC message.</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1803" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1881" />
             <q1:property name="CO_countLabel" value="TPDO" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
@@ -2741,7 +2741,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1A02">
+          <q1:parameter uniqueID="UID_OBJ_1A41">
             <description lang="en">* Number of mapped application objects in PDO:
   * Value 0: mapping is disabled.
   * Value 1: sub-index 0x01 is valid.
@@ -2750,7 +2750,7 @@ The life time factor multiplied with the guard time gives the life time for the 
   * bit 16-31: index
   * bit 8-15: sub-index
   * bit 0-7: data length in bits</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1A02" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1A41" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0200" access="readWrite">
@@ -2798,7 +2798,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <UDINT />
             <q1:defaultValue value="0x00000000" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1A03">
+          <q1:parameter uniqueID="UID_OBJ_1A81">
             <description lang="en">* Number of mapped application objects in PDO:
   * Value 0: mapping is disabled.
   * Value 1: sub-index 0x01 is valid.
@@ -2807,7 +2807,7 @@ The life time factor multiplied with the guard time gives the life time for the 
   * bit 16-31: index
   * bit 8-15: sub-index
   * bit 0-7: data length in bits</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1A03" />
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1A81" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_1A0300" access="readWrite">
@@ -4753,13 +4753,13 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140102" />
             <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140105" />
           </CANopenObject>
-          <CANopenObject index="1402" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1402" subNumber="4">
+          <CANopenObject index="1441" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1441" subNumber="4">
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140200" />
             <CANopenSubObject subIndex="01" name="COB-ID used by RPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140201" />
             <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140202" />
             <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140205" />
           </CANopenObject>
-          <CANopenObject index="1403" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1403" subNumber="4">
+          <CANopenObject index="1481" name="RPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1481" subNumber="4">
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140300" />
             <CANopenSubObject subIndex="01" name="COB-ID used by RPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140301" />
             <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_140302" />
@@ -4799,7 +4799,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160107" />
             <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160108" />
           </CANopenObject>
-          <CANopenObject index="1602" name="RPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1602" subNumber="9">
+          <CANopenObject index="1641" name="RPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1641" subNumber="9">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160200" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160201" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160202" />
@@ -4810,7 +4810,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160207" />
             <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160208" />
           </CANopenObject>
-          <CANopenObject index="1603" name="RPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1603" subNumber="9">
+          <CANopenObject index="1681" name="RPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1681" subNumber="9">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160300" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160301" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_160302" />
@@ -4859,7 +4859,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180105" />
             <CANopenSubObject subIndex="06" name="SYNC start value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180106" />
           </CANopenObject>
-          <CANopenObject index="1802" name="TPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1802" subNumber="6">
+          <CANopenObject index="1841" name="TPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1841" subNumber="6">
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180200" />
             <CANopenSubObject subIndex="01" name="COB-ID used by TPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180201" />
             <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180202" />
@@ -4867,7 +4867,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="05" name="Event timer" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180205" />
             <CANopenSubObject subIndex="06" name="SYNC start value" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180206" />
           </CANopenObject>
-          <CANopenObject index="1803" name="TPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1803" subNumber="6">
+          <CANopenObject index="1881" name="TPDO communication parameter" objectType="9" uniqueIDRef="UID_OBJ_1881" subNumber="6">
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180300" />
             <CANopenSubObject subIndex="01" name="COB-ID used by TPDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180301" />
             <CANopenSubObject subIndex="02" name="Transmission type" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_180302" />
@@ -4921,7 +4921,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0107" />
             <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0108" />
           </CANopenObject>
-          <CANopenObject index="1A02" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A02" subNumber="9">
+          <CANopenObject index="1A41" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A41" subNumber="9">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0200" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0201" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0202" />
@@ -4932,7 +4932,7 @@ The life time factor multiplied with the guard time gives the life time for the 
             <CANopenSubObject subIndex="07" name="Application object 7" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0207" />
             <CANopenSubObject subIndex="08" name="Application object 8" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0208" />
           </CANopenObject>
-          <CANopenObject index="1A03" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A03" subNumber="9">
+          <CANopenObject index="1A81" name="TPDO mapping parameter" objectType="9" uniqueIDRef="UID_OBJ_1A81" subNumber="9">
             <CANopenSubObject subIndex="00" name="Number of mapped application objects in PDO" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0300" />
             <CANopenSubObject subIndex="01" name="Application object 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0301" />
             <CANopenSubObject subIndex="02" name="Application object 2" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1A0302" />

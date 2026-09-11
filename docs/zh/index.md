@@ -30,7 +30,7 @@
 | [High-Resolution Time](high-resolution-time.md) | timer source 契约和时间位宽限制。 |
 | [LSS 持久化](lss-persistence.md) | LSS record、启动加载、bitrate 切换与恢复策略。 |
 | [CiA 402 Device Core](cia402-device-core.md) | 多轴 Device runtime、PDS supervisor、OD binding 与 DriveIF 契约。 |
-| [CiA 402 RT-Thread 集成](cia402-device-rtt.md) | Device lifecycle attach、worker thread、锁顺序和 reset/rebind。 |
+| [CiA 402 RT-Thread 集成](cia402-device-rtt.md) | Device lifecycle attach、shared/dedicated worker 调度、锁顺序和 reset/rebind。 |
 | [CiA 402 诊断与产品集成](cia402.md) | Error-code/EMCY bridge 与产品生成 OD。 |
 | [CiA 402 Controller API](cia402-controller.md) | 与 transport 无关的远端 PDS target 状态推进。 |
 | [子模块更新](submodule-update.md) | CANopenNode submodule 维护。 |

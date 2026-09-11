@@ -54,6 +54,10 @@ typedef struct CANopenNodeRTT CANopenNodeRTT;
  * TPDO, with lifecycleMutex and the OD lock already held. The default co_rt caller
  * dispatches it only for a SYNC while NMT is Operational. It has the same bounded
  * rules and must not recursively acquire either caller-owned lock.
+ * `deferredProcess` executes later from the common `co_prof` worker with
+ * lifecycleMutex already held and the OD lock released. Shared callbacks run
+ * in lifecycle registration order, own only their OD-lock windows, and must
+ * return with the OD lock released so the next Profile can run safely.
  */
 typedef struct {
     rt_err_t (*runtimeInit)(CANopenNodeRTT *app, void *context); /**< Create extension-owned RT resources. */
@@ -70,6 +74,23 @@ typedef struct {
     void (*synchronousProcess)(CANopenNodeRTT *app, void *context, uint32_t dtUs);
     /** Observe one local NMT state transition from the mainline thread after CO_process(). */
     void (*nmtStateChanged)(CANopenNodeRTT *app, void *context, CO_NMT_internalState_t state);
+    /**
+     * Run one deferred extension pass from the common lower-priority worker.
+     *
+     * The common worker already owns lifecycleMutex on entry but does not own the
+     * CANopenNode OD lock. The callback may take/release the OD lock as required,
+     * must leave it unlocked before returning, and must remain bounded/non-blocking.
+     */
+    void (*deferredProcess)(CANopenNodeRTT *app, void *context);
+    /**
+     * Run CANopen-service work in the co_main thread after CO_process() and before reset teardown.
+     *
+     * This callback owns no lifecycle/OD lock. It may call CANopen services whose documented owner is the mainline
+     * thread, must remain non-blocking, and may reduce @p timerNextUs for event-driven scheduling. When @p resetStatus
+     * is not CO_RESET_NOT, the old communication generation is still valid only for bounded cancellation/close work.
+     */
+    void (*mainlineProcess)(CANopenNodeRTT *app, void *context, uint32_t dtUs,
+                            CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs);
 } CO_RTT_lifecycle_ops_t;
 
 /** Release function for a lifecycle-owned extension context at final teardown. */
@@ -82,7 +103,7 @@ typedef struct {
     const CO_RTT_lifecycle_ops_t *ops;                  /**< Caller-owned immutable callback table. */
     void *context;                                      /**< Context retained until final lifecycle teardown. */
     CO_RTT_lifecycle_context_release_t release;         /**< Optional final release for lifecycle-owned contexts. */
-    rt_bool_t runtimeInitialized;                       /**< True after runtimeInit; gates start/realtimeTick. */
+    rt_bool_t runtimeInitialized;                       /**< True after runtimeInit; gates start and runtime dispatch. */
     rt_bool_t communicationBound;                       /**< True while current communication bindings are owned. */
     rt_bool_t deinitRequired;                           /**< Final cleanup ownership retained across reset. */
 } CO_RTT_lifecycle_slot_t;
@@ -91,6 +112,12 @@ typedef struct {
 typedef struct {
     CO_RTT_lifecycle_slot_t slots[CO_RTT_LIFECYCLE_EXTENSION_CAPACITY]; /**< Registration-order slots. */
     uint8_t count; /**< Number of valid slots; immutable while a CANopen runtime is active. */
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+    rt_thread_t sharedWorkerThread;      /**< Common lower-priority deferred extension worker. */
+    struct rt_semaphore sharedWorkerSem; /**< Coalesced wake semaphore for the common worker. */
+    rt_atomic_t sharedWorkerWakePending; /**< Zero or one queued common-worker request. */
+    rt_bool_t sharedWorkerSemInitialized; /**< True while @ref sharedWorkerSem is initialized. */
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
 } CO_RTT_lifecycle_t;
 
 /**
@@ -266,6 +293,21 @@ void CO_RTT_lifecycleCommunicationReady(CANopenNodeRTT *app);
 void CO_RTT_lifecycleNmtStateChanged(CANopenNodeRTT *app, CO_NMT_internalState_t state);
 
 /**
+ * @brief Dispatch one mainline-owned extension pass after CO_process().
+ *
+ * Callbacks execute in co_main while the current CANopen generation is still valid. They are intended for
+ * non-blocking CANopen services such as an SDO client state machine. A reset-status callback may only perform
+ * bounded cancellation/close work before normal reset teardown retires the generation.
+ *
+ * @param app CANopenNode RT-Thread application instance.
+ * @param dtUs Elapsed mainline time in microseconds.
+ * @param resetStatus Reset command returned by the just-completed CO_process() call.
+ * @param timerNextUs Optional event-driven mainline deadline accumulator.
+ */
+void CO_RTT_lifecycleMainlineProcess(CANopenNodeRTT *app, uint32_t dtUs,
+                                     CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs);
+
+/**
  * @brief Dispatch synchronous extension work between RPDO and TPDO processing.
  *
  * The caller must already hold the application lifecycle mutex and CANopenNode
@@ -289,6 +331,21 @@ void CO_RTT_lifecycleSynchronousProcess(CANopenNodeRTT *app, uint32_t dtUs);
  * @param app CANopenNode RT-Thread application instance.
  */
 void CO_RTT_lifecycleRealtimeTick(CANopenNodeRTT *app);
+
+#if defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER)
+/**
+ * @brief Request one common deferred-worker pass outside the periodic timer path.
+ *
+ * Requests are coalesced to one pending token. This helper is safe while the
+ * caller owns lifecycleMutex; the worker will run after that mutex is released.
+ * It performs no allocation and does not execute extension callbacks inline.
+ *
+ * @param app Running CANopenNode RT-Thread application instance.
+ * @return RT_EOK when a request is queued/already pending, -RT_EINVAL for NULL,
+ *         or -RT_EBUSY before the common worker semaphore is initialized.
+ */
+rt_err_t CO_RTT_lifecycleRequestDeferredProcess(CANopenNodeRTT *app);
+#endif /* defined(PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER) */
 
 /**
  * @brief Drain extension wake state while the shared realtime timer is stopped.
@@ -338,6 +395,8 @@ static inline rt_err_t CO_RTT_lifecycleRegister(CANopenNodeRTT *app, const CO_RT
 #define CO_RTT_lifecycleBindCommunication(app, co, od)  (RT_EOK)
 #define CO_RTT_lifecycleCommunicationReady(app)         do { (void)(app); } while (0)
 #define CO_RTT_lifecycleNmtStateChanged(app, state)      do { (void)(app); (void)(state); } while (0)
+#define CO_RTT_lifecycleMainlineProcess(app, dtUs, resetStatus, timerNextUs) \
+    do { (void)(app); (void)(dtUs); (void)(resetStatus); (void)(timerNextUs); } while (0)
 #define CO_RTT_lifecycleSynchronousProcess(app, dtUs)   do { (void)(app); (void)(dtUs); } while (0)
 #define CO_RTT_lifecycleRealtimeTick(app)               do { (void)(app); } while (0)
 #define CO_RTT_lifecycleResetWakeups(app)               do { (void)(app); } while (0)

@@ -6,10 +6,10 @@
 
 #include "CO_401_device_RTT.h"
 #include "CO_401_device_RTT_demo.h"
+#include "CO_profile_mixed_demo.h"
 
-/* The demo OD reserves slots 0..2 for CiA 402 axes and places generic I/O in logical-device slot 3. */
-#define CO_401_DEMO_LOGICAL_DEVICE 3U
-
+/* The mixed layout header is the single runtime source of logical-device ownership. */
+#define CO_401_DEMO_LOGICAL_DEVICE CO_PROFILE_MIXED_DEMO_CIA401_LOGICAL_DEVICE
 #define CO_401_DEMO_DIGITAL_BANKS CO_401_DEVICE_RTT_DEMO_DIGITAL_BANKS
 #define CO_401_DEMO_ANALOG_CHANNELS CO_401_DEVICE_RTT_DEMO_ANALOG_CHANNELS
 

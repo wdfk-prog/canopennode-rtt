@@ -59,12 +59,16 @@ typedef struct {
     CO_401_device_t device;             /**< Pure-C Device runtime bound to the current generated OD. */
     CO_401_device_RTT_config_t config;  /**< Persistent IO/capability configuration copied by attach. */
     CANopenNodeRTT *app;                /**< Attached application; caller-owned for the adapter lifetime. */
-    rt_thread_t workerThread;           /**< Lower-priority bounded CiA 401 process worker. */
-    struct rt_semaphore cia401Sem;      /**< Wake semaphore released by the shared realtime timer. */
-    rt_atomic_t wakePending;            /**< Coalesced periodic wake: zero or one unconsumed worker request. */
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
+    rt_thread_t workerThread;           /**< Optional profile-private bounded process worker. */
+    struct rt_semaphore cia401Sem;      /**< Wake semaphore for the optional profile-private worker. */
+    rt_atomic_t wakePending;            /**< Coalesced private wake: zero or one unconsumed request. */
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
     rt_bool_t attached;                 /**< True after successful lifecycle registration. */
     rt_bool_t deviceInitialized;        /**< True after the first Device/OD bind succeeds. */
+#if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER)
     rt_bool_t semInitialized;           /**< True while @ref cia401Sem is initialized. */
+#endif /* defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER) */
     rt_bool_t communicationReady;       /**< Gate for the currently bound CANopen communication generation. */
 #if defined(PKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE) \
     || defined(PKG_CANOPENNODE_CIA401_ANALOG_OUTPUT_FAILSAFE)
@@ -84,9 +88,11 @@ typedef struct {
  * table and @c ioObject referenced by @p config remain product-owned and must outlive the
  * CANopenNodeRTT instance.
  *
- * The co_401 worker follows lifecycleMutex -> CANopen OD lock ordering. IOIF callbacks execute
- * while both locks protect the current communication generation and must not recursively acquire
- * either lock. @c outputSupervisionFaultActive runs from the worker with the OD lock released.
+ * The configured profile worker follows lifecycleMutex -> CANopen OD lock ordering. By default
+ * CiA 401 shares the common @c co_prof worker with other profiles; the dedicated-worker Kconfig
+ * option instead creates @c co_401 without changing Device processing semantics. IOIF callbacks
+ * execute while both locks protect the current communication generation and must not recursively
+ * acquire either lock. @c outputSupervisionFaultActive runs with the OD lock released.
  * @c outputSupervisionEstablished is a read-only startup-gate probe sampled eagerly by the
  * worker and synchronously by SDO/RPDO output writes; a write may already own the OD lock.
  * Neither callback may acquire adapter/OD locks.
@@ -116,6 +122,20 @@ typedef struct {
 rt_err_t CO_401_device_RTT_attach(CANopenNodeRTT *app, CO_401_device_RTT_t *runtime,
                                   const CO_401_device_RTT_config_t *config);
 
+/**
+ * @brief Request one deferred CiA 401 process pass on the configured worker.
+ *
+ * The call is safe for producer paths that already hold @c lifecycleMutex. Shared-worker
+ * mode delegates to the common @c co_prof wake. Dedicated-worker mode coalesces timer
+ * and explicit producer requests into one latest-state @c co_401 semaphore token.
+ *
+ * @param runtime Attached CiA 401 RT-Thread runtime.
+ * @return RT_EOK when the request was queued/coalesced, -RT_EINVAL for an invalid
+ *         runtime, -RT_EBUSY before the selected worker is initialized, or the
+ *         underlying RT-Thread wake error.
+ */
+rt_err_t CO_401_device_RTT_requestProcess(CO_401_device_RTT_t *runtime);
+
 #if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_AUTOSTART)
 /** Lifecycle factory order reserved for the automatic local CiA 401 Device runtime. */
 #define CO_401_DEVICE_RTT_AUTOSTART_FACTORY_ORDER 401U
@@ -142,14 +162,14 @@ rt_err_t CO_401_device_RTT_autoAttach(CANopenNodeRTT *app, const CO_401_device_R
 
 #if defined(PKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH)
 /**
- * @brief Bind the optional CiA 401 MSH bench frontend after the worker starts.
+ * @brief Bind the optional CiA 401 MSH bench frontend after scheduling resources are initialized.
  *
  * Commands snapshot the singleton binding, acquire the application lifecycle
  * mutex, revalidate the runtime and then take the OD lock before touching the
  * Device or software demo backend.
  *
- * @param app Running default CANopenNode RT-Thread application instance.
- * @param runtime Started local CiA 401 runtime owned by @p app.
+ * @param app Default CANopenNode RT-Thread application instance entering runtime start.
+ * @param runtime Local CiA 401 runtime whose selected scheduling resources are initialized.
  */
 void CO_401_device_RTT_mshBind(CANopenNodeRTT *app, CO_401_device_RTT_t *runtime);
 

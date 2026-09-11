@@ -1,12 +1,14 @@
 [中文](../zh/cia402-device-rtt.md)
 
-# CiA 402 RT-Thread Device Thread and Communication Reset
+# CiA 402 RT-Thread Device Worker and Communication Reset
 
 The RT-Thread adapter integrates the Pure-C `CO_402_device_manager_t` with `CANopenNodeRTT`. It does not change PDS FSA,
 DriveIF, or generated-OD semantics. It owns the RT-Thread thread, generic lifecycle-extension integration, lock order, communication-init placement, and
 Communication Reset lifecycle.
 
-![CiA 402 RT-Thread thread and reset](../assets/cia402-device-rtt.svg)
+![CiA 402 RT-Thread dedicated-worker example and reset](../assets/cia402-device-rtt.svg)
+
+The diagram shows the optional dedicated-worker topology; the default topology replaces `cia402Sem -> co_402` with the shared `co_prof` worker.
 
 ## 1. Enable and attach
 
@@ -20,8 +22,11 @@ Relevant Kconfig options:
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART` | `n` | With default app auto init and RT-Thread component init, lets a registered CiA 402 factory allocate runtime/axis state and attach it automatically. |
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | Registers the package software-only factory and selects the generated demo OD for software bring-up. |
 | `PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT` | `3` | Number of software-only demo logical devices; intentionally limited to the generated OD range 1..3. |
-| `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` stack size. |
-| `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` priority; it must remain below `co_rt`, so its numeric value must be larger. |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER` | `n` | Use private `co_402` instead of the default shared `co_prof`. |
+| `PKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE` | `2048` | Default shared `co_prof` stack. |
+| `PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY` | `5` | Default shared `co_prof` priority. |
+| `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` stack, visible only in dedicated mode. |
+| `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` priority, visible only in dedicated mode. |
 
 A Device product uses manual initialization and attaches persistent storage before `canopen_app_rtt_init()`:
 
@@ -69,29 +74,23 @@ The macro registers a static factory during RT-Thread component initialization. 
 
 The automatic allocation survives Communication Reset. Final application-init rollback/final lifecycle teardown invokes the slot release callback after `runtimeDeinit()`, frees the automatic axis/runtime owner, and removes only auto-owned slots. Manual slots remain caller-owned and registered.
 
-## 2. Generic lifecycle registry and periodic thread
+## 2. Generic lifecycle registry and Profile worker
 
-`CO_app_RTT.c` no longer calls any `CO_402_device_RTT_*()` API directly. Manual extensions use `CO_RTT_lifecycleRegister()`; auto factories use `CO_RTT_lifecycleRegisterEx()` with a final context-release callback. `PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY` configures both the per-app extension registry and global auto-factory registry capacity (default 4, range 1..255). The registries themselves use no heap; only profile-specific auto factories may allocate their owned runtime contexts. Runtime init/start/reset remains a single generic dispatcher path for both manual and automatic attachments.
-
-The adapter reuses the existing `rtTimer`:
+`CO_app_RTT.c` does not call CiA 402 APIs directly. The adapter registers an `ops + context` pair in the fixed-capacity lifecycle registry. In the default configuration it publishes `deferredProcess`, so the existing realtime timer coalesces one common wake:
 
 ```text
-rtTimer -> rtSem     -> co_rt  (default priority 3)
-        -> cia402Sem -> co_402 (default priority 5)
+rtTimer -> rtSem   -> co_rt   (default priority 3)
+        -> profSem -> co_prof (default priority 5)
+                         -> CiA 401 deferred pass, when shared
+                         -> CiA 402 deferred pass, when shared
+                         -> future Profile deferred passes
 ```
 
-The timer releases `rtSem` first, then calls generic `CO_RTT_lifecycleRealtimeTick()`; the CiA 402 hook releases `cia402Sem`. This path is independent of `PKG_CANOPENNODE_GLOBAL_TIMERNEXT`, so `co_402` is periodically woken in both mainline modes. Each `co_402` token runs one `CO_402_device_process()` pass under:
+`co_prof` takes `lifecycleMutex` once, then invokes shared Profile callbacks in lifecycle registration order. Each callback owns only its OD-lock windows; the CiA 402 callback executes one `CO_402_device_process()` pass and returns with the OD lock released. DriveIF callbacks must remain bounded and non-blocking.
 
-```text
-lifecycleMutex -> CO_LOCK_OD -> Pure-C PDS supervisor -> CO_UNLOCK_OD -> lifecycleMutex release
-```
+With `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER=y`, CiA 402 instead publishes its legacy timer wake hook and owns `cia402Sem -> co_402`; other Profiles may still remain on `co_prof`. `PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG` selects this dedicated mode so ULOG stays outside both lifecycle and OD locks. Both topologies preserve the same supervisor behavior and `lifecycleMutex -> OD lock` order.
 
-This matches the `co_rt` lock order and avoids inversion. DriveIF callbacks execute inside this critical section, so they
-must remain non-blocking, must not sleep, and must not recursively acquire the wrapper lifecycle or OD lock. The default
-priority keeps `co_rt` above `co_402`; final priority, WCET, and jitter require target measurement.
-
-The adapter allows a one-cycle pipeline: an RPDO command received in one realtime cycle can be processed by `co_402`,
-and the resulting Statusword/feedback can be emitted by a later TPDO cycle.
+The scheduling path is independent of `PKG_CANOPENNODE_GLOBAL_TIMERNEXT` and does not insert PDS supervisor work into the synchronous `co_rt` sequence. The adapter still allows the same pipeline: an RPDO command can be consumed by a later Profile-worker pass and reflected by a subsequent TPDO. Final WCET, jitter, priority, and stack margin require target measurement.
 
 ## 3. OD binding order
 

@@ -17,6 +17,7 @@ mkdir -p "$out_dir"
 ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -I"$root_dir/CANopenNode" \
     -I"$root_dir/CANopenNode/example" \
+    -I"$root_dir/profile/common" \
     -I"$root_dir/profile/cia401/common" \
     -I"$root_dir/profile/cia401/device" \
     "$root_dir/CANopenNode/301/CO_ODinterface.c" \
@@ -34,6 +35,7 @@ ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -DPKG_CANOPENNODE_CIA401_DIGITAL_OUTPUT_FAILSAFE=1 \
     -I"$root_dir/CANopenNode" \
     -I"$root_dir/CANopenNode/example" \
+    -I"$root_dir/profile/common" \
     -I"$root_dir/profile/cia401/common" \
     -I"$root_dir/profile/cia401/device" \
     "$root_dir/CANopenNode/301/CO_ODinterface.c" \
@@ -62,6 +64,7 @@ build_analog_variant() {
             -I"$root_dir/.github/ci/canopennode-rtt/stubs/cia401-pdo" \
             -I"$root_dir/CANopenNode" \
             -I"$root_dir/CANopenNode/example" \
+            -I"$root_dir/profile/common" \
             -I"$root_dir/profile/cia401/common" \
             -I"$root_dir/profile/cia401/device" \
             "$root_dir/CANopenNode/301/CO_ODinterface.c" \
@@ -78,6 +81,7 @@ build_analog_variant() {
             "$@" \
             -I"$root_dir/CANopenNode" \
             -I"$root_dir/CANopenNode/example" \
+            -I"$root_dir/profile/common" \
             -I"$root_dir/profile/cia401/common" \
             -I"$root_dir/profile/cia401/device" \
             "$root_dir/CANopenNode/301/CO_ODinterface.c" \
@@ -121,6 +125,9 @@ build_rtt_matrix_variant() {
         -DPKG_CANOPENNODE_RX_THREAD_PRIORITY=6 \
         -DPKG_CANOPENNODE_RX_THREAD_TICK=1 \
         -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_THREAD=1 \
+        -DPKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER=1 \
+        -DPKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE=2048 \
+        -DPKG_CANOPENNODE_PROFILE_THREAD_PRIORITY=5 \
         -DPKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS=1 \
         -DPKG_CANOPENNODE_EM_PRODUCER=1 \
         -DPKG_CANOPENNODE_EM_ERR_STATUS_BITS_COUNT=80 \
@@ -143,6 +150,7 @@ build_rtt_matrix_variant() {
         -I"$root_dir/CANopenNode" \
         -I"$root_dir/CANopenNode/301" \
         -I"$root_dir/profile/cia401/port/rtthread" \
+        -I"$root_dir/profile/common" \
         -I"$root_dir/profile/cia401/common" \
         -I"$root_dir/profile/cia401/device" \
         "$root_dir/CANopenNode/301/CO_ODinterface.c" \
@@ -180,6 +188,51 @@ build_rtt_matrix_variant single-od-all \
     -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_EMCY_BRIDGE=1 \
     -DPKG_CANOPENNODE_RTT_CAN_TX_SUCCESS_OBSERVER=1
 
+build_rtt_msh_compile_variant() {
+    variant=$1
+    shift
+    msh_obj="$out_dir/cia401-rtt-msh-$variant.o"
+
+    ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
+        -DRT_USING_HEAP=1 \
+        -DPKG_CANOPENNODE_CIA401=1 \
+        -DPKG_CANOPENNODE_CIA401_DEVICE=1 \
+        -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_THREAD=1 \
+        -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_AUTOSTART=1 \
+        -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_DEMO=1 \
+        -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_MSH=1 \
+        -DPKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS=1 \
+        -DPKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY=4 \
+        -DPKG_CANOPENNODE_EM_PRODUCER=1 \
+        -DPKG_CANOPENNODE_EM_ERR_STATUS_BITS_COUNT=80 \
+        -DPKG_CANOPENNODE_RT_THREAD_PRIORITY=3 \
+        -DPKG_CANOPENNODE_RT_THREAD_TICK=1 \
+        "$@" \
+        -I"$root_dir/.github/ci/canopennode-rtt/stubs/cia401-rtt" \
+        -I"$root_dir/port/rtthread" \
+        -I"$root_dir/CANopenNode/example" \
+        -I"$root_dir/CANopenNode" \
+        -I"$root_dir/CANopenNode/301" \
+        -I"$root_dir/profile/cia401/port/rtthread" \
+        -I"$root_dir/profile/cia401/demo" \
+        -I"$root_dir/profile/common" \
+        -I"$root_dir/profile/cia401/common" \
+        -I"$root_dir/profile/cia401/device" \
+        -c "$root_dir/profile/cia401/port/rtthread/CO_401_device_RTT_msh.c" \
+        -o "$msh_obj"
+
+    printf 'CIA401_RTT_MSH_COMPILE_CASE_PASS:%s\n' "$variant"
+}
+
+build_rtt_msh_compile_variant shared \
+    -DPKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER=1 \
+    -DPKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE=2048 \
+    -DPKG_CANOPENNODE_PROFILE_THREAD_PRIORITY=5
+build_rtt_msh_compile_variant dedicated \
+    -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER=1 \
+    -DPKG_CANOPENNODE_CIA401_THREAD_STACK_SIZE=1536 \
+    -DPKG_CANOPENNODE_CIA401_THREAD_PRIORITY=6
+
 # Link the real RT-Thread TX path; section GC keeps this Host contract focused on the observer boundary.
 ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -ffunction-sections -fdata-sections \
@@ -194,6 +247,7 @@ ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -DPKG_CANOPENNODE_RX_THREAD_PRIORITY=6 \
     -DPKG_CANOPENNODE_RX_THREAD_TICK=1 \
     -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_THREAD=1 \
+    -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER=1 \
     -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_EMCY_BRIDGE=1 \
     -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_AUTOSTART=1 \
     -DPKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS=1 \
@@ -218,6 +272,7 @@ ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -I"$root_dir/CANopenNode" \
     -I"$root_dir/CANopenNode/301" \
     -I"$root_dir/profile/cia401/port/rtthread" \
+    -I"$root_dir/profile/common" \
     -I"$root_dir/profile/cia401/common" \
     -I"$root_dir/profile/cia401/device" \
     "$root_dir/CANopenNode/301/CO_ODinterface.c" \
@@ -247,6 +302,7 @@ ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -DPKG_CANOPENNODE_RX_THREAD_PRIORITY=6 \
     -DPKG_CANOPENNODE_RX_THREAD_TICK=1 \
     -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_THREAD=1 \
+    -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER=1 \
     -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_EMCY_BRIDGE=1 \
     -DPKG_CANOPENNODE_CIA401_DEVICE_RTT_AUTOSTART=1 \
     -DPKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS=1 \
@@ -272,6 +328,7 @@ ${CC:-cc} -std=c11 -Wall -Wextra -Werror -pedantic \
     -I"$root_dir/CANopenNode" \
     -I"$root_dir/CANopenNode/301" \
     -I"$root_dir/profile/cia401/port/rtthread" \
+    -I"$root_dir/profile/common" \
     -I"$root_dir/profile/cia401/common" \
     -I"$root_dir/profile/cia401/device" \
     "$root_dir/CANopenNode/301/CO_ODinterface.c" \

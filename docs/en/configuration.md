@@ -48,18 +48,24 @@ RX helper priority <= realtime priority < mainline priority
 
 Because RT-Thread uses lower numeric values as higher priorities, the default RX helper priority `2`, realtime priority `3`, and mainline priority `10` follow this model.
 
-The CiA 402 Device thread adds these options when enabled:
+RT-Thread Device Profile adapters use one common deferred worker by default. The hidden
+`PKG_CANOPENNODE_PROFILE_RTT_SHARED_WORKER` symbol is derived automatically whenever at least one enabled Profile adapter has not requested a dedicated worker.
 
 | Option | Default | Purpose |
 |---|---:|---|
-| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_THREAD` | `y` when Device is enabled | Builds the RT adapter; unattached instances create no new RT resources. |
-| `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` thread stack. |
-| `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` priority; the numeric value must be greater than `PKG_CANOPENNODE_RT_THREAD_PRIORITY`. |
+| `PKG_CANOPENNODE_PROFILE_THREAD_STACK_SIZE` | `2048` | Stack for the common `co_prof` worker; size for the deepest enabled shared Profile pass. |
+| `PKG_CANOPENNODE_PROFILE_THREAD_PRIORITY` | `5` | Priority of `co_prof`; its numeric value must be greater than `PKG_CANOPENNODE_RT_THREAD_PRIORITY`. |
+| `PKG_CANOPENNODE_CIA401_DEVICE_RTT_DEDICATED_WORKER` | `n` | Replace CiA 401 participation in `co_prof` with a private `co_401` worker. |
+| `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEDICATED_WORKER` | `n` | Replace CiA 402 participation in `co_prof` with a private `co_402` worker. |
+| `PKG_CANOPENNODE_CIA401_THREAD_STACK_SIZE` | `1536` | `co_401` stack; visible only in dedicated-worker mode. |
+| `PKG_CANOPENNODE_CIA401_THREAD_PRIORITY` | `6` | `co_401` priority; visible only in dedicated-worker mode. |
+| `PKG_CANOPENNODE_CIA402_THREAD_STACK_SIZE` | `2048` | `co_402` stack; visible only in dedicated-worker mode. |
+| `PKG_CANOPENNODE_CIA402_THREAD_PRIORITY` | `5` | `co_402` priority; visible only in dedicated-worker mode. |
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_AUTOSTART` | `n` | Requires default app auto init, RT-Thread component init and heap support; enables automatic runtime/axis construction from a registered factory. |
 | `PKG_CANOPENNODE_CIA402_DEVICE_RTT_DEMO` | `n` | Selects autostart and the generated demo OD, registers a software-only factory, and exposes a configurable 1..3 demo-axis count. |
 | `PKG_CANOPENNODE_CIA402_DEMO_AXIS_COUNT` | `3` | Number of package demo logical devices; valid range is 1..3 because the generated demo OD provides devices 0..2. |
 
-`co_402` reuses the realtime timer without changing timerNext mainline selection. Automatic construction is opt-in. The package demo supplies its own `CO_402_DEVICE_RTT_AUTOSTART_DEFINE(...)` instance; real products keep the demo disabled and provide the macro from persistent product axis/DriveIF configuration. The manual path remains heap-free. See [CiA 402 RT-Thread Device Thread](cia402-device-rtt.md) for lifecycle details.
+The realtime timer wakes the common `co_prof` worker once per deferred cycle; all Profiles assigned to it run sequentially in lifecycle registration order while one communication generation is pinned. Select a dedicated worker only when a Profile needs independent priority or isolation from another Profile's WCET/blocking risk. `PKG_CANOPENNODE_CIA402_DEMO_SYNC_LOG` selects the dedicated CiA 402 worker so ULOG remains outside the shared lifecycle lock. Automatic construction remains opt-in.
 
 The Controller role is deliberately separate from the Device thread:
 

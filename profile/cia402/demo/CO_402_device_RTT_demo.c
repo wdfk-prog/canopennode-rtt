@@ -7,6 +7,7 @@
 #define LOG_LVL LOG_LVL_DBG
 
 #include "CO_402_device_RTT.h"
+#include "CO_profile_mixed_demo.h"
 #if CO_402_CONFIG_DIAGNOSTICS
 #include "301/CO_Emergency.h"
 #endif /* CO_402_CONFIG_DIAGNOSTICS */
@@ -493,7 +494,7 @@ static const CO_402_drive_if_t CO_402_demoDriveIf = {
 /* Generated demo OD provides three consecutive local logical-device blocks. */
 static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
     {
-        .logicalDevice = 0U,
+        .logicalDevice = CO_PROFILE_MIXED_DEMO_CIA402_AXIS0_LOGICAL_DEVICE,
         .drive = &CO_402_demoDriveIf,
         .driveObject = &CO_402_demoAxes[0],
 #if CO_402_CONFIG_DIAGNOSTICS
@@ -506,7 +507,7 @@ static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
 #endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
     },
     {
-        .logicalDevice = 1U,
+        .logicalDevice = CO_PROFILE_MIXED_DEMO_CIA402_AXIS1_LOGICAL_DEVICE,
         .drive = &CO_402_demoDriveIf,
         .driveObject = &CO_402_demoAxes[1],
 #if CO_402_CONFIG_DIAGNOSTICS
@@ -519,7 +520,7 @@ static const CO_402_device_axis_config_t CO_402_demoAxisConfigs[] = {
 #endif /* CO_402_CONFIG_MODE_CSP || CO_402_CONFIG_MODE_CSV || CO_402_CONFIG_MODE_CST */
     },
     {
-        .logicalDevice = 2U,
+        .logicalDevice = CO_PROFILE_MIXED_DEMO_CIA402_AXIS2_LOGICAL_DEVICE,
         .drive = &CO_402_demoDriveIf,
         .driveObject = &CO_402_demoAxes[2],
 #if CO_402_CONFIG_DIAGNOSTICS
