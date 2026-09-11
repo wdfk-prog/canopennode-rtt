@@ -22,6 +22,25 @@ The Controller owns only PDS Controlword bits 0..3 and Fault Reset bit 7. It
 returns a `value + mask` update so PP/HM/Halt and other mode-specific bits remain
 owned by the application.
 
+## Portable transport client
+
+`PKG_CANOPENNODE_CIA402_CONTROLLER_CLIENT` adds
+`CO_402_controller_client` on top of the common `CO_profile_transport` contract.
+The client contains the SDO-backed Statusword/Controlword retry behavior but no
+CANopenNode, RT-Thread, or Lely object. A different platform can reuse it by
+implementing the mandatory common SDO upload/download operations. NMT dispatch
+is optional unless the application also uses the common NMT API.
+
+The SDO-backed client preserves non-PDS Controlword bits with a `0x6040`
+read-modify-write pair. Applications must serialize every writer of remote
+`0x6040` across that complete pair; transport-level serialization of the two
+individual SDO calls does not make the compound update atomic.
+
+`PKG_CANOPENNODE_CIA402_CONTROLLER_RTT` only binds that portable client to
+`CO_profile_master_RTT`; it is a compatibility/backend facade rather than a
+second PDS implementation. Cyclic PDO/SYNC motion control remains a separate
+realtime integration concern.
+
 ## Minimal integration
 
 ```c

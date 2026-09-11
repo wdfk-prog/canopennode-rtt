@@ -24,6 +24,9 @@ typedef struct {
     unsigned tickCount;
     unsigned resetCount;
     unsigned deinitCount;
+    unsigned mainlineCount;
+    uint32_t lastMainlineDtUs;
+    CO_NMT_reset_cmd_t lastResetStatus;
 } fake_profile_t;
 
 static struct rt_thread fakeThread;
@@ -100,6 +103,20 @@ static void resetWake(CANopenNodeRTT *app, void *context)
     ((fake_profile_t *)context)->resetCount++;
 }
 
+static void mainline(CANopenNodeRTT *app, void *context, uint32_t dtUs,
+                     CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs)
+{
+    fake_profile_t *profile = (fake_profile_t *)context;
+
+    (void)app;
+    profile->mainlineCount++;
+    profile->lastMainlineDtUs = dtUs;
+    profile->lastResetStatus = resetStatus;
+    if (timerNextUs != NULL && *timerNextUs > 250U) {
+        *timerNextUs = 250U;
+    }
+}
+
 static void deinit(CANopenNodeRTT *app, void *context)
 {
     fake_profile_t *profile = (fake_profile_t *)context;
@@ -120,6 +137,7 @@ static const CO_RTT_lifecycle_ops_t dedicatedLikeOps = {
     .realtimeTick = tick,
     .resetWakeups = resetWake,
     .runtimeDeinit = deinit,
+    .mainlineProcess = mainline,
 };
 
 rt_err_t rt_sem_init(struct rt_semaphore *sem, const char *name, unsigned value, unsigned flag)
@@ -441,6 +459,32 @@ static bool testNoDeferredProfileCreatesNoWorker(void)
     return true;
 }
 
+static bool testMainlineDispatchCarriesResetAndDeadline(void)
+{
+    CANopenNodeRTT app = {0};
+    CO_t co = {0};
+    OD_t od = {0};
+    fake_profile_t profile = {.id = 'M'};
+    uint32_t timerNextUs = 1000U;
+
+    resetHarness();
+    TEST_ASSERT(CO_RTT_lifecycleRegister(&app, &dedicatedLikeOps, &profile) == RT_EOK);
+    TEST_ASSERT(CO_RTT_lifecycleBindCommunication(&app, &co, &od) == RT_EOK);
+    TEST_ASSERT(CO_RTT_lifecycleRuntimeInit(&app) == RT_EOK);
+
+    CO_RTT_lifecycleMainlineProcess(&app, 1234U, CO_RESET_COMM, &timerNextUs);
+    TEST_ASSERT(profile.mainlineCount == 1U);
+    TEST_ASSERT(profile.lastMainlineDtUs == 1234U);
+    TEST_ASSERT(profile.lastResetStatus == CO_RESET_COMM);
+    TEST_ASSERT(timerNextUs == 250U);
+
+    CO_RTT_lifecycleCommunicationQuiesced(&app);
+    CO_RTT_lifecycleMainlineProcess(&app, 10U, CO_RESET_NOT, &timerNextUs);
+    TEST_ASSERT(profile.mainlineCount == 1U);
+    CO_RTT_lifecycleRuntimeDeinit(&app);
+    return true;
+}
+
 int main(void)
 {
     unsigned passed = 0U;
@@ -463,6 +507,9 @@ int main(void)
     if (testNoDeferredProfileCreatesNoWorker()) {
         passed++;
     }
-    printf("PROFILE_SHARED_WORKER_PASS:%u/6\n", passed);
-    return passed == 6U ? 0 : 1;
+    if (testMainlineDispatchCarriesResetAndDeadline()) {
+        passed++;
+    }
+    printf("PROFILE_SHARED_WORKER_PASS:%u/7\n", passed);
+    return passed == 7U ? 0 : 1;
 }

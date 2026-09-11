@@ -38,6 +38,7 @@ jobs:
           - demo-default
           - demo-cia401-device-rtt
           - demo-cia402-controller-only
+          - demo-profile-controller-rtt
           - demo-cia402-device-rtt-autostart
           - demo-cia402-device-controller
           - demo-cia402-device-diagnostics
@@ -72,6 +73,10 @@ jobs:
       - name: Run CiA 402 Controller Host test
         if: matrix.profile == 'demo-cia402-controller-only'
         run: sh .github/ci/canopennode-rtt/test-cia402-controller-host.sh
+
+      - name: Run profile Controller adapter Host tests
+        if: matrix.profile == 'demo-cia402-controller-only'
+        run: sh .github/ci/canopennode-rtt/test-profile-controller-host.sh
 
       - name: Install host packages
         run: |

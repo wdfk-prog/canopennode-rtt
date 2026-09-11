@@ -82,6 +82,15 @@ typedef struct {
      * must leave it unlocked before returning, and must remain bounded/non-blocking.
      */
     void (*deferredProcess)(CANopenNodeRTT *app, void *context);
+    /**
+     * Run CANopen-service work in the co_main thread after CO_process() and before reset teardown.
+     *
+     * This callback owns no lifecycle/OD lock. It may call CANopen services whose documented owner is the mainline
+     * thread, must remain non-blocking, and may reduce @p timerNextUs for event-driven scheduling. When @p resetStatus
+     * is not CO_RESET_NOT, the old communication generation is still valid only for bounded cancellation/close work.
+     */
+    void (*mainlineProcess)(CANopenNodeRTT *app, void *context, uint32_t dtUs,
+                            CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs);
 } CO_RTT_lifecycle_ops_t;
 
 /** Release function for a lifecycle-owned extension context at final teardown. */
@@ -284,6 +293,21 @@ void CO_RTT_lifecycleCommunicationReady(CANopenNodeRTT *app);
 void CO_RTT_lifecycleNmtStateChanged(CANopenNodeRTT *app, CO_NMT_internalState_t state);
 
 /**
+ * @brief Dispatch one mainline-owned extension pass after CO_process().
+ *
+ * Callbacks execute in co_main while the current CANopen generation is still valid. They are intended for
+ * non-blocking CANopen services such as an SDO client state machine. A reset-status callback may only perform
+ * bounded cancellation/close work before normal reset teardown retires the generation.
+ *
+ * @param app CANopenNode RT-Thread application instance.
+ * @param dtUs Elapsed mainline time in microseconds.
+ * @param resetStatus Reset command returned by the just-completed CO_process() call.
+ * @param timerNextUs Optional event-driven mainline deadline accumulator.
+ */
+void CO_RTT_lifecycleMainlineProcess(CANopenNodeRTT *app, uint32_t dtUs,
+                                     CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs);
+
+/**
  * @brief Dispatch synchronous extension work between RPDO and TPDO processing.
  *
  * The caller must already hold the application lifecycle mutex and CANopenNode
@@ -371,6 +395,8 @@ static inline rt_err_t CO_RTT_lifecycleRegister(CANopenNodeRTT *app, const CO_RT
 #define CO_RTT_lifecycleBindCommunication(app, co, od)  (RT_EOK)
 #define CO_RTT_lifecycleCommunicationReady(app)         do { (void)(app); } while (0)
 #define CO_RTT_lifecycleNmtStateChanged(app, state)      do { (void)(app); (void)(state); } while (0)
+#define CO_RTT_lifecycleMainlineProcess(app, dtUs, resetStatus, timerNextUs) \
+    do { (void)(app); (void)(dtUs); (void)(resetStatus); (void)(timerNextUs); } while (0)
 #define CO_RTT_lifecycleSynchronousProcess(app, dtUs)   do { (void)(app); (void)(dtUs); } while (0)
 #define CO_RTT_lifecycleRealtimeTick(app)               do { (void)(app); } while (0)
 #define CO_RTT_lifecycleResetWakeups(app)               do { (void)(app); } while (0)

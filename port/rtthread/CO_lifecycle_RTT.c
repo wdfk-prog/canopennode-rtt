@@ -605,6 +605,26 @@ void CO_RTT_lifecycleNmtStateChanged(CANopenNodeRTT *app, CO_NMT_internalState_t
     }
 }
 
+/** Dispatch one non-blocking co_main-owned service pass to bound extensions. */
+void CO_RTT_lifecycleMainlineProcess(CANopenNodeRTT *app, uint32_t dtUs,
+                                     CO_NMT_reset_cmd_t resetStatus, uint32_t *timerNextUs)
+{
+    uint8_t i;
+
+    if (app == NULL) {
+        return;
+    }
+
+    for (i = 0U; i < app->lifecycle.count; i++) {
+        CO_RTT_lifecycle_slot_t *slot = &app->lifecycle.slots[i];
+
+        if (slot->runtimeInitialized == RT_TRUE && slot->communicationBound == RT_TRUE
+            && slot->ops->mainlineProcess != NULL) {
+            slot->ops->mainlineProcess(app, slot->context, dtUs, resetStatus, timerNextUs);
+        }
+    }
+}
+
 /**
  * @brief Dispatch synchronous extension processing under the caller-owned co_rt lock boundary.
  *

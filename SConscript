@@ -52,11 +52,20 @@ def _add_required(path):
 
 if GetDepend('PKG_USING_CANOPENNODE'):
     if _has_any('PKG_CANOPENNODE_CIA401', 'PKG_CANOPENNODE_CIA402',
-                'PKG_CANOPENNODE_PROFILE_REGISTRY'):
+                'PKG_CANOPENNODE_PROFILE_REGISTRY', 'PKG_CANOPENNODE_PROFILE_CONTROLLER_PORT',
+                'PKG_CANOPENNODE_PROFILE_MASTER_RTT'):
         CPPPATH += [os.path.join(cwd, 'profile', 'common')]
 
     if GetDepend('PKG_CANOPENNODE_PROFILE_REGISTRY'):
         _add_required(os.path.join('profile', 'common', 'CO_profile_registry.c'))
+
+    if GetDepend('PKG_CANOPENNODE_PROFILE_CONTROLLER_PORT'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'common', 'port')]
+        _add_required(os.path.join('profile', 'common', 'port', 'CO_profile_transport.c'))
+
+    if GetDepend('PKG_CANOPENNODE_PROFILE_MASTER_RTT'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'common', 'port', 'rtthread')]
+        _add_required(os.path.join('profile', 'common', 'port', 'rtthread', 'CO_profile_master_RTT.c'))
 
     if _has_any('PKG_CANOPENNODE_PROFILE_MIXED_RTT',
                 'PKG_CANOPENNODE_PROFILE_MIXED_RTT_DEMO'):
@@ -78,6 +87,17 @@ if GetDepend('PKG_USING_CANOPENNODE'):
         CPPPATH += [
             os.path.join(cwd, 'profile', 'cia401', 'common'),
         ]
+
+    if GetDepend('PKG_CANOPENNODE_CIA401_CONTROLLER'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'cia401', 'controller')]
+        _add_required(os.path.join('profile', 'cia401', 'controller', 'CO_401_controller.c'))
+
+    if GetDepend('PKG_CANOPENNODE_CIA401_CONTROLLER_CLIENT'):
+        _add_required(os.path.join('profile', 'cia401', 'controller', 'CO_401_controller_client.c'))
+
+    if GetDepend('PKG_CANOPENNODE_CIA401_CONTROLLER_RTT'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'cia401', 'port', 'rtthread')]
+        _add_required(os.path.join('profile', 'cia401', 'port', 'rtthread', 'CO_401_controller_RTT.c'))
 
     if GetDepend('PKG_CANOPENNODE_CIA401_DEVICE'):
         CPPPATH += [
@@ -111,6 +131,13 @@ if GetDepend('PKG_USING_CANOPENNODE'):
             os.path.join(cwd, 'profile', 'cia402', 'controller'),
         ]
         _add_required(os.path.join('profile', 'cia402', 'controller', 'CO_402_controller.c'))
+
+    if GetDepend('PKG_CANOPENNODE_CIA402_CONTROLLER_CLIENT'):
+        _add_required(os.path.join('profile', 'cia402', 'controller', 'CO_402_controller_client.c'))
+
+    if GetDepend('PKG_CANOPENNODE_CIA402_CONTROLLER_RTT'):
+        CPPPATH += [os.path.join(cwd, 'profile', 'cia402', 'port', 'rtthread')]
+        _add_required(os.path.join('profile', 'cia402', 'port', 'rtthread', 'CO_402_controller_RTT.c'))
 
     if GetDepend('PKG_CANOPENNODE_CIA402_DEVICE'):
         CPPPATH += [

@@ -14,6 +14,18 @@ The application remains responsible for CANopen network services and transport,
 including Node-ID ownership, NMT, Heartbeat Consumer, SDO Client, PDO, SYNC,
 remote EDS/XDD handling, commissioning, and multi-drive scheduling.
 
+The optional `CO_402_controller_client` layers the same PDS semantics over the
+stack-neutral `CO_profile_transport` SDO control-plane interface.
+`CO_402_controller_RTT` is only a thin compatibility facade binding that portable
+client to `CO_profile_master_RTT`; it no longer owns the PDS retry algorithm.
+Other CANopen stacks or operating systems can reuse the client by supplying the
+common transport operations.
+
+The SDO client preserves non-PDS Controlword bits with a read-modify-write pair.
+All writers of remote `0x6040` must therefore share one owner/lock across that
+entire pair; serializing each individual SDO call is not sufficient to make the
+compound update atomic.
+
 `CO_402_controller_axis_t` intentionally contains no `CO_t`, CANopen transport
 object, RT-Thread object, Node-ID, or heap-owned resource. One remote axis uses
 one caller-owned Controller instance.

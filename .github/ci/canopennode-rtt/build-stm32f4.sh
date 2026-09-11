@@ -369,6 +369,32 @@ append_canopennode_cia402_controller()
     remove_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_NMT_MASTER"
 }
 
+append_canopennode_profile_controller_rtt()
+{
+    local config_file="$1"
+    local rtconfig_file="$2"
+
+    append_canopennode_default_objects "$config_file" "$rtconfig_file"
+
+    # CI patches .config/rtconfig.h after Kconfig resolution, so mirror every selected hidden dependency explicitly.
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_CONTROLLER_PORT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_PROFILE_MASTER_RTT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_SDO_CLIENT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_USING_FIFO"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSIONS"
+    append_config_value "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_RTT_LIFECYCLE_EXTENSION_CAPACITY" "4"
+
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_CONTROLLER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_CONTROLLER_CLIENT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA401_CONTROLLER_RTT"
+
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_CONTROLLER"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_CONTROLLER_CLIENT"
+    append_config_define "$config_file" "$rtconfig_file" "PKG_CANOPENNODE_CIA402_CONTROLLER_RTT"
+}
+
 append_canopennode_cia402_device_controller()
 {
     local config_file="$1"
@@ -542,6 +568,10 @@ append_canopennode_profile()
             log "CI Kconfig profile demo-cia402-controller-only: transport-agnostic CiA 402 Controller only"
             append_canopennode_cia402_controller "$config_file" "$rtconfig_file"
             ;;
+        demo-profile-controller-rtt)
+            log "CI Kconfig profile demo-profile-controller-rtt: portable 401/402 clients with common RTT Master"
+            append_canopennode_profile_controller_rtt "$config_file" "$rtconfig_file"
+            ;;
         demo-cia402-device-rtt-autostart)
             log "CI Kconfig profile demo-cia402-device-rtt-autostart: CiA 402 RT demo factory and lifecycle autostart"
             append_canopennode_cia402_device_rtt_autostart "$config_file" "$rtconfig_file"
@@ -704,6 +734,7 @@ append_canopennode_profile()
             echo "Unknown CANopenNode CI profile: $profile" >&2
             printf '%s\n' \
                 "Supported profiles: demo-minimal demo-default demo-cia401-device-rtt demo-cia402-controller-only" \
+                "  demo-profile-controller-rtt" \
                 "  demo-cia402-device-rtt-autostart demo-cia402-device-controller demo-cia402-device-diagnostics" \
                 "  demo-high-res-time demo-pdo-sync demo-emcy-consumer demo-gfc" \
                 "  demo-nmt-master-test demo-sdo-client-test" \
@@ -907,6 +938,19 @@ verify_profile_outputs()
             verify_profile_object_absent "$bsp_dir" "CO_SDOclient.o"
             verify_profile_object_absent "$bsp_dir" "CO_SYNC.o"
             verify_profile_object_absent "$bsp_dir" "CO_PDO.o"
+            ;;
+        demo-profile-controller-rtt)
+            verify_profile_object "$bsp_dir" "CO_profile_transport.o"
+            verify_profile_object "$bsp_dir" "CO_profile_master_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_lifecycle_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_SDOclient.o"
+            verify_profile_object "$bsp_dir" "CO_401_controller.o"
+            verify_profile_object "$bsp_dir" "CO_401_controller_client.o"
+            verify_profile_object "$bsp_dir" "CO_401_controller_RTT.o"
+            verify_profile_object "$bsp_dir" "CO_402_state.o"
+            verify_profile_object "$bsp_dir" "CO_402_controller.o"
+            verify_profile_object "$bsp_dir" "CO_402_controller_client.o"
+            verify_profile_object "$bsp_dir" "CO_402_controller_RTT.o"
             ;;
         demo-cia402-device-rtt-autostart|demo-cia402-device-controller|demo-cia402-device-diagnostics)
             verify_profile_object "$bsp_dir" "CO_402_state.o"

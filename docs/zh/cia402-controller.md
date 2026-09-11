@@ -20,6 +20,23 @@ caller-owned `CO_402_controller_axis_t` 对应一个远端 axis。
 Controller 只拥有 Controlword 的 PDS bits 0..3 与 Fault Reset bit 7。API 返回
 `value + mask`，因此 PP/HM/Halt 等 mode-specific bits 继续由应用所有。
 
+## 可移植 transport client
+
+`PKG_CANOPENNODE_CIA402_CONTROLLER_CLIENT` 在公共 `CO_profile_transport`
+契约之上增加 `CO_402_controller_client`。Statusword/Controlword 的 SDO
+控制面与失败重试语义位于这个 client 中，但它不依赖 CANopenNode、
+RT-Thread 或 Lely 对象。其他系统只需实现公共 SDO upload/download 即可复用
+同一套 CiA 402 Controller client；只有应用还使用公共 NMT API 时，才需要
+额外实现 NMT dispatch。
+
+SDO client 为保留非 PDS Controlword 位，会对远端 `0x6040` 执行一次
+read-modify-write。应用必须让所有 `0x6040` 写入者在整个读改写窗口共享同一
+owner/lock；仅分别串行化两次 SDO 调用并不能让这个复合操作具备原子性。
+
+`PKG_CANOPENNODE_CIA402_CONTROLLER_RTT` 只负责把 portable client 绑定到
+`CO_profile_master_RTT`，不再维护第二份 PDS 算法。Cyclic PDO/SYNC 运动控制
+仍属于独立的实时 transport 集成范围。
+
 ## 最小集成示例
 
 ```c
