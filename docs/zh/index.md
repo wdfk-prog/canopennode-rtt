@@ -38,5 +38,5 @@
 
 ## 仓库入口
 
-- [English README](../../README.md)
-- [中文 README](../../README.zh-CN.md)
+- [English README](https://github.com/wdfk-prog/canopennode-rtt/blob/master/README.md)
+- [中文 README](https://github.com/wdfk-prog/canopennode-rtt/blob/master/README.zh-CN.md)
