@@ -186,8 +186,11 @@ jobs:
 
       - name: Generate Doxygen HTML
         run: |
+          rm -rf build/doxygen
+          mkdir -p build/doxygen
           doxygen Doxyfile 2>&1 | tee doxygen.log
           test "${PIPESTATUS[0]}" -eq 0
+          test -f build/doxygen/html/index.html
 
       - name: Upload Doxygen log
         if: always()
@@ -201,5 +204,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: doxygen-html
-          path: _doxygen/html
+          path: build/doxygen/html
           if-no-files-found: error

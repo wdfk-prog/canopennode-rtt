@@ -1,0 +1,74 @@
+site_name: CANopenNode RT-Thread
+site_description: RT-Thread integration package for CANopenNode
+site_url: https://wdfk-prog.github.io/canopennode-rtt/
+repo_url: https://github.com/wdfk-prog/canopennode-rtt
+repo_name: wdfk-prog/canopennode-rtt
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+
+nav:
+  - Home: README.md
+  - English:
+      - "Overview": en/index.md
+      - "Quick start": en/quick-start.md
+      - "RT-Thread integration": en/rt-thread-integration.md
+      - "Configuration": en/configuration.md
+      - "Object Dictionary": en/object-dictionary.md
+      - "High-resolution time": en/high-resolution-time.md
+      - "LSS persistence": en/lss-persistence.md
+      - "CiA 402 Device core": en/cia402-device-core.md
+      - "CiA 402 RT-Thread integration": en/cia402-device-rtt.md
+      - "CiA 402 product integration": en/cia402.md
+      - "CiA 402 Controller": en/cia402-controller.md
+      - "Submodule update": en/submodule-update.md
+      - "Testing": en/testing.md
+      - "NMT master test": en/nmt-master-test.md
+      - "Troubleshooting": en/troubleshooting.md
+  - 中文:
+      - "文档首页": zh/index.md
+      - "快速接入": zh/quick-start.md
+      - "RT-Thread 集成": zh/rt-thread-integration.md
+      - "配置说明": zh/configuration.md
+      - "Object Dictionary": zh/object-dictionary.md
+      - "高分辨率时间": zh/high-resolution-time.md
+      - "LSS 持久化": zh/lss-persistence.md
+      - "CiA 402 Device Core": zh/cia402-device-core.md
+      - "CiA 402 RT-Thread 集成": zh/cia402-device-rtt.md
+      - "CiA 402 产品集成": zh/cia402.md
+      - "CiA 402 Controller": zh/cia402-controller.md
+      - "子模块更新": zh/submodule-update.md
+      - "测试": zh/testing.md
+      - "NMT Master 测试": zh/nmt-master-test.md
+      - "故障排查": zh/troubleshooting.md
+  - API Reference: https://wdfk-prog.github.io/canopennode-rtt/api/
+
+exclude_docs: |
+  /doxygen-mainpage.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight
+
+plugins:
+  - search
+
+validation:
+  nav:
+    not_found: warn
+  links:
+    not_found: info
+    anchors: info
